@@ -153,12 +153,36 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .row button:disabled,.row select:disabled{opacity:.45;cursor:not-allowed}
 #seed{margin:0 0 16px}
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:9;max-width:calc(100% - 32px)}
+.cnav{display:flex;gap:6px}
+.cbtn{min-height:44px;min-width:44px;padding:0 14px;border-radius:6px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;font:600 16px "Red Hat Text",sans-serif;cursor:pointer}
+.cbtn:hover{background:rgba(255,255,255,.12)}
+.key{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key i.todo,.chip2.todo{background:var(--panel);border:1px solid var(--line)}
+.key i.prog,.chip2.prog{background:var(--blue)}
+.key i.blk,.chip2.blk{background:var(--blk)}
+.key i.dn,.chip2.dn{background:var(--goldsoft)}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.cal .dow{font-size:13px;font-weight:600;color:var(--mute);padding:8px;border-right:1px solid var(--line);border-bottom:2px solid var(--ink)}
+.cal .day{min-height:112px;padding:6px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.cal .day.out{background:var(--panel)}.cal .day.out .dn2{opacity:.4}
+.dn2{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.cal .day.today .dn2{background:var(--red);color:#fff;border-radius:999px;padding:0 7px;align-self:flex-start}
+.chip2{display:block;width:100%;text-align:left;border:0;border-radius:4px;padding:3px 6px;font:500 12px/1.3 "Red Hat Text",sans-serif;color:var(--ink);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip2.dn{text-decoration:line-through;color:var(--mute)}
+.chip2.late{box-shadow:inset 3px 0 0 #c8302d}
+.more{font-size:12px;color:var(--mute);border:0;background:none;text-align:left;cursor:pointer;padding:0 6px}
+.agenda{display:none}
+.ag h3{font:700 16px "Red Hat Display",sans-serif;margin:18px 0 6px}
+.ag .chip2{white-space:normal;font-size:14px;padding:8px 10px;margin-bottom:6px}
+#tdn{margin:6px 0 14px}
+@media(max-width:700px){.cal{display:none}.agenda{display:block}}
 </style>
 </head>
 <body>
 <nav class="nav" aria-label="Pages"><div class="wrap">
   <span class="brand">TUBC 2027</span>
-  <div class="tabs" hidden><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#structure" id="t-structure">Committee structure</a><a href="#who" id="t-who">Who to ask</a><a href="#access" id="t-access" hidden>Access</a></div>
+  <div class="tabs" hidden><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#structure" id="t-structure">Committee structure</a><a href="#who" id="t-who">Who to ask</a><a href="#access" id="t-access" hidden>Access</a></div>
   <div class="me" id="me" hidden><span id="mename"></span><span class="lvl" id="melvl"></span><button type="button" class="ghost sm" id="out">Sign out</button></div>
 </div></nav>
 <div class="view gate" id="v-login" hidden><div class="gbox">
@@ -244,6 +268,22 @@ dialog h4{margin:18px 0 6px;font-size:15px}
   <div id="ddtk"></div>
   <div class="da"><button type="button" class="ghost" id="ddgo">See in Tracker</button><button type="submit" class="pri" id="dds">Save heads</button></div>
 </form></dialog>
+<div class="view" id="v-calendar" hidden>
+<header class="band top"><div class="wrap">
+  <div class="head"><div><h1 id="cmon">Calendar</h1><p class="sub" id="csub"></p></div>
+  <div class="cnav"><button type="button" class="cbtn" id="cprev" aria-label="Previous month">‹</button><button type="button" class="cbtn" id="ctoday">Today</button><button type="button" class="cbtn" id="cnext" aria-label="Next month">›</button></div></div>
+</div></header>
+<main class="band"><div class="wrap">
+  <div class="tools"><label for="cown" class="o">Owner</label><select id="cown"></select>
+    <span class="key"><i class="todo"></i>To do</span><span class="key"><i class="prog"></i>In progress</span><span class="key"><i class="blk"></i>Blocked</span><span class="key"><i class="dn"></i>Done</span></div>
+  <div class="cal" id="cal"></div>
+  <div class="agenda" id="agenda"></div>
+</div></main>
+</div>
+<dialog id="td" aria-labelledby="tdt"><div class="dh"><h3 id="tdt"></h3><button type="button" class="x" id="tdx" aria-label="Close">×</button></div>
+  <p class="role" id="tdm"></p><p id="tdn"></p>
+  <label for="tds" class="o">Status</label> <select id="tds" class="st"></select><p class="by" id="tdb"></p>
+</dialog>
 <div class="view" id="v-tracker" hidden>
 <header class="band top"><div class="wrap">
   <div class="head">
@@ -315,10 +355,10 @@ const canTask = t => isAdmin() || (me?.role==="head" && t.depts?.includes(me.dep
 const canHeads = d => isAdmin() || (me?.role==="head" && me.dept===d);
 
 // ---------- views ----------
-const VIEWS = ["login","noaccess","tracker","structure","who","access"];
+const VIEWS = ["login","noaccess","tracker","calendar","structure","who","access"];
 function show(v){ for(const n of VIEWS){ const el=$("v-"+n); if(el) el.hidden = n!==v; }
-  for(const n of ["tracker","structure","who","access"]){ const a=$("t-"+n); if(n===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); } }
-function route(){ if(!me) return; const h=location.hash.slice(1); show(["structure","who"].includes(h)||(h==="access"&&isAdmin())?h:"tracker"); }
+  for(const n of ["tracker","calendar","structure","who","access"]){ const a=$("t-"+n); if(n===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); } }
+function route(){ if(!me) return; const h=location.hash.slice(1); show(["calendar","structure","who"].includes(h)||(h==="access"&&isAdmin())?h:"tracker"); }
 window.addEventListener("hashchange", ()=>{ route(); window.scrollTo(0,0); });
 
 // ---------- auth ----------
@@ -365,6 +405,7 @@ function render(){
     const d=T.filter(t=>t.phase===i&&t.status==="dn").length, n=T.filter(t=>t.phase===i).length;
     return `<section class="phase" id="ph${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2>${rows.length?rows.map(t=>{const ok=canTask(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}"><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta"><span class="d">${fmt(t.due)}</span></div><div class="tcell"><span class="t">${esc(t.title)}</span>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta"><span class="o">${esc(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div>${isAdmin()?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:"<span></span>"}</div>`}).join(""):`<p class="empty">${T.length?"Nothing here with these filters.":"No tasks yet."}</p>`}</section>`;
   }).join("");
+  renderCal();
 }
 const setStatus = (id,status)=> updateDoc(doc(db,"tasks",id),{status,updatedBy:me.name,updatedAt:serverTimestamp()}).catch(fail);
 
@@ -389,6 +430,48 @@ $("np").innerHTML = PH.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join(
 $("addf").addEventListener("submit", e=>{ e.preventDefault(); const title=$("nt").value.trim(); if(!title) return; const owner=$("no").value.trim()||"PVP";
   addDoc(collection(db,"tasks"),{title,due:$("nd").value,owner,depts:toks(owner),status:"todo",phase:+$("np").value,note:"",updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{$("nt").value="";}).catch(fail); });
 $("seed").onclick = async ()=>{ const b=writeBatch(db); SEED.forEach(t=>b.set(doc(collection(db,"tasks")),{title:t[0],due:t[1],owner:t[2],depts:toks(t[2]),status:"todo",phase:t[4],note:t[5]||"",updatedBy:"",updatedAt:serverTimestamp()})); try{ await b.commit(); toast("Starter tasks loaded."); }catch(e){ fail(e); } };
+
+
+// ---------- calendar ----------
+const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+let cm=(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1);})();
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const chip=t=>`<button type="button" class="chip2 ${t.status}${t.due<today&&t.status!=="dn"?" late":""}" data-task="${t.id}" title="${esc(t.title)} · ${esc(t.owner)}">${esc(t.title)}</button>`;
+function renderCal(){
+  if(!$("cal")) return;
+  const owners=[...new Set(tasks.flatMap(t=>toks(t.owner)))].sort(); if(f.own&&!owners.includes(f.own)) owners.push(f.own);
+  $("cown").innerHTML='<option value="">Everyone</option>'+owners.map(o=>`<option${o===f.own?" selected":""}>${esc(o)}</option>`).join("");
+  const T=tasks.filter(t=>t.due&&(!f.own||toks(t.owner).includes(f.own)));
+  const by={}; T.forEach(t=>(by[t.due]=by[t.due]||[]).push(t));
+  const y=cm.getFullYear(), m=cm.getMonth();
+  $("cmon").textContent=MON[m]+" "+y;
+  const inMonth=T.filter(t=>t.due.startsWith(`${y}-${String(m+1).padStart(2,"0")}`));
+  const open=inMonth.filter(t=>t.status!=="dn").length;
+  $("csub").textContent=inMonth.length?`${inMonth.length} task${inMonth.length>1?"s":""} due this month · ${open} still open`:"No tasks due this month";
+  const start=new Date(y,m,1); const lead=(start.getDay()+6)%7; const first=new Date(y,m,1-lead);
+  const weeks=Math.ceil((lead+new Date(y,m+1,0).getDate())/7);
+  let html=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>`<div class="dow">${d}</div>`).join("");
+  for(let i=0;i<weeks*7;i++){ const d=new Date(first.getFullYear(),first.getMonth(),first.getDate()+i), k=iso(d), ts=(by[k]||[]);
+    html+=`<div class="day${d.getMonth()!==m?" out":""}${k===today?" today":""}"><span class="dn2">${d.getDate()}</span>${ts.slice(0,3).map(chip).join("")}${ts.length>3?`<button type="button" class="more" data-day="${k}">+${ts.length-3} more</button>`:""}</div>`; }
+  $("cal").innerHTML=html;
+  const days=Object.keys(by).filter(k=>k.startsWith(`${y}-${String(m+1).padStart(2,"0")}`)).sort();
+  $("agenda").innerHTML=days.length?days.map(k=>`<div class="ag"><h3>${new Date(k+"T00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</h3>${by[k].map(chip).join("")}</div>`).join(""):`<p class="empty">No tasks due this month.</p>`;
+}
+$("cprev").onclick=()=>{cm=new Date(cm.getFullYear(),cm.getMonth()-1,1);renderCal();};
+$("cnext").onclick=()=>{cm=new Date(cm.getFullYear(),cm.getMonth()+1,1);renderCal();};
+$("ctoday").onclick=()=>{const d=new Date();cm=new Date(d.getFullYear(),d.getMonth(),1);renderCal();};
+$("cown").addEventListener("change",e=>{f.own=e.target.value;render();});
+let curTask=null;
+function openTask(id){ const t=tasks.find(x=>x.id===id); if(!t) return; curTask=id;
+  $("tdt").textContent=t.title; $("tdm").textContent=`Due ${fmt(t.due)} · ${t.owner} · ${PH[t.phase]?.[0]||""}`;
+  $("tdn").textContent=t.note||""; $("tdn").hidden=!t.note;
+  $("tds").innerHTML=Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("");
+  $("tds").className="st "+t.status; $("tds").disabled=!canTask(t);
+  $("tdb").textContent=t.updatedBy?`Updated by ${t.updatedBy}`:(canTask(t)?"":"You can view this task but not change it.");
+  try{$("td").showModal();}catch(e){$("td").setAttribute("open","");} }
+$("tds").addEventListener("change",e=>{ if(curTask){ setStatus(curTask,e.target.value); $("tds").className="st "+e.target.value; } });
+$("tdx").onclick=()=>{ try{$("td").close();}catch(e){$("td").removeAttribute("open");} };
+document.addEventListener("click",e=>{ const c=e.target.closest("[data-task]"); if(c){ openTask(c.dataset.task); return; } const mo=e.target.closest("[data-day]"); if(mo){ const ts=tasks.filter(t=>t.due===mo.dataset.day&&(!f.own||toks(t.owner).includes(f.own))); mo.outerHTML=ts.slice(3).map(chip).join(""); } });
 
 // ---------- structure ----------
 function renderHeads(){
