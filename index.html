@@ -58,7 +58,7 @@ select,input{font:16px "Red Hat Text",sans-serif;padding:8px 10px;min-height:44p
 .add button{background:var(--red);color:#fff;border:0;border-radius:6px;padding:0 18px;min-height:44px;font:600 15px "Red Hat Text",sans-serif;cursor:pointer}
 .empty{color:var(--mute);padding:12px 0}
 .foot{font-size:13px;color:var(--mute)}
-@media(max-width:760px){.line{grid-template-columns:repeat(3,minmax(0,1fr))}.now{display:none}.row{grid-template-columns:44px minmax(0,1fr) 36px;grid-template-areas:"k t x" "k m m"}.row .tick{grid-area:k}.row .tcell{grid-area:t}.row .acts{grid-area:x}.grip{display:none!important}.row .meta{grid-area:m;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}.add{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.add .wide{grid-column:1/-1}}
+@media(max-width:760px){.line{grid-template-columns:repeat(3,minmax(0,1fr))}.now{display:none}.row{grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"k t x" "k d d" "k s s";row-gap:6px;align-items:start}.row .tick{margin-top:2px}.row .m1{grid-area:d;font-size:14px;color:var(--mute)}.row .m2{grid-area:s;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.row .tick{grid-area:k}.row .tcell{grid-area:t}.row .acts{grid-area:x}.grip{display:none!important}.add{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.add .wide{grid-column:1/-1}}
 @media(min-width:761px){.row .meta{display:contents}}
 @media(prefers-reduced-motion:reduce){.bar i{transition:none}}
 .nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:0 max(5vw,16px)}
@@ -203,14 +203,39 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .sw input:checked+span::after{transform:translateX(18px)}
 .sw input:focus-visible+span{outline:3px solid var(--gold);outline-offset:2px}
 @media(max-width:600px){.ef .two{grid-template-columns:minmax(0,1fr)}}
+.menu,.pname,.dhead,.scrim{display:none}
+.drawer{display:contents}
+@media(max-width:760px){
+.nav .wrap{flex-wrap:nowrap;gap:10px;min-height:56px}
+.menu{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;margin-left:-10px;padding:0 10px;border:0;background:none;cursor:pointer}
+.menu span{display:block;height:2px;background:var(--ink);border-radius:2px}
+.menu:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.pname{display:block;margin-left:auto;font-weight:600;font-size:15px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drawer{position:fixed;top:0;left:0;bottom:0;z-index:30;width:min(300px,84vw);background:var(--bg);display:flex;flex-direction:column;padding:12px 16px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 0 40px rgba(0,0,0,.25);transform:translateX(-105%);transition:transform .22s ease;overflow-y:auto;visibility:hidden}
+.drawer.open{transform:none;visibility:visible}
+.dhead{display:flex;justify-content:space-between;align-items:center;min-height:48px;margin-bottom:8px}
+.drawer .tabs{flex-direction:column;gap:2px;overflow:visible}
+.drawer .tabs a{min-height:50px;padding:0 14px;border-bottom:0;border-left:3px solid transparent;border-radius:0 8px 8px 0;font-size:17px}
+.drawer .tabs a[aria-current=page]{border-left-color:var(--red);background:var(--panel);color:var(--ink)}
+.drawer .me{margin:auto 0 0;padding-top:16px;border-top:1px solid var(--line);flex-direction:column;align-items:flex-start;gap:8px;font-size:15px}
+.drawer .me .ghost{width:100%}
+.scrim{display:block;position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.4)}
+.phase{scroll-margin-top:64px}
+}
+@media(max-width:760px) and (prefers-reduced-motion:reduce){.drawer{transition:none}}
 </style>
 </head>
 <body>
 <nav class="nav" aria-label="Pages"><div class="wrap">
-  <span class="brand">TUBC 2027</span>
+  <button type="button" class="menu" id="menu" aria-label="Open menu" aria-controls="drawer" aria-expanded="false" hidden><span></span><span></span><span></span></button>
+  <span class="brand">TUBC 2027</span><span class="pname" id="pname"></span>
+  <div class="drawer" id="drawer">
+  <div class="dhead"><span class="brand">TUBC 2027</span><button type="button" class="x" id="dclose" aria-label="Close menu">×</button></div>
   <div class="tabs" hidden><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#structure" id="t-structure">Committee structure</a><a href="#who" id="t-who">Who to ask</a><a href="#access" id="t-access" hidden>Access</a></div>
   <div class="me" id="me" hidden><span id="mename"></span><span class="lvl" id="melvl"></span><button type="button" class="ghost sm" id="out">Sign out</button></div>
+  </div>
 </div></nav>
+<div class="scrim" id="scrim" hidden></div>
 <div class="view gate" id="v-login" hidden><div class="gbox">
   <h1>TUBC 2027</h1><p>Sign in with the Google account your PVP added.</p>
   <button type="button" class="pri big2" id="login">Sign in with Google</button><p class="err" id="lerr"></p>
@@ -402,20 +427,29 @@ const canMove = t => can("move") || canEdit(t);
 const canHeads = d => can("headsAny") || (can("headsOwn") && me?.dept===d);
 const ordKey = t => typeof t.order==="number" ? t.order : (t.due ? Date.parse(t.due)/86400000 : 99999);
 
+// ---------- mobile menu ----------
+function openMenu(){ $("drawer").classList.add("open"); $("scrim").hidden=false; $("menu").setAttribute("aria-expanded","true"); document.body.style.overflow="hidden"; setTimeout(()=>$("dclose").focus(),50); }
+function closeMenu(){ $("drawer").classList.remove("open"); $("scrim").hidden=true; $("menu").setAttribute("aria-expanded","false"); document.body.style.overflow=""; }
+$("menu").onclick=openMenu; $("dclose").onclick=closeMenu; $("scrim").onclick=closeMenu;
+document.querySelector(".tabs").addEventListener("click", e=>{ if(e.target.closest("a")) closeMenu(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeMenu(); });
+
 // ---------- views ----------
 const VIEWS = ["login","noaccess","tracker","calendar","structure","who","access"];
-function show(v){ for(const n of VIEWS){ const el=$("v-"+n); if(el) el.hidden = n!==v; }
+const PNAMES={tracker:"Tracker",calendar:"Calendar",structure:"Committee structure",who:"Who to ask",access:"Access"};
+function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") : "";
+  for(const n of VIEWS){ const el=$("v-"+n); if(el) el.hidden = n!==v; }
   for(const n of ["tracker","calendar","structure","who","access"]){ const a=$("t-"+n); if(n===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); } }
 function route(){ if(!me) return; const h=location.hash.slice(1); show(["calendar","structure","who"].includes(h)||(h==="access"&&isAdmin())?h:"tracker"); }
 window.addEventListener("hashchange", ()=>{ route(); window.scrollTo(0,0); });
 
 // ---------- auth ----------
-$("login").onclick = async ()=>{ $("lerr").textContent=""; try{ await signInWithPopup(auth,new GoogleAuthProvider()); }catch(e){ $("lerr").textContent = e.code==="auth/popup-blocked" ? "Allow pop-ups for this site, then try again." : "Sign-in didn't finish. Try again."; } };
-$("out").onclick = $("out2").onclick = ()=>signOut(auth);
+$("login").onclick = async ()=>{ $("lerr").textContent=""; try{ const pv=new GoogleAuthProvider(); pv.setCustomParameters({prompt:"select_account"}); await signInWithPopup(auth,pv); }catch(e){ $("lerr").textContent = e.code==="auth/popup-blocked" ? "Allow pop-ups for this site, then try again." : "Sign-in didn't finish. Try again."; } };
+$("out").onclick = $("out2").onclick = ()=>{ closeMenu(); signOut(auth); };
 
 onAuthStateChanged(auth, async u=>{
   unsub.forEach(fn=>fn()); unsub=[]; me=null;
-  document.querySelector(".tabs").hidden = true; $("me").hidden = true;
+  document.querySelector(".tabs").hidden = true; $("me").hidden = true; $("menu").hidden = true; $("pname").textContent = ""; closeMenu();
   if(!u){ show("login"); return; }
   const email = (u.email||"").toLowerCase();
   let snap = null;
@@ -425,7 +459,7 @@ onAuthStateChanged(auth, async u=>{
   if(!m){ $("naemail").textContent = email; show("noaccess"); return; }
   me = {email, name:u.displayName||email, role:m.role, dept:m.dept||""};
   $("mename").textContent = me.name; $("melvl").textContent = me.role + (me.role==="head"&&me.dept?" · "+me.dept:"");
-  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("t-access").hidden = !isAdmin();
+  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("t-access").hidden = !isAdmin();
   if(me.role==="head" && me.dept) f.own = me.dept;
   start(); route();
 });
@@ -452,7 +486,7 @@ function render(){
   $("list").innerHTML = PH.map((p,i)=>{
     const rows=T.filter(t=>t.phase===i && (!f.own||toks(t.owner).includes(f.own)) && (!f.hide||t.status!=="dn") && (!f.late||(t.due<today&&t.status!=="dn"))).sort((a,b)=>ordKey(a)-ordKey(b));
     const d=T.filter(t=>t.phase===i&&t.status==="dn").length, n=T.filter(t=>t.phase===i).length;
-    return `<section class="phase" id="ph${i}" data-phase="${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2><div class="rows" data-phase="${i}">${rows.length?rows.map(t=>{const ok=canTask(t),ed=canEdit(t),mv=canMove(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}" data-id="${t.id}"${mv?' draggable="true"':""}><span class="grip${mv?"":" off"}" title="${mv?"Drag to move":""}" aria-hidden="true">⋮⋮</span><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta"><span class="d">${fmt(t.due)}</span></div><div class="tcell"><span class="t">${esc(t.title)}</span>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta"><span class="o">${esc(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div><div class="acts">${ed?`<button class="ico" data-edit="${t.id}" aria-label="Edit task" title="Edit">✎</button>`:""}${can("del")?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:""}</div></div>`}).join(""):`<p class="empty drop-empty">${T.length?(f.own||f.hide||f.late?"Nothing here with these filters.":"No tasks in this topic yet."):"No tasks yet."}</p>`}</div></section>`;
+    return `<section class="phase" id="ph${i}" data-phase="${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2><div class="rows" data-phase="${i}">${rows.length?rows.map(t=>{const ok=canTask(t),ed=canEdit(t),mv=canMove(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}" data-id="${t.id}"${mv?' draggable="true"':""}><span class="grip${mv?"":" off"}" title="${mv?"Drag to move":""}" aria-hidden="true">⋮⋮</span><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta m1"><span class="d">${fmt(t.due)}</span></div><div class="tcell"><span class="t">${esc(t.title)}</span>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta m2"><span class="o">${esc(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div><div class="acts">${ed?`<button class="ico" data-edit="${t.id}" aria-label="Edit task" title="Edit">✎</button>`:""}${can("del")?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:""}</div></div>`}).join(""):`<p class="empty drop-empty">${T.length?(f.own||f.hide||f.late?"Nothing here with these filters.":"No tasks in this topic yet."):"No tasks yet."}</p>`}</div></section>`;
   }).join("");
   renderCal();
 }
