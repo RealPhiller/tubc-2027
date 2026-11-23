@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TUBC 2027 Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE work: a PVP's control sheet
+   IDEA a competition run-sheet: phases as bands on a year line, tasks as ticket rows
+   PICTURE the year timeline: six phase segments filling with done tasks, a today marker
+   COLOUR Thammasat red ground band, white panels, gold for done, ink black
+   TYPE Red Hat Display + Red Hat Text
+   LAYOUT title + overall % in red band, timeline beneath; filters; phase lists stack */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#121014);--panel:light-dark(#faf7f5,#1c1a1f);--ink:light-dark(#17120f,#f1ece8);--mute:light-dark(#6b625c,#a59c96);--line:light-dark(#e7e0db,#2e2a31);--red:#9b1b1e;--redd:light-dark(#9b1b1e,#5a1012);--gold:#e8a817;--goldsoft:light-dark(#fbefcf,#3d3015);--blue:light-dark(#dbe7ff,#1c2a47);--blk:light-dark(#fde0de,#47191b)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Red Hat Text",system-ui,sans-serif;overflow-x:clip}
+h1,h2{font-family:"Red Hat Display",system-ui,sans-serif;letter-spacing:-.02em;line-height:1.05;margin:0}
+.band{padding:clamp(24px,4vw,48px) max(5vw,16px)}
+.top{background:var(--redd);color:#fff}
+.wrap{max-width:1240px;margin:0 auto}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px 32px}
+h1{font-size:clamp(32px,5vw,48px);text-wrap:balance}
+.sub{margin:8px 0 0;opacity:.85}
+.big{font:700 clamp(40px,7vw,64px)/1 "Red Hat Display",sans-serif;white-space:nowrap}
+.big small{font-size:16px;font-weight:500;display:block;opacity:.85;margin-top:4px}
+.line{margin-top:28px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;position:relative}
+.seg{background:rgba(255,255,255,.14);border-radius:4px;padding:10px 10px 12px;cursor:pointer;border:0;color:#fff;text-align:left;font:inherit;min-height:44px}
+.seg:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.seg b{display:block;font-size:14px}.seg span{font-size:13px;opacity:.85;white-space:nowrap}
+.bar{height:6px;background:rgba(255,255,255,.22);border-radius:3px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);transition:width .4s}
+.now{position:absolute;top:-10px;bottom:-6px;width:2px;background:var(--gold)}
+.now::after{content:"Today";position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--gold);white-space:nowrap}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px}
+select,input{font:16px "Red Hat Text",sans-serif;padding:8px 10px;min-height:44px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 14px;min-height:44px;font:500 15px "Red Hat Text",sans-serif;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.save{margin-left:auto;font-size:13px;color:var(--mute)}
+.phase{margin:0 0 28px;scroll-margin-top:72px}
+.phase h2{font-size:22px;display:flex;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.phase h2 span{font:500 15px "Red Hat Text",sans-serif;color:var(--mute);white-space:nowrap}
+.row{display:grid;grid-template-columns:44px 92px minmax(0,1fr) 150px 128px 36px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.row.done .t{text-decoration:line-through;color:var(--mute)}
+.row.late .d{color:#c8302d;font-weight:600}
+.tick{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center;color:transparent;font-size:18px}
+.row.done .tick{background:var(--gold);border-color:var(--gold);color:#17120f}
+.d{font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.t{font-weight:500}.n{display:block;font-size:14px;color:var(--mute);font-weight:400}
+.o{font-size:14px;color:var(--mute)}
+.st{min-height:36px;padding:4px 8px;font-size:14px;border-radius:999px;border:0}
+.st.todo{background:var(--panel)}.st.prog{background:var(--blue)}.st.blk{background:var(--blk)}.st.dn{background:var(--goldsoft)}
+.del{border:0;background:none;color:var(--mute);cursor:pointer;font-size:20px;min-height:36px}
+.add{background:var(--panel);border-radius:8px;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) 160px 150px 150px auto;gap:10px;margin-top:8px}
+.add button{background:var(--red);color:#fff;border:0;border-radius:6px;padding:0 18px;min-height:44px;font:600 15px "Red Hat Text",sans-serif;cursor:pointer}
+.empty{color:var(--mute);padding:12px 0}
+.foot{font-size:13px;color:var(--mute)}
+@media(max-width:760px){.line{grid-template-columns:repeat(3,minmax(0,1fr))}.now{display:none}.row{grid-template-columns:44px minmax(0,1fr) 36px;grid-template-areas:"k t x" "k m m"}.row .tick{grid-area:k}.row .tcell{grid-area:t}.row .del{grid-area:x}.row .meta{grid-area:m;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}.add{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.add .wide{grid-column:1/-1}}
+@media(min-width:761px){.row .meta{display:contents}}
+@media(prefers-reduced-motion:reduce){.bar i{transition:none}}
+.nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:0 max(5vw,16px)}
+.nav .wrap{display:flex;align-items:center;gap:24px;min-height:56px;flex-wrap:wrap}
+.brand{font:700 18px "Red Hat Display",sans-serif;color:var(--red);letter-spacing:-.01em;white-space:nowrap}
+:root[data-theme=dark] .brand{color:#f0605f}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .brand{color:#f0605f}}
+.tabs{display:flex;gap:4px}
+.tabs a{display:flex;align-items:center;min-height:56px;padding:0 14px;color:var(--mute);text-decoration:none;font-weight:600;border-bottom:3px solid transparent}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current=page]{color:var(--ink);border-bottom-color:var(--red)}
+.tabs a:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:20px;font-size:14px;opacity:.9}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.tree{overflow-x:auto;padding-bottom:8px}
+.root{display:flex;justify-content:center}
+.node{border-radius:8px;padding:10px 14px;background:var(--bg);border:2px solid var(--line);font-weight:600;line-height:1.25}
+.node small{display:block;font-weight:500;font-size:13px;color:var(--mute)}
+.node.top{background:var(--ink);color:var(--bg);border-color:var(--ink);text-align:center;padding:14px 24px;font:700 20px/1.2 "Red Hat Display",sans-serif}
+.node.top small{color:inherit;opacity:.75;font-family:"Red Hat Text",sans-serif}
+.node.pres{background:var(--red);border-color:var(--red);color:#fff}
+.node.pres small{color:#fff;opacity:.85}
+.node.vp{border-color:var(--red)}
+.node.sh{border-color:var(--gold);background:var(--goldsoft)}
+.node.fr{border-color:var(--mute)}
+.stem{width:2px;height:28px;background:var(--mute);margin:0 auto}
+.lvl1{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:14px;position:relative;padding-top:28px;margin:0;list-style:none;min-width:800px}
+.lvl1::before{content:"";position:absolute;top:0;left:calc(10% - 5px);right:calc(10% - 5px);border-top:2px solid var(--mute)}
+.lvl1>li{position:relative}
+.lvl1>li::before{content:"";position:absolute;top:-28px;left:50%;height:28px;border-left:2px solid var(--mute)}
+.leaves{list-style:none;margin:0 0 0 18px;padding:0}
+.leaves li{position:relative;padding:6px 0 6px 22px}
+.leaves li::before{content:"";position:absolute;left:0;top:0;bottom:0;border-left:2px solid var(--line)}
+.leaves li:last-child::before{bottom:calc(100% - 25px)}
+.leaves li::after{content:"";position:absolute;left:0;top:24px;width:16px;border-top:2px solid var(--line)}
+.dept{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:15px;font-weight:500;white-space:nowrap}
+.dept b{background:var(--ink);color:var(--bg);border-radius:999px;font-size:12px;font-weight:600;height:22px;padding:0 8px;display:inline-grid;place-items:center}
+.leaves .leaves{margin-left:12px}
+.lvl1>li.joins{display:flex;flex-direction:column}
+.joins .leaves>li:last-child::before{bottom:0}
+.trunk{flex:1;min-height:12px;margin-left:18px;border-left:2px solid var(--line)}
+.lvl1>li.join{grid-column:1/3;grid-row:2;padding-top:20px}
+.lvl1>li.join::before{top:-14px;left:18px;width:calc(50% + 7px);height:14px;border:2px solid var(--line);border-top:0}
+.lvl1>li.join::after{content:"";position:absolute;top:0;left:calc(25% + 21.5px);height:20px;border-left:2px solid var(--line)}
+.jb{width:max-content;margin-left:calc(25% + 22.5px);transform:translateX(-50%);text-align:center}
+.jb small{display:block;font-size:13px;color:var(--mute);margin-top:4px}
+@media(max-width:860px){.lvl1{grid-template-columns:minmax(0,1fr);min-width:0;padding:0 0 0 28px;margin-left:20px;gap:18px}.lvl1::before{display:none}.lvl1>li::before{top:20px;left:-28px;height:0;width:26px;border-left:0;border-top:2px solid var(--mute)}.lvl1>li::after{content:"";position:absolute;left:-28px;top:-18px;height:40px;border-left:2px solid var(--mute)}.lvl1>li:not(:last-child)::after{height:auto;bottom:-18px}.root{justify-content:flex-start}.stem{margin:0 0 0 20px;height:18px}.trunk{display:none}.joins .leaves>li:last-child::before{bottom:calc(100% - 25px)}.lvl1>li.join{grid-column:auto;grid-row:auto;padding-top:0;margin-top:-10px}.lvl1>li.join::before{top:0;left:-28px;width:auto;height:0;border:0}.lvl1>li.join::after{left:-28px;top:-18px;height:auto;bottom:-18px;border-left:2px solid var(--mute)}.jb{margin-left:18px;transform:none;text-align:left}}
+.lvl1 .dept{cursor:pointer;font-family:inherit;color:var(--ink);flex-wrap:wrap;text-align:left;min-height:36px}
+.lvl1 .dept:hover{border-color:var(--red)}
+.hn{flex-basis:100%;font-size:13px;font-weight:400;color:var(--mute);white-space:normal}
+.hn.tbc{font-style:italic}
+dialog{border:0;border-radius:10px;padding:20px;width:min(480px,calc(100% - 32px));background:var(--bg);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dh{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.dh h3{margin:0;font:700 22px "Red Hat Display",sans-serif}
+.x{border:0;background:none;color:var(--ink);font-size:26px;min-width:44px;min-height:44px;cursor:pointer}
+dialog h4{margin:18px 0 6px;font-size:15px}
+.hr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:8px}
+.hr input{width:100%}
+.tk{font-size:14px;padding:6px 0;border-bottom:1px solid var(--line);display:flex;gap:10px}
+.tk span{white-space:nowrap;color:var(--mute);font-variant-numeric:tabular-nums}
+.da{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap}
+.pri,.ghost{min-height:44px;padding:0 16px;border-radius:6px;font:600 15px "Red Hat Text",sans-serif;cursor:pointer}
+.pri{background:var(--red);color:#fff;border:0}
+.ghost{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.people{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pc{border:1px solid var(--line);border-radius:8px;padding:16px;background:var(--bg)}
+.pc.lead{border:2px solid var(--red)}
+.pc h3{margin:0;font:700 19px/1.2 "Red Hat Display",sans-serif}
+.pc h3 span{font:500 14px "Red Hat Text",sans-serif;color:var(--mute)}
+.pc ul{margin:0;padding-left:18px;font-size:15px}
+.pc li{margin:3px 0}
+.pn{font-size:13px;color:var(--mute);margin:8px 0 0}
+.rule{background:var(--goldsoft);border-radius:8px;padding:12px 16px;margin:16px 0 28px}
+.qh{font-size:22px;margin-bottom:10px}
+.qt{width:100%;border-collapse:collapse;font-size:15px}
+.qt th{text-align:left;font-size:13px;color:var(--mute);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--ink)}
+.qt td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.qt td:nth-child(2){font-weight:600;white-space:nowrap}
+.tabs{overflow-x:auto}
+@media(max-width:860px){.people{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media(max-width:600px){.people{grid-template-columns:minmax(0,1fr)}.stack thead{display:none}.stack tr{display:grid;padding:10px 0;border-bottom:1px solid var(--line)}.stack td{border:0;padding:2px 0}.stack td:nth-child(2){white-space:normal}.hr{grid-template-columns:minmax(0,1fr)}}
+.me{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:14px}
+.lvl{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;text-transform:capitalize}
+.sm{min-height:36px;padding:0 12px;font-size:14px}
+.gate{min-height:calc(100vh - 57px);display:grid;place-items:center;padding:24px 16px;background:var(--redd);color:#fff}
+.gbox{max-width:420px;text-align:center}.gbox p{opacity:.9}
+.big2{min-height:52px;font-size:17px;padding:0 24px;background:#fff;color:#17120f}
+.err{color:#ffd7d6;min-height:1.5em}
+.by{display:block;font-size:12px;color:var(--mute)}
+.row button:disabled,.row select:disabled{opacity:.45;cursor:not-allowed}
+#seed{margin:0 0 16px}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:9;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Pages"><div class="wrap">
+  <span class="brand">TUBC 2027</span>
+  <div class="tabs" hidden><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#structure" id="t-structure">Committee structure</a><a href="#who" id="t-who">Who to ask</a><a href="#access" id="t-access" hidden>Access</a></div>
+  <div class="me" id="me" hidden><span id="mename"></span><span class="lvl" id="melvl"></span><button type="button" class="ghost sm" id="out">Sign out</button></div>
+</div></nav>
+<div class="view gate" id="v-login" hidden><div class="gbox">
+  <h1>TUBC 2027</h1><p>Sign in with the Google account your PVP added.</p>
+  <button type="button" class="pri big2" id="login">Sign in with Google</button><p class="err" id="lerr"></p>
+</div></div>
+<div class="view gate" id="v-noaccess" hidden><div class="gbox">
+  <h1>No access yet</h1><p>You're signed in as <b id="naemail"></b>, but this email isn't on the member list. Ask a PVP to add it, then reload.</p>
+  <button type="button" class="ghost" id="out2">Use another account</button>
+</div></div>
+<div class="view" id="v-access" hidden>
+<header class="band top"><div class="wrap"><h1>Access</h1><p class="sub">Who can sign in, and what each level can do.</p>
+  <div class="legend"><span><b>Admin</b> edits everything and manages access</span><span><b>Head</b> updates task status and head names for their own department</span><span><b>Viewer</b> sees everything, edits nothing</span></div>
+</div></header>
+<main class="band"><div class="wrap">
+  <form class="add" id="mf"><input class="wide" id="me1" type="email" placeholder="name@gmail.com" aria-label="Email" required>
+    <select id="mr" aria-label="Level"><option value="viewer">Viewer</option><option value="head">Head</option><option value="admin">Admin</option></select>
+    <select id="md" aria-label="Department"></select><button type="submit">Add member</button></form>
+  <div class="scroll"><table class="qt stack" id="mt"><thead><tr><th>Email</th><th>Level</th><th>Department</th><th></th></tr></thead><tbody></tbody></table></div>
+</div></main>
+</div>
+<div class="view" id="v-structure" hidden>
+<header class="band top"><div class="wrap">
+  <h1>Committee structure</h1>
+  <p class="sub">Who in the PVP looks after which department, and how many heads each has. Tap a department to add its heads or see its tasks.</p>
+  <div class="legend"><span><i style="background:#fff"></i>President</span><span><i style="border:2px solid #fff"></i>Vice president</span><span><i style="background:var(--gold)"></i>Shared by all PVP</span><span><i style="background:rgba(255,255,255,.4)"></i>Freelance</span></div>
+</div></header>
+<main class="band"><div class="wrap">
+  <div class="tree">
+    <div class="root"><div class="node top">TUBC 2027<small>Organizing committee</small></div></div>
+    <div class="stem"></div>
+    <ul class="lvl1">
+      <li class="joins"><div class="node pres">Puripat<small>President</small></div>
+        <ul class="leaves"><li><button type="button" class="dept" data-dept="Oper">Oper<b>2 heads</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Inven">Inven<b>1 head</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Doc">Doc<b>1 head</b><span class="hn"></span></button></li></ul><div class="trunk"></div></li>
+      <li class="joins"><div class="node vp">Sattam<small>Vice president</small></div>
+        <ul class="leaves"><li><button type="button" class="dept" data-dept="CR">CR<b>2 heads</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="PR">PR<b>1 head</b><span class="hn"></span></button></li></ul><div class="trunk"></div></li>
+      <li class="join"><div class="jb"><button type="button" class="dept" data-dept="Buddy">Buddy<b>1 head</b><span class="hn"></span></button><small>Shared by Puripat and Sattam</small></div></li>
+      <li><div class="node vp">Krang<small>Vice president</small></div>
+        <ul class="leaves"><li><button type="button" class="dept" data-dept="Stage-co">Stage-co<b>1 head</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="IT">IT<b>2 heads</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Photog">Photog<b>1 head</b><span class="hn"></span></button></li></ul></li>
+      <li><div class="node sh">All PVP<small>ช่วยกันเถอะ!</small></div>
+        <ul class="leaves"><li><button type="button" class="dept" data-dept="ER">ER<b>2 heads</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Excur">Excur<b>1 head</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Treasurer">Treasurer<b>2 heads</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Venue">Venue<b>1 head</b><span class="hn"></span></button></li></ul></li>
+      <li><div class="node fr">Freelance<small>No application round</small></div>
+        <ul class="leaves"><li><span class="dept">Competition team<b>3 people</b></span>
+          <ul class="leaves"><li><button type="button" class="dept" data-dept="Case Writer">Case Writer<b>yr3, yr4</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Uni Affairs">Uni Affairs<b>1 head</b><span class="hn"></span></button></li></ul></li></ul></li>
+    </ul>
+  </div>
+</div></main>
+</div>
+<div class="view" id="v-who" hidden>
+<header class="band top"><div class="wrap">
+  <h1>Who to ask</h1>
+  <p class="sub">Who decides, who handles money and who helps with what, from the 2025 and 2026 meeting notes.</p>
+</div></header>
+<main class="band"><div class="wrap">
+  <div class="people">
+    <article class="pc lead"><h3>Aj. Worapong <span>(Aj. Pong)</span></h3><p class="role">Advisor · makes the final decisions</p><ul><li>Competition dates, format and invited teams</li><li>Case companies, judges and sponsorship pricing</li><li>Approves the excursion plan</li><li>Rules Q&amp;A at case opening, judge briefing</li><li>Lent working capital for Excursion and Inventory in 2026</li></ul></article>
+    <article class="pc"><h3>P'A</h3><p class="role">Advisor · case side</p><ul><li>Guides case writers on what the case should cover</li><li>Pre-screening of CLG submissions in past years</li><li>Brings alumni judges for judge screening</li></ul><p class="pn">Written as P'Eye in some 2025 notes.</p></article>
+    <article class="pc"><h3>P'Ray</h3><p class="role">BBA Office · venue and project</p><ul><li>Hotel negotiation; BBA has good rates at Hilton</li><li>Project opening questions</li><li>Room bookings at TBS (e.g. room 500)</li></ul></article>
+    <article class="pc"><h3>P'Tik</h3><p class="role">BBA Office · money</p><ul><li>Budget review before submission</li><li>Disbursement: ว.119 (under 10,000 THB), TOR, quotes</li><li>Returning CLG registration fees to the faculty</li></ul></article>
+    <article class="pc"><h3>P'Om <span>(พี่อ๋อม)</span></h3><p class="role">BBA Office · sponsor documents</p><ul><li>Donation form, receipts and thank-you letters for sponsors</li><li>Documents sponsors need for tax deduction</li></ul></article>
+    <article class="pc"><h3>P'Nhee</h3><p class="role">BBA Office</p><p class="pn">Listed in the BBA Office contacts; no specific role in the notes.</p></article>
+  </div>
+  <p class="rule"><b>BBA Office gives opinions, not decisions.</b> Agree the plan with Aj. Pong first, then work out the process with the office.</p>
+  <h2 class="qh">I need to…</h2>
+  <div class="scroll"><table class="qt stack"><thead><tr><th>I need to…</th><th>Go to</th><th>Remember</th></tr></thead><tbody>
+    <tr><td>Change dates, format or the number of teams</td><td>Aj. Pong</td><td>Bring a proposal, a fallback and your floor</td></tr>
+    <tr><td>Buy something over 10,000 THB</td><td>Treasurer → P'Tik</td><td>TOR, quote and 2 comparison quotes before ordering</td></tr>
+    <tr><td>Buy something under 10,000 THB</td><td>Treasurer → P'Tik</td><td>Pay first; receipt into the system within 5 working days</td></tr>
+    <tr><td>Accept sponsor money</td><td>ER → P'Om</td><td>Sponsor transfers to the faculty, then fills the donation form</td></tr>
+    <tr><td>Book or negotiate a hotel</td><td>Venue → P'Ray</td><td>Budget at 100% headcount, guarantee 80% with the hotel</td></tr>
+    <tr><td>Borrow iPads</td><td>Inventory → Pridi library</td><td>Loan letter goes to Rangsit; ask about 2 months ahead</td></tr>
+    <tr><td>Borrow computers or AV gear</td><td>IT → BBA IT center</td><td>Borrow together with Photog and Inventory</td></tr>
+    <tr><td>Buy stationery</td><td>Inventory → TU Book Center</td><td>No comparison quote needed; allow lead time if out of stock</td></tr>
+    <tr><td>Book a bus for company visit</td><td>Venue → BBA Office</td><td>Ask the office for a discount</td></tr>
+  </tbody></table></div>
+</div></main>
+</div>
+<dialog id="dd" aria-labelledby="ddt"><form method="dialog" id="ddf">
+  <div class="dh"><h3 id="ddt"></h3><button type="button" class="x" id="ddx" aria-label="Close">×</button></div>
+  <p class="role" id="ddr"></p>
+  <div id="ddh"></div>
+  <h4>Open tasks</h4>
+  <div id="ddtk"></div>
+  <div class="da"><button type="button" class="ghost" id="ddgo">See in Tracker</button><button type="submit" class="pri" id="dds">Save heads</button></div>
+</form></dialog>
+<div class="view" id="v-tracker" hidden>
+<header class="band top"><div class="wrap">
+  <div class="head">
+    <div><h1>TUBC 2027 PVP tracker</h1><p class="sub">The Challenger and TUBC, from PVP kickoff to debrief</p></div>
+    <div class="big" id="pct">0%<small id="cnt">0 of 0 tasks done</small></div>
+  </div>
+  <div class="line" id="line"></div>
+</div></header>
+<main class="band"><div class="wrap">
+  <div class="tools">
+    <label for="own" class="o">Owner</label>
+    <select id="own"><option value="">Everyone</option></select>
+    <button class="chip" id="hide" aria-pressed="false">Hide done</button>
+    <button class="chip" id="late" aria-pressed="false">Overdue only</button>
+    <span class="save" id="save">Connecting…</span>
+  </div>
+  <div id="list"></div>
+  <button type="button" class="pri" id="seed" hidden>Load the 46 starter tasks</button>
+  <form class="add" id="addf" hidden>
+    <input class="wide" id="nt" placeholder="New task" aria-label="New task" required>
+    <input id="nd" type="date" aria-label="Due date" required>
+    <input id="no" placeholder="Owner" aria-label="Owner" value="PVP">
+    <select id="np" aria-label="Phase"></select>
+    <button type="submit">Add task</button>
+  </form>
+  <p class="foot">Dates for 2027 are estimated from the 2025 and 2026 timelines. CLG day and TUBC week are tentative until Aj. Pong confirms.</p>
+</div></main>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, addDoc, getDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const SEED = [["Hold PVP kickoff and split department ownership among the 3 PVP", "2026-11-29", "PVP", "todo", 0, "Set up a PVP x Dept Line group for each department"], ["Read TUBC 2026 and CLG 2026 debriefs", "2026-11-30", "PVP", "todo", 0, ""], ["Pick tentative dates: CLG (mid–late Aug), TUBC (early Oct)", "2026-12-06", "President", "todo", 0, "Aj. Pong checks against exams, AUBCC and CIBCC"], ["Book first meeting with Aj. Pong", "2026-12-13", "President", "todo", 0, "Aim for mid-January"], ["Draft head recruitment post (positions and PVP contacts)", "2026-12-18", "PVP", "todo", 0, "ER 2, Inven, PR, Venue, CR 2, Excur, Photog, IT 2, Doc, Buddy"], ["Post head recruitment to the BBA Line group", "2026-12-23", "PVP", "todo", 0, "Competition, Case Writer, Uni Affairs and Treasurer need no application"], ["Close head applications", "2026-12-26", "PVP", "todo", 0, ""], ["Tell 2026 heads that 2027 heads will reach out", "2026-12-31", "PVP", "todo", 0, ""], ["Set up 2027 Master Drive with Dept_TUBC2027 folders, shared to tubc@tbs.tu.ac.th", "2027-01-05", "PVP", "todo", 0, "Split each department folder into TUBC and CLG"], ["Finalize all heads and add them to the All Head Line group", "2027-01-07", "PVP", "todo", 0, ""], ["Duplicate the handover file (Head 32 x 33) for heads to fill", "2027-01-07", "PVP", "todo", 0, ""], ["Meet Aj. Pong: dates, format, invited teams, case company pricing, sponsorship proposal, advisor scope", "2027-01-15", "President", "todo", 1, "Advisor scope: pre-screening, judge screening, judge briefing"], ["Meet BBA Office with Treasurer: project-opening documents and budget process", "2027-01-20", "President", "todo", 1, "BBA Office gives opinions; Aj. Pong decides"], ["Agree PR x CR lead-time rules", "2027-01-24", "PVP", "todo", 1, "CR asked for about 1 week of lead time and at most 2 revision rounds"], ["Run the first all-head meeting", "2027-01-24", "PVP", "todo", 1, "Intros and concerns, work allocation, overview, recruitment timeline, vote the biweekly day"], ["Log into the tbs.tu.ac.th email on all devices and change the password", "2027-01-24", "PVP", "todo", 1, ""], ["Heads meet previous heads: record the call, fill the handover file", "2027-01-31", "All heads", "todo", 1, ""], ["List potential universities and send pre-invites", "2027-01-31", "Uni Affairs", "todo", 1, ""], ["Contact sponsors and case companies before Q1 budgets close", "2027-01-31", "ER", "todo", 1, "The 5-hour case company is the hardest to find"], ["Committee info session", "2027-02-06", "PR, CR, Doc", "todo", 2, ""], ["Close committee applications (one week)", "2027-02-12", "Doc", "todo", 2, "Extend two days if few apply"], ["Review each head's interview questions", "2027-02-13", "PVP", "todo", 2, ""], ["Finish committee interviews", "2027-02-24", "All heads", "todo", 2, ""], ["Interview and select Oper and Stage-co", "2027-02-28", "PVP", "todo", 2, ""], ["Announce the committee", "2027-03-02", "PVP", "todo", 2, ""], ["Announce CLG and TUBC themes", "2027-03-21", "CR, PR", "todo", 3, ""], ["CLG budget research deadline", "2027-04-10", "Treasurer", "todo", 3, "Include shipping fees; screenshots of online orders are no longer accepted"], ["Finalize TUBC format, team count and cash prizes", "2027-04-19", "PVP", "todo", 3, ""], ["Send official invitations to selected universities", "2027-04-22", "Uni Affairs", "todo", 3, ""], ["Submit CLG project and budget to BBA Office", "2027-04-30", "Treasurer", "todo", 3, ""], ["Secure the CLG case company", "2027-05-15", "ER", "todo", 3, "Keep confidential"], ["Lock the TUBC venue", "2027-05-31", "Venue", "todo", 3, "A bottleneck both years: hotels fill up"], ["Website, Airtable, emails and bank account ready for CLG", "2027-06-27", "IT, Doc, Treasurer", "todo", 3, ""], ["Open CLG applications", "2027-06-28", "PVP", "todo", 3, ""], ["Send TUBC participation fee invoices", "2027-07-15", "Uni Affairs", "todo", 4, "Fees must arrive net of transfer fees; set a firm deadline"], ["TUBC budget research deadline", "2027-07-17", "Treasurer", "todo", 4, ""], ["CLG judge screening day", "2027-08-08", "ER, Doc, Inven, Oper", "todo", 4, ""], ["Secure TUBC case companies (5-hour and 24-hour)", "2027-08-15", "ER", "todo", 4, "Was critical by mid-August in 2026"], ["All staff first meet", "2027-08-16", "PVP, Oper", "todo", 4, ""], ["The Challenger (CLG) day", "2027-08-22", "All", "todo", 4, "Tentative date"], ["Committee photoshoot", "2027-09-10", "Photog", "todo", 5, ""], ["TUBC site inspection with all departments", "2027-09-14", "Venue, PVP", "todo", 5, "Each department brings its questions"], ["Send the welcoming package to universities", "2027-09-21", "Uni Affairs", "todo", 5, "Two weeks before the event"], ["TUBC budget approved; start ordering", "2027-10-01", "Treasurer", "todo", 5, "Over 10,000 THB needs a TOR, a quote and 2 comparison quotes first"], ["TUBC week", "2027-10-04", "All", "todo", 5, "Tentative date"], ["Run the committee debrief", "2027-10-18", "PVP", "todo", 5, ""]];
+
+// ---- settings ----
+const firebaseConfig = {
+  apiKey: "AIzaSyDfklg5XhpY2OAR34xLb5bHwJc5JzcVv5g",
+  authDomain: "tubc-2027.firebaseapp.com",
+  projectId: "tubc-2027",
+  storageBucket: "tubc-2027.firebasestorage.app",
+  messagingSenderId: "1027304393926",
+  appId: "1:1027304393926:web:32e8227211d680e130dbc7"
+};
+const BOOT_ADMINS = ["puripat_rob67@tbs.tu.ac.th"]; // must match firestore.rules
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const PH = [["Kickoff","Nov–Jan","2026-11-23","2027-01-08"],["Setup","January","2027-01-08","2027-02-01"],["Recruitment","Feb–Mar","2027-02-01","2027-03-05"],["Planning","Mar–Jun","2027-03-05","2027-07-01"],["The Challenger","Jul–Aug","2027-07-01","2027-09-01"],["TUBC","Sep–Oct","2027-09-01","2027-10-20"]];
+const ST = {todo:"To do",prog:"In progress",blk:"Blocked",dn:"Done"};
+const SLOTS = {"Oper":2,"Inven":1,"Doc":1,"CR":2,"PR":1,"Buddy":1,"Stage-co":1,"IT":2,"Photog":1,"ER":2,"Excur":1,"Treasurer":2,"Venue":1,"Case Writer":2,"Uni Affairs":1};
+const OWNERS = {"Oper":"Puripat","Inven":"Puripat","Doc":"Puripat","Buddy":"Puripat and Sattam","CR":"Sattam","PR":"Sattam","Stage-co":"Krang","IT":"Krang","Photog":"Krang","ER":"All PVP","Excur":"All PVP","Treasurer":"All PVP","Venue":"All PVP","Case Writer":"Freelance · Competition team","Uni Affairs":"Freelance · Competition team"};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const today = new Date().toISOString().slice(0,10);
+const fmt = d => d ? new Date(d+"T00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}) + (d.slice(0,4)==="2026"?" ’26":"") : "";
+const toks = s => String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
+
+let me = null, tasks = [], heads = {}, members = [], unsub = [];
+const f = {own:"",hide:false,late:false};
+
+function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3500); }
+const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
+
+const isAdmin = () => me?.role==="admin";
+const canTask = t => isAdmin() || (me?.role==="head" && t.depts?.includes(me.dept));
+const canHeads = d => isAdmin() || (me?.role==="head" && me.dept===d);
+
+// ---------- views ----------
+const VIEWS = ["login","noaccess","tracker","structure","who","access"];
+function show(v){ for(const n of VIEWS){ const el=$("v-"+n); if(el) el.hidden = n!==v; }
+  for(const n of ["tracker","structure","who","access"]){ const a=$("t-"+n); if(n===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); } }
+function route(){ if(!me) return; const h=location.hash.slice(1); show(["structure","who"].includes(h)||(h==="access"&&isAdmin())?h:"tracker"); }
+window.addEventListener("hashchange", ()=>{ route(); window.scrollTo(0,0); });
+
+// ---------- auth ----------
+$("login").onclick = async ()=>{ $("lerr").textContent=""; try{ await signInWithPopup(auth,new GoogleAuthProvider()); }catch(e){ $("lerr").textContent = e.code==="auth/popup-blocked" ? "Allow pop-ups for this site, then try again." : "Sign-in didn't finish. Try again."; } };
+$("out").onclick = $("out2").onclick = ()=>signOut(auth);
+
+onAuthStateChanged(auth, async u=>{
+  unsub.forEach(fn=>fn()); unsub=[]; me=null;
+  document.querySelector(".tabs").hidden = true; $("me").hidden = true;
+  if(!u){ show("login"); return; }
+  const email = (u.email||"").toLowerCase();
+  let snap = null;
+  try { snap = await getDoc(doc(db,"members",email)); } catch(e) { console.error(e); }
+  let m = snap && snap.exists() ? snap.data() : null;
+  if(!m && BOOT_ADMINS.includes(email)){ m = {role:"admin",dept:""}; try{ await setDoc(doc(db,"members",email),{role:"admin",dept:"",name:u.displayName||""}); }catch(e){ console.error(e); } }
+  if(!m){ $("naemail").textContent = email; show("noaccess"); return; }
+  me = {email, name:u.displayName||email, role:m.role, dept:m.dept||""};
+  $("mename").textContent = me.name; $("melvl").textContent = me.role + (me.role==="head"&&me.dept?" · "+me.dept:"");
+  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("t-access").hidden = !isAdmin();
+  $("addf").hidden = !isAdmin();
+  if(me.role==="head" && me.dept) f.own = me.dept;
+  start(); route();
+});
+
+function start(){
+  unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
+  unsub.push(onSnapshot(collection(db,"heads"), s=>{ heads={}; s.docs.forEach(d=>heads[d.id]=d.data().list||[]); renderHeads(); }, fail));
+  if(isAdmin()) unsub.push(onSnapshot(collection(db,"members"), s=>{ members = s.docs.map(d=>({email:d.id,...d.data()})).sort((a,b)=>a.email.localeCompare(b.email)); renderMembers(); }, fail));
+}
+
+// ---------- tracker ----------
+function render(){
+  const T = tasks, done = T.filter(t=>t.status==="dn").length;
+  $("pct").firstChild.nodeValue = (T.length?Math.round(done/T.length*100):0)+"%";
+  $("cnt").textContent = done+" of "+T.length+" tasks done";
+  const t0=Date.parse(PH[0][2]), t1=Date.parse(PH[5][3]), now=Date.now();
+  $("line").innerHTML = PH.map((p,i)=>{const ts=T.filter(t=>t.phase===i),d=ts.filter(t=>t.status==="dn").length;return `<button class="seg" data-go="${i}"><b>${p[0]}</b><span>${p[1]} · ${d}/${ts.length}</span><div class="bar"><i style="width:${ts.length?d/ts.length*100:0}%"></i></div></button>`}).join("") + (now>=t0&&now<=t1?`<div class="now" style="left:${(now-t0)/(t1-t0)*100}%"></div>`:"");
+  const owners=[...new Set(T.flatMap(t=>toks(t.owner)))].sort();
+  if(f.own && !owners.includes(f.own)) owners.push(f.own);
+  $("own").innerHTML = '<option value="">Everyone</option>'+owners.map(o=>`<option${o===f.own?" selected":""}>${esc(o)}</option>`).join("");
+  $("seed").hidden = !(isAdmin() && T.length===0);
+  $("list").innerHTML = PH.map((p,i)=>{
+    const rows=T.filter(t=>t.phase===i && (!f.own||toks(t.owner).includes(f.own)) && (!f.hide||t.status!=="dn") && (!f.late||(t.due<today&&t.status!=="dn"))).sort((a,b)=>(a.due||"").localeCompare(b.due||""));
+    const d=T.filter(t=>t.phase===i&&t.status==="dn").length, n=T.filter(t=>t.phase===i).length;
+    return `<section class="phase" id="ph${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2>${rows.length?rows.map(t=>{const ok=canTask(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}"><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta"><span class="d">${fmt(t.due)}</span></div><div class="tcell"><span class="t">${esc(t.title)}</span>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta"><span class="o">${esc(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div>${isAdmin()?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:"<span></span>"}</div>`}).join(""):`<p class="empty">${T.length?"Nothing here with these filters.":"No tasks yet."}</p>`}</section>`;
+  }).join("");
+}
+const setStatus = (id,status)=> updateDoc(doc(db,"tasks",id),{status,updatedBy:me.name,updatedAt:serverTimestamp()}).catch(fail);
+
+document.addEventListener("click", e=>{
+  const b=e.target.closest("[data-tick],[data-del],[data-go],.lvl1 .dept[data-dept],[data-rm]"); if(!b) return;
+  if(b.dataset.tick){ const t=tasks.find(x=>x.id===b.dataset.tick); if(t) setStatus(t.id, t.status==="dn"?"todo":"dn"); }
+  else if(b.dataset.del){ if(b.dataset.armed){ deleteDoc(doc(db,"tasks",b.dataset.del)).catch(fail); } else { b.dataset.armed=1; b.textContent="Delete?"; b.style.fontSize="13px"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="×"; b.style.fontSize=""; } },3000); } }
+  else if(b.dataset.go!==undefined){ $("ph"+b.dataset.go)?.scrollIntoView({behavior:"smooth"}); }
+  else if(b.dataset.dept){ openDept(b.dataset.dept); }
+  else if(b.dataset.rm){ if(b.dataset.armed){ deleteDoc(doc(db,"members",b.dataset.rm)).catch(fail); } else { b.dataset.armed=1; b.textContent="Remove?"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="Remove"; } },3000); } }
+});
+document.addEventListener("change", e=>{
+  const el=e.target;
+  if(el.dataset.st) setStatus(el.dataset.st, el.value);
+  if(el.id==="own"){ f.own=el.value; render(); }
+  if(el.dataset.role) setDoc(doc(db,"members",el.dataset.role),{role:el.value},{merge:true}).catch(fail);
+  if(el.dataset.mdept) setDoc(doc(db,"members",el.dataset.mdept),{dept:el.value},{merge:true}).catch(fail);
+});
+$("hide").onclick=()=>{f.hide=!f.hide;$("hide").setAttribute("aria-pressed",f.hide);render();};
+$("late").onclick=()=>{f.late=!f.late;$("late").setAttribute("aria-pressed",f.late);render();};
+$("np").innerHTML = PH.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join("");
+$("addf").addEventListener("submit", e=>{ e.preventDefault(); const title=$("nt").value.trim(); if(!title) return; const owner=$("no").value.trim()||"PVP";
+  addDoc(collection(db,"tasks"),{title,due:$("nd").value,owner,depts:toks(owner),status:"todo",phase:+$("np").value,note:"",updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{$("nt").value="";}).catch(fail); });
+$("seed").onclick = async ()=>{ const b=writeBatch(db); SEED.forEach(t=>b.set(doc(collection(db,"tasks")),{title:t[0],due:t[1],owner:t[2],depts:toks(t[2]),status:"todo",phase:t[4],note:t[5]||"",updatedBy:"",updatedAt:serverTimestamp()})); try{ await b.commit(); toast("Starter tasks loaded."); }catch(e){ fail(e); } };
+
+// ---------- structure ----------
+function renderHeads(){
+  document.querySelectorAll(".lvl1 .dept[data-dept]").forEach(b=>{
+    const hs=(heads[b.dataset.dept]||[]).filter(x=>x.name), s=b.querySelector(".hn");
+    s.textContent = hs.length ? hs.map(x=>x.name).join(", ") : "TBC"; s.classList.toggle("tbc",!hs.length);
+  });
+}
+let cur=null;
+function openDept(d){
+  cur=d; const n=SLOTS[d]||1, hs=heads[d]||[], ed=canHeads(d);
+  $("ddt").textContent=d; $("ddr").textContent=n+(n>1?" heads":" head")+" · under "+OWNERS[d];
+  $("ddh").innerHTML=Array.from({length:n},(_,i)=>`<div class="hr"><input id="hn${i}" placeholder="Head ${n>1?i+1:""} name" aria-label="Head ${i+1} name" value="${esc(hs[i]?.name)}"${ed?"":" readonly"}><input id="hl${i}" placeholder="Line ID or phone" aria-label="Head ${i+1} Line ID" value="${esc(hs[i]?.line)}"${ed?"":" readonly"}></div>`).join("");
+  const ts=tasks.filter(t=>t.status!=="dn"&&toks(t.owner).includes(d)).sort((a,b)=>(a.due||"").localeCompare(b.due||""));
+  $("ddtk").innerHTML = ts.length ? ts.slice(0,6).map(t=>`<div class="tk"><span>${fmt(t.due)}</span>${esc(t.title)}</div>`).join("")+(ts.length>6?`<div class="tk">+${ts.length-6} more</div>`:"") : `<p class="empty">No open tasks for ${esc(d)} yet.</p>`;
+  $("ddgo").hidden=!ts.length; $("dds").hidden=!ed;
+  try{$("dd").showModal();}catch(e){$("dd").setAttribute("open","");}
+}
+const closeD=()=>{ try{$("dd").close();}catch(e){$("dd").removeAttribute("open");} };
+$("ddx").onclick=closeD;
+$("ddf").addEventListener("submit", e=>{ e.preventDefault(); const n=SLOTS[cur]||1; const list=Array.from({length:n},(_,i)=>({name:$("hn"+i).value.trim(),line:$("hl"+i).value.trim()}));
+  setDoc(doc(db,"heads",cur),{list,updatedBy:me.name}).then(closeD).catch(fail); });
+$("ddgo").onclick=()=>{ f.own=cur; closeD(); location.hash="#tracker"; render(); };
+
+// ---------- access ----------
+const deptOpts = sel => '<option value="">No department</option>'+Object.keys(SLOTS).map(d=>`<option${d===sel?" selected":""}>${esc(d)}</option>`).join("");
+$("md").innerHTML = deptOpts("");
+function renderMembers(){
+  $("mt").tBodies[0].innerHTML = members.map(m=>{ const self=m.email===me.email; return `<tr><td>${esc(m.email)}${self?" (you)":""}</td><td><select data-role="${esc(m.email)}" aria-label="Level"${self?" disabled":""}>${["viewer","head","admin"].map(r=>`<option value="${r}"${r===m.role?" selected":""}>${r[0].toUpperCase()+r.slice(1)}</option>`).join("")}</select></td><td><select data-mdept="${esc(m.email)}" aria-label="Department">${deptOpts(m.dept||"")}</select></td><td>${self?"":`<button type="button" class="ghost sm" data-rm="${esc(m.email)}">Remove</button>`}</td></tr>`; }).join("");
+}
+$("mf").addEventListener("submit", e=>{ e.preventDefault(); const email=$("me1").value.trim().toLowerCase(); if(!email) return;
+  setDoc(doc(db,"members",email),{role:$("mr").value,dept:$("md").value},{merge:true}).then(()=>{$("me1").value=""; toast(email+" added.");}).catch(fail); });
+</script>
+</body>
+</html>
