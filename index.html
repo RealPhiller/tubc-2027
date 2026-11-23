@@ -224,6 +224,16 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .phase{scroll-margin-top:64px}
 }
 @media(max-width:760px) and (prefers-reduced-motion:reduce){.drawer{transition:none}}
+.rqf{display:grid;gap:12px;text-align:left;margin:18px 0 12px}
+.rqf label{display:grid;gap:4px;font-size:14px;font-weight:600}
+.rqf small{font-weight:400;opacity:.8}
+.rqf input,.rqf select{width:100%;font:16px "Red Hat Text",sans-serif;padding:10px 12px;border:0;border-radius:6px;background:#fff;color:#17120f;min-height:44px}
+.rqdone{background:rgba(255,255,255,.14);border-radius:8px;padding:14px 16px;margin:18px 0 12px;text-align:left}
+.ghost.lite{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
+.cnt{display:inline-block;background:var(--red);color:#fff;border-radius:999px;font:600 13px "Red Hat Text",sans-serif;padding:2px 9px;vertical-align:middle}
+.gcal{display:inline-flex;align-items:center;text-decoration:none}
+.cexp{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:16px;font-size:13px;opacity:.9}
+.cexp span{max-width:520px}
 </style>
 </head>
 <body>
@@ -242,21 +252,33 @@ dialog h4{margin:18px 0 6px;font-size:15px}
   <button type="button" class="pri big2" id="login">Sign in with Google</button><p class="err" id="lerr"></p>
 </div></div>
 <div class="view gate" id="v-noaccess" hidden><div class="gbox">
-  <h1>No access yet</h1><p>You're signed in as <b id="naemail"></b>, but this email isn't on the member list. Ask a PVP to add it, then reload.</p>
-  <button type="button" class="ghost" id="out2">Use another account</button>
+  <h1>Join TUBC 2027</h1><p>Signed in as <b id="naemail"></b>. Send a request and a PVP will approve it.</p>
+  <form class="rqf" id="rqf">
+    <label>Your name<input id="rqn" required maxlength="80"></label>
+    <label>Department<select id="rqd"></select></label>
+    <label>Note for the PVP <small>(optional)</small><input id="rqnote" maxlength="200" placeholder="e.g. Head of ER, BBA 33"></label>
+    <button type="submit" class="pri big2">Request access</button>
+  </form>
+  <div class="rqdone" id="rqdone" hidden><b>Request sent.</b> You'll get in automatically once a PVP approves it. You can keep this page open or come back later.</div>
+  <button type="button" class="ghost lite" id="out2">Use another account</button>
 </div></div>
 <div class="view" id="v-access" hidden>
 <header class="band top"><div class="wrap"><h1>Access</h1><p class="sub">Who can sign in, and what each level is allowed to change.</p>
-  <div class="legend"><span><b>Admin</b> edits everything and manages access</span><span><b>Head</b> and <b>Viewer</b>: whatever you switch on below</span></div>
+  <div class="legend"><span><b>Admin</b> edits everything and manages access</span><span><b>Head</b> and <b>Member</b>: whatever you switch on below</span></div>
 </div></header>
 <main class="band"><div class="wrap">
+  <div id="rqbox" hidden><h2 class="ptitle" style="margin-top:0">Waiting for approval <span class="cnt" id="rqcnt"></span></h2>
+  <p class="plede">People who signed in and asked to join. Choose their level and department, then approve.</p>
+  <div class="scroll"><table class="qt stack" id="rq"><thead><tr><th>Person</th><th>Note</th><th>Level</th><th>Department</th><th></th></tr></thead><tbody></tbody></table></div></div>
+  <h2 class="ptitle">Members</h2>
+  <p class="plede">You can also add someone directly by email.</p>
   <form class="add" id="mf"><input class="wide" id="me1" type="email" placeholder="name@gmail.com" aria-label="Email" required>
-    <select id="mr" aria-label="Level"><option value="viewer">Viewer</option><option value="head">Head</option><option value="admin">Admin</option></select>
+    <select id="mr" aria-label="Level"><option value="viewer">Member</option><option value="head">Head</option><option value="admin">Admin</option></select>
     <select id="md" aria-label="Department"></select><button type="submit">Add member</button></form>
   <div class="scroll"><table class="qt stack" id="mt"><thead><tr><th>Email</th><th>Level</th><th>Department</th><th></th></tr></thead><tbody></tbody></table></div>
   <h2 class="ptitle">What each level can do</h2>
   <p class="plede">Turn a switch on to let that level do it. "Their department" means the department set for that person above. Changes apply right away for everyone.</p>
-  <div class="scroll"><table class="qt" id="pm"><thead><tr><th>Permission</th><th class="pc2">Admin</th><th class="pc2">Head</th><th class="pc2">Viewer</th></tr></thead><tbody></tbody></table></div>
+  <div class="scroll"><table class="qt" id="pm"><thead><tr><th>Permission</th><th class="pc2">Admin</th><th class="pc2">Head</th><th class="pc2">Member</th></tr></thead><tbody></tbody></table></div>
 </div></main>
 </div>
 <div class="view" id="v-structure" hidden>
@@ -327,6 +349,7 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 <header class="band top"><div class="wrap">
   <div class="head"><div><h1 id="cmon">Calendar</h1><p class="sub" id="csub"></p></div>
   <div class="cnav"><button type="button" class="cbtn" id="cprev" aria-label="Previous month">‹</button><button type="button" class="cbtn" id="ctoday">Today</button><button type="button" class="cbtn" id="cnext" aria-label="Next month">›</button></div></div>
+  <div class="cexp"><button type="button" class="cbtn" id="cics">Export to calendar (.ics)</button><span>Adds every task shown below, with the owner filter applied, as all-day events. Works with Google Calendar, Apple Calendar and Outlook.</span></div>
 </div></header>
 <main class="band"><div class="wrap">
   <div class="tools"><label for="cown" class="o">Owner</label><select id="cown"></select>
@@ -338,7 +361,7 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 <dialog id="td" aria-labelledby="tdt"><div class="dh"><h3 id="tdt"></h3><button type="button" class="x" id="tdx" aria-label="Close">×</button></div>
   <p class="role" id="tdm"></p><p id="tdn"></p>
   <label for="tds" class="o">Status</label> <select id="tds" class="st"></select><p class="by" id="tdb"></p>
-  <div class="da"><button type="button" class="ghost" id="tde">Edit task</button></div>
+  <div class="da"><a class="ghost gcal" id="tdg" target="_blank" rel="noopener">Add to Google Calendar</a><button type="button" class="ghost" id="tde">Edit task</button></div>
 </dialog>
 <dialog id="ed" aria-labelledby="edt"><form id="edf">
   <div class="dh"><h3 id="edt">Edit task</h3><button type="button" class="x" id="edx" aria-label="Close">×</button></div>
@@ -410,7 +433,8 @@ const today = new Date().toISOString().slice(0,10);
 const fmt = d => d ? new Date(d+"T00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}) + (d.slice(0,4)==="2026"?" ’26":"") : "";
 const toks = s => String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
 
-let me = null, tasks = [], heads = {}, members = [], unsub = [];
+let me = null, tasks = [], heads = {}, members = [], requests = [], unsub = [];
+const ROLE_LABEL = {admin:"Admin",head:"Head",viewer:"Member"};
 const PERMS = [["statusOwn","Change status of their department's tasks"],["statusAny","Change status of any task"],["editOwn","Edit their department's tasks (name, date, owner, notes, topic)"],["editAny","Edit any task"],["move","Drag tasks between topics and reorder them"],["add","Add new tasks"],["del","Delete tasks"],["headsOwn","Edit head names for their department"],["headsAny","Edit head names for any department"]];
 const DEF_PERMS = {head:{statusOwn:true,headsOwn:true},viewer:{}};
 let perms = JSON.parse(JSON.stringify(DEF_PERMS));
@@ -457,9 +481,13 @@ onAuthStateChanged(auth, async u=>{
   try { snap = await getDoc(doc(db,"members",email)); } catch(e) { console.error(e); }
   let m = snap && snap.exists() ? snap.data() : null;
   if(!m && BOOT_ADMINS.includes(email)){ m = {role:"admin",dept:""}; try{ await setDoc(doc(db,"members",email),{role:"admin",dept:"",name:u.displayName||""}); }catch(e){ console.error(e); } }
-  if(!m){ $("naemail").textContent = email; show("noaccess"); return; }
+  if(!m){ $("naemail").textContent = email; $("rqn").value = u.displayName||""; $("rqd").innerHTML = deptOpts("");
+    $("rqf").hidden=false; $("rqdone").hidden=true; show("noaccess");
+    unsub.push(onSnapshot(doc(db,"requests",email), s=>{ const has=s.exists(); $("rqf").hidden=has; $("rqdone").hidden=!has; }, ()=>{}));
+    unsub.push(onSnapshot(doc(db,"members",email), s=>{ if(s.exists()) location.reload(); }, ()=>{}));
+    return; }
   me = {email, name:u.displayName||email, role:m.role, dept:m.dept||""};
-  $("mename").textContent = me.name; $("melvl").textContent = me.role + (me.role==="head"&&me.dept?" · "+me.dept:"");
+  $("mename").textContent = me.name; $("melvl").textContent = (ROLE_LABEL[me.role]||me.role) + (me.role==="head"&&me.dept?" · "+me.dept:"");
   $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("t-access").hidden = !isAdmin();
   if(me.role==="head" && me.dept) f.own = me.dept;
   start(); route();
@@ -469,6 +497,7 @@ function start(){
   unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
   unsub.push(onSnapshot(doc(db,"settings","permissions"), s=>{ const d=s.exists()?s.data():{}; perms={head:{...DEF_PERMS.head,...(d.head||{})},viewer:{...DEF_PERMS.viewer,...(d.viewer||{})}}; render(); renderHeads(); renderPerms(); }, fail));
   unsub.push(onSnapshot(collection(db,"heads"), s=>{ heads={}; s.docs.forEach(d=>heads[d.id]=d.data().list||[]); renderHeads(); }, fail));
+  if(isAdmin()) unsub.push(onSnapshot(collection(db,"requests"), s=>{ requests = s.docs.map(d=>({email:d.id,...d.data()})).sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0)); renderRequests(); }, fail));
   if(isAdmin()) unsub.push(onSnapshot(collection(db,"members"), s=>{ members = s.docs.map(d=>({email:d.id,...d.data()})).sort((a,b)=>a.email.localeCompare(b.email)); renderMembers(); }, fail));
 }
 
@@ -552,7 +581,7 @@ function openTask(id){ const t=tasks.find(x=>x.id===id); if(!t) return; curTask=
   $("tdn").textContent=t.note||""; $("tdn").hidden=!t.note;
   $("tds").innerHTML=Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("");
   $("tds").className="st "+t.status; $("tds").disabled=!canTask(t);
-  $("tde").hidden=!canEdit(t);
+  $("tde").hidden=!canEdit(t); if(t.due){ $("tdg").href=gcalUrl(t); $("tdg").hidden=false; } else $("tdg").hidden=true;
   $("tdb").textContent=t.updatedBy?`Updated by ${t.updatedBy}`:(canTask(t)?"":"You can view this task but not change it.");
   try{$("td").showModal();}catch(e){$("td").setAttribute("open","");} }
 $("tds").addEventListener("change",e=>{ if(curTask){ setStatus(curTask,e.target.value); $("tds").className="st "+e.target.value; } });
@@ -596,8 +625,35 @@ document.addEventListener("drop", e=>{ if(!dragId) return; const box=e.target.cl
 
 // ---------- permissions matrix ----------
 function renderPerms(){ if(!$("pm")||!isAdmin()) return;
-  $("pm").tBodies[0].innerHTML=PERMS.map(([k,l])=>`<tr><td>${esc(l)}</td><td class="pc2">Always</td>${["head","viewer"].map(r=>`<td class="pc2"><label class="sw"><input type="checkbox" data-perm="${r}.${k}"${perms[r]?.[k]?" checked":""} aria-label="${esc(l)} for ${r}s"><span></span></label></td>`).join("")}</tr>`).join(""); }
+  $("pm").tBodies[0].innerHTML=PERMS.map(([k,l])=>`<tr><td>${esc(l)}</td><td class="pc2">Always</td>${["head","viewer"].map(r=>`<td class="pc2"><label class="sw"><input type="checkbox" data-perm="${r}.${k}"${perms[r]?.[k]?" checked":""} aria-label="${esc(l)} for ${ROLE_LABEL[r]}s"><span></span></label></td>`).join("")}</tr>`).join(""); }
 document.addEventListener("change", e=>{ const p=e.target.dataset?.perm; if(!p) return; const [r,k]=p.split("."); setDoc(doc(db,"settings","permissions"),{[r]:{[k]:e.target.checked}},{merge:true}).then(()=>toast("Access updated.")).catch(fail); });
+
+
+// ---------- access requests ----------
+$("rqf").addEventListener("submit", e=>{ e.preventDefault(); const u=auth.currentUser; if(!u) return; const email=(u.email||"").toLowerCase();
+  const name=$("rqn").value.trim(); if(!name) return;
+  setDoc(doc(db,"requests",email),{name,dept:$("rqd").value,note:$("rqnote").value.trim(),createdAt:serverTimestamp()}).catch(e=>{ console.error(e); toast("Couldn't send the request. Try again."); }); });
+function renderRequests(){ if(!$("rq")) return; $("rqbox").hidden=!requests.length; $("rqcnt").textContent=requests.length||"";
+  if(isAdmin()) $("t-access").textContent = requests.length ? `Access (${requests.length})` : "Access";
+  $("rq").tBodies[0].innerHTML=requests.map(r=>`<tr><td><b>${esc(r.name)}</b><br>${esc(r.email)}</td><td>${esc(r.note||"")}</td><td><select id="rql-${esc(r.email)}" aria-label="Level"><option value="viewer"${r.dept?"":" selected"}>Member</option><option value="head"${r.dept?" selected":""}>Head</option><option value="admin">Admin</option></select></td><td><select id="rqd-${esc(r.email)}" aria-label="Department">${deptOpts(r.dept||"")}</select></td><td style="white-space:nowrap"><button type="button" class="pri sm" data-approve="${esc(r.email)}">Approve</button> <button type="button" class="ghost sm" data-reject="${esc(r.email)}">Reject</button></td></tr>`).join(""); }
+document.addEventListener("click", e=>{ const a=e.target.closest("[data-approve],[data-reject]"); if(!a) return;
+  const email=a.dataset.approve||a.dataset.reject; const r=requests.find(x=>x.email===email);
+  if(a.dataset.reject){ deleteDoc(doc(db,"requests",email)).then(()=>toast("Request rejected.")).catch(fail); return; }
+  const b=writeBatch(db); b.set(doc(db,"members",email),{role:document.getElementById("rql-"+email).value,dept:document.getElementById("rqd-"+email).value,name:r?.name||""}); b.delete(doc(db,"requests",email));
+  b.commit().then(()=>toast((r?.name||email)+" approved.")).catch(fail); });
+
+// ---------- calendar export ----------
+const ymd = d => d.replace(/-/g,"");
+const nextDay = d => { const x=new Date(d+"T00:00"); x.setDate(x.getDate()+1); return iso(x).replace(/-/g,""); };
+function gcalUrl(t){ const p=new URLSearchParams({action:"TEMPLATE",text:"[TUBC] "+t.title,dates:ymd(t.due)+"/"+nextDay(t.due),details:[t.note,"Owner: "+t.owner,"Topic: "+(PH[t.phase]?.[0]||""),"Tracker: "+location.origin+location.pathname].filter(Boolean).join("\n")}); return "https://calendar.google.com/calendar/render?"+p.toString(); }
+const icsEsc = s => String(s||"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
+$("cics").onclick=()=>{ const T=tasks.filter(t=>t.due&&(!f.own||toks(t.owner).includes(f.own)));
+  if(!T.length){ toast("No tasks with dates to export."); return; }
+  const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//TUBC 2027//Tracker//EN","CALSCALE:GREGORIAN","X-WR-CALNAME:TUBC 2027"+(f.own?" · "+f.own:"")];
+  T.forEach(t=>lines.push("BEGIN:VEVENT","UID:"+t.id+"@tubc-2027","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+ymd(t.due),"DTEND;VALUE=DATE:"+nextDay(t.due),"SUMMARY:"+icsEsc("[TUBC] "+t.title),"DESCRIPTION:"+icsEsc([t.note,"Owner: "+t.owner,"Status: "+ST[t.status]].filter(Boolean).join("\n")),"END:VEVENT"));
+  lines.push("END:VCALENDAR");
+  const blob=new Blob([lines.join("\r\n")],{type:"text/calendar"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="tubc-2027"+(f.own?"-"+f.own.toLowerCase().replace(/\W+/g,"-"):"")+".ics"; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); };
 
 // ---------- structure ----------
 function renderHeads(){
@@ -626,7 +682,7 @@ $("ddgo").onclick=()=>{ f.own=cur; closeD(); location.hash="#tracker"; render();
 const deptOpts = sel => '<option value="">No department</option>'+Object.keys(SLOTS).map(d=>`<option${d===sel?" selected":""}>${esc(d)}</option>`).join("");
 $("md").innerHTML = deptOpts("");
 function renderMembers(){ renderPerms();
-  $("mt").tBodies[0].innerHTML = members.map(m=>{ const self=m.email===me.email; return `<tr><td>${esc(m.email)}${self?" (you)":""}</td><td><select data-role="${esc(m.email)}" aria-label="Level"${self?" disabled":""}>${["viewer","head","admin"].map(r=>`<option value="${r}"${r===m.role?" selected":""}>${r[0].toUpperCase()+r.slice(1)}</option>`).join("")}</select></td><td><select data-mdept="${esc(m.email)}" aria-label="Department">${deptOpts(m.dept||"")}</select></td><td>${self?"":`<button type="button" class="ghost sm" data-rm="${esc(m.email)}">Remove</button>`}</td></tr>`; }).join("");
+  $("mt").tBodies[0].innerHTML = members.map(m=>{ const self=m.email===me.email; return `<tr><td>${m.name?`<b>${esc(m.name)}</b><br>`:""}${esc(m.email)}${self?" (you)":""}</td><td><select data-role="${esc(m.email)}" aria-label="Level"${self?" disabled":""}>${["viewer","head","admin"].map(r=>`<option value="${r}"${r===m.role?" selected":""}>${ROLE_LABEL[r]}</option>`).join("")}</select></td><td><select data-mdept="${esc(m.email)}" aria-label="Department">${deptOpts(m.dept||"")}</select></td><td>${self?"":`<button type="button" class="ghost sm" data-rm="${esc(m.email)}">Remove</button>`}</td></tr>`; }).join("");
 }
 $("mf").addEventListener("submit", e=>{ e.preventDefault(); const email=$("me1").value.trim().toLowerCase(); if(!email) return;
   setDoc(doc(db,"members",email),{role:$("mr").value,dept:$("md").value},{merge:true}).then(()=>{$("me1").value=""; toast(email+" added.");}).catch(fail); });
