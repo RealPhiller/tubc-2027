@@ -233,7 +233,9 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .cnt{display:inline-block;background:var(--red);color:#fff;border-radius:999px;font:600 13px "Red Hat Text",sans-serif;padding:2px 9px;vertical-align:middle}
 .gcal{display:inline-flex;align-items:center;text-decoration:none}
 .cexp{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:16px;font-size:13px;opacity:.9}
-.cexp span{max-width:520px}
+.cexp span{max-width:560px}
+.cbtn.pri2{background:var(--red);color:#fff;border-color:var(--red)}
+#tdg.done{color:#1e7a46;border-color:#1e7a46}
 </style>
 </head>
 <body>
@@ -349,7 +351,7 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 <header class="band top"><div class="wrap">
   <div class="head"><div><h1 id="cmon">Calendar</h1><p class="sub" id="csub"></p></div>
   <div class="cnav"><button type="button" class="cbtn" id="cprev" aria-label="Previous month">‹</button><button type="button" class="cbtn" id="ctoday">Today</button><button type="button" class="cbtn" id="cnext" aria-label="Next month">›</button></div></div>
-  <div class="cexp"><button type="button" class="cbtn" id="cics">Export to calendar (.ics)</button><span>Adds every task shown below, with the owner filter applied, as all-day events. Works with Google Calendar, Apple Calendar and Outlook.</span></div>
+  <div class="cexp"><button type="button" class="cbtn pri2" id="cgall">Add these to Google Calendar</button><button type="button" class="cbtn" id="cics">.ics file</button><span>Puts every task shown, with the owner filter applied, straight into your Google Calendar as all-day events. Click again after dates change to update them. The .ics file is for Apple Calendar or Outlook.</span></div>
 </div></header>
 <main class="band"><div class="wrap">
   <div class="tools"><label for="cown" class="o">Owner</label><select id="cown"></select>
@@ -361,7 +363,7 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 <dialog id="td" aria-labelledby="tdt"><div class="dh"><h3 id="tdt"></h3><button type="button" class="x" id="tdx" aria-label="Close">×</button></div>
   <p class="role" id="tdm"></p><p id="tdn"></p>
   <label for="tds" class="o">Status</label> <select id="tds" class="st"></select><p class="by" id="tdb"></p>
-  <div class="da"><a class="ghost gcal" id="tdg" target="_blank" rel="noopener">Add to Google Calendar</a><button type="button" class="ghost" id="tde">Edit task</button></div>
+  <div class="da"><button type="button" class="ghost" id="tdg">Add to Google Calendar</button><button type="button" class="ghost" id="tde">Edit task</button></div>
 </dialog>
 <dialog id="ed" aria-labelledby="edt"><form id="edf">
   <div class="dh"><h3 id="edt">Edit task</h3><button type="button" class="x" id="edx" aria-label="Close">×</button></div>
@@ -403,7 +405,7 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 </div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, reauthenticateWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, addDoc, getDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const SEED = [["Hold PVP kickoff and split department ownership among the 3 PVP", "2026-11-29", "PVP", "todo", 0, "Set up a PVP x Dept Line group for each department"], ["Read TUBC 2026 and CLG 2026 debriefs", "2026-11-30", "PVP", "todo", 0, ""], ["Pick tentative dates: CLG (mid–late Aug), TUBC (early Oct)", "2026-12-06", "President", "todo", 0, "Aj. Pong checks against exams, AUBCC and CIBCC"], ["Book first meeting with Aj. Pong", "2026-12-13", "President", "todo", 0, "Aim for mid-January"], ["Draft head recruitment post (positions and PVP contacts)", "2026-12-18", "PVP", "todo", 0, "ER 2, Inven, PR, Venue, CR 2, Excur, Photog, IT 2, Doc, Buddy"], ["Post head recruitment to the BBA Line group", "2026-12-23", "PVP", "todo", 0, "Competition, Case Writer, Uni Affairs and Treasurer need no application"], ["Close head applications", "2026-12-26", "PVP", "todo", 0, ""], ["Tell 2026 heads that 2027 heads will reach out", "2026-12-31", "PVP", "todo", 0, ""], ["Set up 2027 Master Drive with Dept_TUBC2027 folders, shared to tubc@tbs.tu.ac.th", "2027-01-05", "PVP", "todo", 0, "Split each department folder into TUBC and CLG"], ["Finalize all heads and add them to the All Head Line group", "2027-01-07", "PVP", "todo", 0, ""], ["Duplicate the handover file (Head 32 x 33) for heads to fill", "2027-01-07", "PVP", "todo", 0, ""], ["Meet Aj. Pong: dates, format, invited teams, case company pricing, sponsorship proposal, advisor scope", "2027-01-15", "President", "todo", 1, "Advisor scope: pre-screening, judge screening, judge briefing"], ["Meet BBA Office with Treasurer: project-opening documents and budget process", "2027-01-20", "President", "todo", 1, "BBA Office gives opinions; Aj. Pong decides"], ["Agree PR x CR lead-time rules", "2027-01-24", "PVP", "todo", 1, "CR asked for about 1 week of lead time and at most 2 revision rounds"], ["Run the first all-head meeting", "2027-01-24", "PVP", "todo", 1, "Intros and concerns, work allocation, overview, recruitment timeline, vote the biweekly day"], ["Log into the tbs.tu.ac.th email on all devices and change the password", "2027-01-24", "PVP", "todo", 1, ""], ["Heads meet previous heads: record the call, fill the handover file", "2027-01-31", "All heads", "todo", 1, ""], ["List potential universities and send pre-invites", "2027-01-31", "Uni Affairs", "todo", 1, ""], ["Contact sponsors and case companies before Q1 budgets close", "2027-01-31", "ER", "todo", 1, "The 5-hour case company is the hardest to find"], ["Committee info session", "2027-02-06", "PR, CR, Doc", "todo", 2, ""], ["Close committee applications (one week)", "2027-02-12", "Doc", "todo", 2, "Extend two days if few apply"], ["Review each head's interview questions", "2027-02-13", "PVP", "todo", 2, ""], ["Finish committee interviews", "2027-02-24", "All heads", "todo", 2, ""], ["Interview and select Oper and Stage-co", "2027-02-28", "PVP", "todo", 2, ""], ["Announce the committee", "2027-03-02", "PVP", "todo", 2, ""], ["Announce CLG and TUBC themes", "2027-03-21", "CR, PR", "todo", 3, ""], ["CLG budget research deadline", "2027-04-10", "Treasurer", "todo", 3, "Include shipping fees; screenshots of online orders are no longer accepted"], ["Finalize TUBC format, team count and cash prizes", "2027-04-19", "PVP", "todo", 3, ""], ["Send official invitations to selected universities", "2027-04-22", "Uni Affairs", "todo", 3, ""], ["Submit CLG project and budget to BBA Office", "2027-04-30", "Treasurer", "todo", 3, ""], ["Secure the CLG case company", "2027-05-15", "ER", "todo", 3, "Keep confidential"], ["Lock the TUBC venue", "2027-05-31", "Venue", "todo", 3, "A bottleneck both years: hotels fill up"], ["Website, Airtable, emails and bank account ready for CLG", "2027-06-27", "IT, Doc, Treasurer", "todo", 3, ""], ["Open CLG applications", "2027-06-28", "PVP", "todo", 3, ""], ["Send TUBC participation fee invoices", "2027-07-15", "Uni Affairs", "todo", 4, "Fees must arrive net of transfer fees; set a firm deadline"], ["TUBC budget research deadline", "2027-07-17", "Treasurer", "todo", 4, ""], ["CLG judge screening day", "2027-08-08", "ER, Doc, Inven, Oper", "todo", 4, ""], ["Secure TUBC case companies (5-hour and 24-hour)", "2027-08-15", "ER", "todo", 4, "Was critical by mid-August in 2026"], ["All staff first meet", "2027-08-16", "PVP, Oper", "todo", 4, ""], ["The Challenger (CLG) day", "2027-08-22", "All", "todo", 4, "Tentative date"], ["Committee photoshoot", "2027-09-10", "Photog", "todo", 5, ""], ["TUBC site inspection with all departments", "2027-09-14", "Venue, PVP", "todo", 5, "Each department brings its questions"], ["Send the welcoming package to universities", "2027-09-21", "Uni Affairs", "todo", 5, "Two weeks before the event"], ["TUBC budget approved; start ordering", "2027-10-01", "Treasurer", "todo", 5, "Over 10,000 THB needs a TOR, a quote and 2 comparison quotes first"], ["TUBC week", "2027-10-04", "All", "todo", 5, "Tentative date"], ["Run the committee debrief", "2027-10-18", "PVP", "todo", 5, ""]];
 
@@ -581,7 +583,7 @@ function openTask(id){ const t=tasks.find(x=>x.id===id); if(!t) return; curTask=
   $("tdn").textContent=t.note||""; $("tdn").hidden=!t.note;
   $("tds").innerHTML=Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("");
   $("tds").className="st "+t.status; $("tds").disabled=!canTask(t);
-  $("tde").hidden=!canEdit(t); if(t.due){ $("tdg").href=gcalUrl(t); $("tdg").hidden=false; } else $("tdg").hidden=true;
+  $("tde").hidden=!canEdit(t); $("tdg").hidden=!t.due; $("tdg").disabled=false; $("tdg").classList.remove("done"); $("tdg").textContent="Add to Google Calendar";
   $("tdb").textContent=t.updatedBy?`Updated by ${t.updatedBy}`:(canTask(t)?"":"You can view this task but not change it.");
   try{$("td").showModal();}catch(e){$("td").setAttribute("open","");} }
 $("tds").addEventListener("change",e=>{ if(curTask){ setStatus(curTask,e.target.value); $("tds").className="st "+e.target.value; } });
@@ -654,6 +656,52 @@ $("cics").onclick=()=>{ const T=tasks.filter(t=>t.due&&(!f.own||toks(t.owner).in
   T.forEach(t=>lines.push("BEGIN:VEVENT","UID:"+t.id+"@tubc-2027","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+ymd(t.due),"DTEND;VALUE=DATE:"+nextDay(t.due),"SUMMARY:"+icsEsc("[TUBC] "+t.title),"DESCRIPTION:"+icsEsc([t.note,"Owner: "+t.owner,"Status: "+ST[t.status]].filter(Boolean).join("\n")),"END:VEVENT"));
   lines.push("END:VCALENDAR");
   const blob=new Blob([lines.join("\r\n")],{type:"text/calendar"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="tubc-2027"+(f.own?"-"+f.own.toLowerCase().replace(/\W+/g,"-"):"")+".ics"; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); };
+
+
+// ---------- Google Calendar (direct, via Calendar API) ----------
+let gTok=null, gTokExp=0;
+async function gcalToken(){
+  if(gTok && Date.now()<gTokExp) return gTok;
+  const pv=new GoogleAuthProvider(); pv.addScope("https://www.googleapis.com/auth/calendar.events");
+  pv.setCustomParameters({login_hint:auth.currentUser.email});
+  const r=await reauthenticateWithPopup(auth.currentUser,pv);
+  const c=GoogleAuthProvider.credentialFromResult(r);
+  if(!c?.accessToken) throw new Error("no-token");
+  gTok=c.accessToken; gTokExp=Date.now()+50*60*1000; return gTok;
+}
+const evId = id => "tubc"+[...new TextEncoder().encode(id)].map(b=>b.toString(16).padStart(2,"0")).join("");
+const nextIso = d => { const x=new Date(d+"T00:00"); x.setDate(x.getDate()+1); return iso(x); };
+function evBody(t){ return { summary:"[TUBC] "+t.title, status:"confirmed",
+  description:[t.note,"Owner: "+t.owner,"Topic: "+(PH[t.phase]?.[0]||""),"Tracker: "+location.origin+location.pathname].filter(Boolean).join("\n"),
+  start:{date:t.due}, end:{date:nextIso(t.due)}, transparency:"transparent",
+  source:{title:"TUBC 2027 Tracker", url:location.origin+location.pathname} }; }
+async function pushEvent(tok,t){
+  const id=evId(t.id), base="https://www.googleapis.com/calendar/v3/calendars/primary/events", hd={Authorization:"Bearer "+tok,"Content-Type":"application/json"};
+  let r=await fetch(base+"/"+id,{method:"PUT",headers:hd,body:JSON.stringify({id,...evBody(t)})});
+  if(r.status===404) r=await fetch(base,{method:"POST",headers:hd,body:JSON.stringify({id,...evBody(t)})});
+  if(r.status===401){ gTok=null; }
+  if(!r.ok){ const e=new Error("api-"+r.status); e.status=r.status; throw e; }
+  return r.json();
+}
+function gcalFail(e){ console.error(e);
+  const c=e?.code||"";
+  if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request") return toast("Cancelled.");
+  if(c==="auth/popup-blocked") return toast("Allow pop-ups for this site, then try again.");
+  if(c==="auth/user-mismatch") return toast("Pick the same Google account you're signed in with.");
+  if(e?.status===403) return toast("Google Calendar access wasn't granted. Click again and tick the calendar box.");
+  toast("Couldn't add to Google Calendar. Try again."); }
+$("tdg").onclick=async()=>{ const t=tasks.find(x=>x.id===curTask); if(!t?.due) return; const b=$("tdg");
+  b.disabled=true; b.textContent="Adding…";
+  try{ const tok=await gcalToken(); await pushEvent(tok,t); b.textContent="✓ In your Google Calendar"; b.classList.add("done"); toast("Added to your Google Calendar."); }
+  catch(e){ b.disabled=false; b.textContent="Add to Google Calendar"; gcalFail(e); } };
+$("cgall").onclick=async()=>{ const T=tasks.filter(t=>t.due&&(!f.own||toks(t.owner).includes(f.own)));
+  if(!T.length){ toast("No tasks with dates to add."); return; }
+  const b=$("cgall"); b.disabled=true; const lbl=b.textContent;
+  try{ const tok=await gcalToken(); let n=0;
+    for(const t of T){ b.textContent=`Adding ${++n}/${T.length}…`; await pushEvent(tok,t); }
+    toast(`${T.length} task${T.length>1?"s":""} added to your Google Calendar.`); }
+  catch(e){ gcalFail(e); }
+  finally{ b.disabled=false; b.textContent=lbl; } };
 
 // ---------- structure ----------
 function renderHeads(){
