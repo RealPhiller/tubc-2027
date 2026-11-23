@@ -43,7 +43,7 @@ select,input{font:16px "Red Hat Text",sans-serif;padding:8px 10px;min-height:44p
 .phase{margin:0 0 28px;scroll-margin-top:72px}
 .phase h2{font-size:22px;display:flex;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
 .phase h2 span{font:500 15px "Red Hat Text",sans-serif;color:var(--mute);white-space:nowrap}
-.row{display:grid;grid-template-columns:44px 92px minmax(0,1fr) 150px 128px 36px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.row{display:grid;grid-template-columns:18px 44px 92px minmax(0,1fr) 150px 128px 76px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .row.done .t{text-decoration:line-through;color:var(--mute)}
 .row.late .d{color:#c8302d;font-weight:600}
 .tick{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center;color:transparent;font-size:18px}
@@ -58,7 +58,7 @@ select,input{font:16px "Red Hat Text",sans-serif;padding:8px 10px;min-height:44p
 .add button{background:var(--red);color:#fff;border:0;border-radius:6px;padding:0 18px;min-height:44px;font:600 15px "Red Hat Text",sans-serif;cursor:pointer}
 .empty{color:var(--mute);padding:12px 0}
 .foot{font-size:13px;color:var(--mute)}
-@media(max-width:760px){.line{grid-template-columns:repeat(3,minmax(0,1fr))}.now{display:none}.row{grid-template-columns:44px minmax(0,1fr) 36px;grid-template-areas:"k t x" "k m m"}.row .tick{grid-area:k}.row .tcell{grid-area:t}.row .del{grid-area:x}.row .meta{grid-area:m;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}.add{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.add .wide{grid-column:1/-1}}
+@media(max-width:760px){.line{grid-template-columns:repeat(3,minmax(0,1fr))}.now{display:none}.row{grid-template-columns:44px minmax(0,1fr) 36px;grid-template-areas:"k t x" "k m m"}.row .tick{grid-area:k}.row .tcell{grid-area:t}.row .acts{grid-area:x}.grip{display:none!important}.row .meta{grid-area:m;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}.add{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.add .wide{grid-column:1/-1}}
 @media(min-width:761px){.row .meta{display:contents}}
 @media(prefers-reduced-motion:reduce){.bar i{transition:none}}
 .nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:0 max(5vw,16px)}
@@ -177,6 +177,32 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .ag .chip2{white-space:normal;font-size:14px;padding:8px 10px;margin-bottom:6px}
 #tdn{margin:6px 0 14px}
 @media(max-width:700px){.cal{display:none}.agenda{display:block}}
+.grip{color:var(--mute);cursor:grab;font-size:14px;letter-spacing:-3px;user-select:none;text-align:center}
+.grip.off{visibility:hidden}
+.row.dragging{opacity:.4}
+.row.drop-before{box-shadow:inset 0 3px 0 var(--red)}
+.row.drop-after{box-shadow:inset 0 -3px 0 var(--red)}
+.rows{min-height:24px;border-radius:6px}
+.rows.drop-into{outline:2px dashed var(--red);outline-offset:2px}
+.acts{display:flex;justify-content:flex-end;gap:2px}
+.ico{border:0;background:none;color:var(--mute);cursor:pointer;font-size:17px;min-width:36px;min-height:36px;border-radius:6px}
+.ico:hover,.del:hover{color:var(--ink);background:var(--panel)}
+.ef{display:grid;gap:12px;margin-top:12px}
+.ef label{display:grid;gap:4px;font-size:14px;font-weight:600}
+.ef input,.ef select,.ef textarea{width:100%;font:16px "Red Hat Text",sans-serif;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.ef textarea{min-height:80px;resize:vertical}
+.ef .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.ptitle{font-size:22px;margin:32px 0 6px}
+.plede{color:var(--mute);margin:0 0 12px;font-size:15px}
+.pc2{text-align:center;white-space:nowrap;width:96px}
+.sw{position:relative;display:inline-block;width:44px;height:26px;cursor:pointer}
+.sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.sw span{position:absolute;inset:0;background:var(--line);border-radius:999px;transition:background .15s}
+.sw span::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw input:checked+span{background:var(--red)}
+.sw input:checked+span::after{transform:translateX(18px)}
+.sw input:focus-visible+span{outline:3px solid var(--gold);outline-offset:2px}
+@media(max-width:600px){.ef .two{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -194,14 +220,17 @@ dialog h4{margin:18px 0 6px;font-size:15px}
   <button type="button" class="ghost" id="out2">Use another account</button>
 </div></div>
 <div class="view" id="v-access" hidden>
-<header class="band top"><div class="wrap"><h1>Access</h1><p class="sub">Who can sign in, and what each level can do.</p>
-  <div class="legend"><span><b>Admin</b> edits everything and manages access</span><span><b>Head</b> updates task status and head names for their own department</span><span><b>Viewer</b> sees everything, edits nothing</span></div>
+<header class="band top"><div class="wrap"><h1>Access</h1><p class="sub">Who can sign in, and what each level is allowed to change.</p>
+  <div class="legend"><span><b>Admin</b> edits everything and manages access</span><span><b>Head</b> and <b>Viewer</b>: whatever you switch on below</span></div>
 </div></header>
 <main class="band"><div class="wrap">
   <form class="add" id="mf"><input class="wide" id="me1" type="email" placeholder="name@gmail.com" aria-label="Email" required>
     <select id="mr" aria-label="Level"><option value="viewer">Viewer</option><option value="head">Head</option><option value="admin">Admin</option></select>
     <select id="md" aria-label="Department"></select><button type="submit">Add member</button></form>
   <div class="scroll"><table class="qt stack" id="mt"><thead><tr><th>Email</th><th>Level</th><th>Department</th><th></th></tr></thead><tbody></tbody></table></div>
+  <h2 class="ptitle">What each level can do</h2>
+  <p class="plede">Turn a switch on to let that level do it. "Their department" means the department set for that person above. Changes apply right away for everyone.</p>
+  <div class="scroll"><table class="qt" id="pm"><thead><tr><th>Permission</th><th class="pc2">Admin</th><th class="pc2">Head</th><th class="pc2">Viewer</th></tr></thead><tbody></tbody></table></div>
 </div></main>
 </div>
 <div class="view" id="v-structure" hidden>
@@ -283,7 +312,18 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 <dialog id="td" aria-labelledby="tdt"><div class="dh"><h3 id="tdt"></h3><button type="button" class="x" id="tdx" aria-label="Close">×</button></div>
   <p class="role" id="tdm"></p><p id="tdn"></p>
   <label for="tds" class="o">Status</label> <select id="tds" class="st"></select><p class="by" id="tdb"></p>
+  <div class="da"><button type="button" class="ghost" id="tde">Edit task</button></div>
 </dialog>
+<dialog id="ed" aria-labelledby="edt"><form id="edf">
+  <div class="dh"><h3 id="edt">Edit task</h3><button type="button" class="x" id="edx" aria-label="Close">×</button></div>
+  <div class="ef">
+    <label>Task<input id="et" required></label>
+    <div class="two"><label>Due date<input id="edue" type="date"></label><label>Topic<select id="eph"></select></label></div>
+    <label>Owner <small style="font-weight:400;color:var(--mute)">Separate departments with commas, e.g. ER, Doc</small><input id="eown"></label>
+    <label>Notes<textarea id="enote"></textarea></label>
+  </div>
+  <div class="da"><button type="button" class="ghost" id="edc">Cancel</button><button type="submit" class="pri">Save</button></div>
+</form></dialog>
 <div class="view" id="v-tracker" hidden>
 <header class="band top"><div class="wrap">
   <div class="head">
@@ -345,14 +385,22 @@ const fmt = d => d ? new Date(d+"T00:00").toLocaleDateString("en-GB",{day:"numer
 const toks = s => String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
 
 let me = null, tasks = [], heads = {}, members = [], unsub = [];
+const PERMS = [["statusOwn","Change status of their department's tasks"],["statusAny","Change status of any task"],["editOwn","Edit their department's tasks (name, date, owner, notes, topic)"],["editAny","Edit any task"],["move","Drag tasks between topics and reorder them"],["add","Add new tasks"],["del","Delete tasks"],["headsOwn","Edit head names for their department"],["headsAny","Edit head names for any department"]];
+const DEF_PERMS = {head:{statusOwn:true,headsOwn:true},viewer:{}};
+let perms = JSON.parse(JSON.stringify(DEF_PERMS));
 const f = {own:"",hide:false,late:false};
 
 function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3500); }
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 const isAdmin = () => me?.role==="admin";
-const canTask = t => isAdmin() || (me?.role==="head" && t.depts?.includes(me.dept));
-const canHeads = d => isAdmin() || (me?.role==="head" && me.dept===d);
+const can = k => isAdmin() || !!(perms[me?.role]||{})[k];
+const mine = t => !!me?.dept && (t.depts||toks(t.owner)).includes(me.dept);
+const canTask = t => can("statusAny") || (can("statusOwn") && mine(t));
+const canEdit = t => can("editAny") || (can("editOwn") && mine(t));
+const canMove = t => can("move") || canEdit(t);
+const canHeads = d => can("headsAny") || (can("headsOwn") && me?.dept===d);
+const ordKey = t => typeof t.order==="number" ? t.order : (t.due ? Date.parse(t.due)/86400000 : 99999);
 
 // ---------- views ----------
 const VIEWS = ["login","noaccess","tracker","calendar","structure","who","access"];
@@ -378,13 +426,13 @@ onAuthStateChanged(auth, async u=>{
   me = {email, name:u.displayName||email, role:m.role, dept:m.dept||""};
   $("mename").textContent = me.name; $("melvl").textContent = me.role + (me.role==="head"&&me.dept?" · "+me.dept:"");
   $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("t-access").hidden = !isAdmin();
-  $("addf").hidden = !isAdmin();
   if(me.role==="head" && me.dept) f.own = me.dept;
   start(); route();
 });
 
 function start(){
   unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
+  unsub.push(onSnapshot(doc(db,"settings","permissions"), s=>{ const d=s.exists()?s.data():{}; perms={head:{...DEF_PERMS.head,...(d.head||{})},viewer:{...DEF_PERMS.viewer,...(d.viewer||{})}}; render(); renderHeads(); renderPerms(); }, fail));
   unsub.push(onSnapshot(collection(db,"heads"), s=>{ heads={}; s.docs.forEach(d=>heads[d.id]=d.data().list||[]); renderHeads(); }, fail));
   if(isAdmin()) unsub.push(onSnapshot(collection(db,"members"), s=>{ members = s.docs.map(d=>({email:d.id,...d.data()})).sort((a,b)=>a.email.localeCompare(b.email)); renderMembers(); }, fail));
 }
@@ -400,17 +448,19 @@ function render(){
   if(f.own && !owners.includes(f.own)) owners.push(f.own);
   $("own").innerHTML = '<option value="">Everyone</option>'+owners.map(o=>`<option${o===f.own?" selected":""}>${esc(o)}</option>`).join("");
   $("seed").hidden = !(isAdmin() && T.length===0);
+  $("addf").hidden = !can("add");
   $("list").innerHTML = PH.map((p,i)=>{
-    const rows=T.filter(t=>t.phase===i && (!f.own||toks(t.owner).includes(f.own)) && (!f.hide||t.status!=="dn") && (!f.late||(t.due<today&&t.status!=="dn"))).sort((a,b)=>(a.due||"").localeCompare(b.due||""));
+    const rows=T.filter(t=>t.phase===i && (!f.own||toks(t.owner).includes(f.own)) && (!f.hide||t.status!=="dn") && (!f.late||(t.due<today&&t.status!=="dn"))).sort((a,b)=>ordKey(a)-ordKey(b));
     const d=T.filter(t=>t.phase===i&&t.status==="dn").length, n=T.filter(t=>t.phase===i).length;
-    return `<section class="phase" id="ph${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2>${rows.length?rows.map(t=>{const ok=canTask(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}"><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta"><span class="d">${fmt(t.due)}</span></div><div class="tcell"><span class="t">${esc(t.title)}</span>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta"><span class="o">${esc(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div>${isAdmin()?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:"<span></span>"}</div>`}).join(""):`<p class="empty">${T.length?"Nothing here with these filters.":"No tasks yet."}</p>`}</section>`;
+    return `<section class="phase" id="ph${i}" data-phase="${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2><div class="rows" data-phase="${i}">${rows.length?rows.map(t=>{const ok=canTask(t),ed=canEdit(t),mv=canMove(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}" data-id="${t.id}"${mv?' draggable="true"':""}><span class="grip${mv?"":" off"}" title="${mv?"Drag to move":""}" aria-hidden="true">⋮⋮</span><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta"><span class="d">${fmt(t.due)}</span></div><div class="tcell"><span class="t">${esc(t.title)}</span>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta"><span class="o">${esc(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div><div class="acts">${ed?`<button class="ico" data-edit="${t.id}" aria-label="Edit task" title="Edit">✎</button>`:""}${can("del")?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:""}</div></div>`}).join(""):`<p class="empty drop-empty">${T.length?(f.own||f.hide||f.late?"Nothing here with these filters.":"No tasks in this topic yet."):"No tasks yet."}</p>`}</div></section>`;
   }).join("");
   renderCal();
 }
 const setStatus = (id,status)=> updateDoc(doc(db,"tasks",id),{status,updatedBy:me.name,updatedAt:serverTimestamp()}).catch(fail);
 
 document.addEventListener("click", e=>{
-  const b=e.target.closest("[data-tick],[data-del],[data-go],.lvl1 .dept[data-dept],[data-rm]"); if(!b) return;
+  const b=e.target.closest("[data-tick],[data-del],[data-go],.lvl1 .dept[data-dept],[data-rm],[data-edit]"); if(!b) return;
+  if(b.dataset.edit){ openEdit(b.dataset.edit); return; }
   if(b.dataset.tick){ const t=tasks.find(x=>x.id===b.dataset.tick); if(t) setStatus(t.id, t.status==="dn"?"todo":"dn"); }
   else if(b.dataset.del){ if(b.dataset.armed){ deleteDoc(doc(db,"tasks",b.dataset.del)).catch(fail); } else { b.dataset.armed=1; b.textContent="Delete?"; b.style.fontSize="13px"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="×"; b.style.fontSize=""; } },3000); } }
   else if(b.dataset.go!==undefined){ $("ph"+b.dataset.go)?.scrollIntoView({behavior:"smooth"}); }
@@ -428,8 +478,8 @@ $("hide").onclick=()=>{f.hide=!f.hide;$("hide").setAttribute("aria-pressed",f.hi
 $("late").onclick=()=>{f.late=!f.late;$("late").setAttribute("aria-pressed",f.late);render();};
 $("np").innerHTML = PH.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join("");
 $("addf").addEventListener("submit", e=>{ e.preventDefault(); const title=$("nt").value.trim(); if(!title) return; const owner=$("no").value.trim()||"PVP";
-  addDoc(collection(db,"tasks"),{title,due:$("nd").value,owner,depts:toks(owner),status:"todo",phase:+$("np").value,note:"",updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{$("nt").value="";}).catch(fail); });
-$("seed").onclick = async ()=>{ const b=writeBatch(db); SEED.forEach(t=>b.set(doc(collection(db,"tasks")),{title:t[0],due:t[1],owner:t[2],depts:toks(t[2]),status:"todo",phase:t[4],note:t[5]||"",updatedBy:"",updatedAt:serverTimestamp()})); try{ await b.commit(); toast("Starter tasks loaded."); }catch(e){ fail(e); } };
+  addDoc(collection(db,"tasks"),{title,due:$("nd").value,owner,depts:toks(owner),status:"todo",phase:+$("np").value,note:"",order:$("nd").value?Date.parse($("nd").value)/86400000:99999,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{$("nt").value="";}).catch(fail); });
+$("seed").onclick = async ()=>{ const b=writeBatch(db); SEED.forEach(t=>b.set(doc(collection(db,"tasks")),{title:t[0],due:t[1],owner:t[2],depts:toks(t[2]),status:"todo",phase:t[4],note:t[5]||"",order:Date.parse(t[1])/86400000,updatedBy:"",updatedAt:serverTimestamp()})); try{ await b.commit(); toast("Starter tasks loaded."); }catch(e){ fail(e); } };
 
 
 // ---------- calendar ----------
@@ -467,11 +517,52 @@ function openTask(id){ const t=tasks.find(x=>x.id===id); if(!t) return; curTask=
   $("tdn").textContent=t.note||""; $("tdn").hidden=!t.note;
   $("tds").innerHTML=Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("");
   $("tds").className="st "+t.status; $("tds").disabled=!canTask(t);
+  $("tde").hidden=!canEdit(t);
   $("tdb").textContent=t.updatedBy?`Updated by ${t.updatedBy}`:(canTask(t)?"":"You can view this task but not change it.");
   try{$("td").showModal();}catch(e){$("td").setAttribute("open","");} }
 $("tds").addEventListener("change",e=>{ if(curTask){ setStatus(curTask,e.target.value); $("tds").className="st "+e.target.value; } });
 $("tdx").onclick=()=>{ try{$("td").close();}catch(e){$("td").removeAttribute("open");} };
 document.addEventListener("click",e=>{ const c=e.target.closest("[data-task]"); if(c){ openTask(c.dataset.task); return; } const mo=e.target.closest("[data-day]"); if(mo){ const ts=tasks.filter(t=>t.due===mo.dataset.day&&(!f.own||toks(t.owner).includes(f.own))); mo.outerHTML=ts.slice(3).map(chip).join(""); } });
+
+
+// ---------- edit + drag ----------
+let editId=null;
+function openEdit(id){ const t=tasks.find(x=>x.id===id); if(!t||!canEdit(t)) return; editId=id;
+  $("et").value=t.title||""; $("edue").value=t.due||""; $("eown").value=t.owner||""; $("enote").value=t.note||"";
+  $("eph").innerHTML=PH.map((p,i)=>`<option value="${i}"${i===t.phase?" selected":""}>${p[0]}</option>`).join("");
+  try{ $("td").close(); }catch(e){}
+  try{$("ed").showModal();}catch(e){$("ed").setAttribute("open","");} setTimeout(()=>$("et").focus(),50); }
+const closeE=()=>{ try{$("ed").close();}catch(e){$("ed").removeAttribute("open");} };
+$("edx").onclick=closeE; $("edc").onclick=closeE;
+$("edf").addEventListener("submit", e=>{ e.preventDefault(); const t=tasks.find(x=>x.id===editId); if(!t) return;
+  const title=$("et").value.trim(); if(!title) return; const owner=$("eown").value.trim()||"PVP"; const due=$("edue").value; const phase=+$("eph").value;
+  const upd={title,due,owner,depts:toks(owner),note:$("enote").value.trim(),phase,updatedBy:me.name,updatedAt:serverTimestamp()};
+  if(due!==t.due && typeof t.order!=="number") upd.order=due?Date.parse(due)/86400000:99999;
+  if(phase!==t.phase){ const inP=tasks.filter(x=>x.phase===phase&&x.id!==t.id); upd.order=inP.length?Math.max(...inP.map(ordKey))+1:ordKey(t); }
+  updateDoc(doc(db,"tasks",editId),upd).then(()=>{closeE();toast("Task saved.");}).catch(fail); });
+$("tde").onclick=()=>{ if(curTask) openEdit(curTask); };
+
+let dragId=null;
+const clearDrop=()=>document.querySelectorAll(".drop-before,.drop-after,.drop-into").forEach(el=>el.classList.remove("drop-before","drop-after","drop-into"));
+document.addEventListener("dragstart", e=>{ const r=e.target.closest?.(".row[draggable]"); if(!r) return; dragId=r.dataset.id; r.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",dragId);}catch(_){} });
+document.addEventListener("dragend", ()=>{ document.querySelectorAll(".dragging").forEach(el=>el.classList.remove("dragging")); clearDrop(); dragId=null; });
+document.addEventListener("dragover", e=>{ if(!dragId) return; const box=e.target.closest?.(".rows"); if(!box) return; e.preventDefault(); clearDrop();
+  const r=e.target.closest(".row"); if(r && r.dataset.id!==dragId){ const b=r.getBoundingClientRect(); r.classList.add(e.clientY<b.top+b.height/2?"drop-before":"drop-after"); } else if(!r){ box.classList.add("drop-into"); } });
+document.addEventListener("drop", e=>{ if(!dragId) return; const box=e.target.closest?.(".rows"); if(!box) return; e.preventDefault();
+  const phase=+box.dataset.phase; const r=e.target.closest(".row"); const ids=[...box.querySelectorAll(".row")].map(x=>x.dataset.id).filter(id=>id!==dragId);
+  let idx=ids.length; if(r && r.dataset.id!==dragId){ const b=r.getBoundingClientRect(); idx=ids.indexOf(r.dataset.id)+(e.clientY<b.top+b.height/2?0:1); }
+  const key=id=>ordKey(tasks.find(x=>x.id===id));
+  const prev=idx>0?key(ids[idx-1]):null, next=idx<ids.length?key(ids[idx]):null;
+  const order= prev==null&&next==null ? ordKey(tasks.find(x=>x.id===dragId)) : prev==null ? next-1 : next==null ? prev+1 : (prev+next)/2;
+  const t=tasks.find(x=>x.id===dragId); clearDrop(); const id=dragId; dragId=null;
+  if(!t || (t.phase===phase && ordKey(t)===order)) return;
+  t.phase=phase; t.order=order; render();
+  updateDoc(doc(db,"tasks",id),{phase,order,updatedBy:me.name,updatedAt:serverTimestamp()}).catch(fail); });
+
+// ---------- permissions matrix ----------
+function renderPerms(){ if(!$("pm")||!isAdmin()) return;
+  $("pm").tBodies[0].innerHTML=PERMS.map(([k,l])=>`<tr><td>${esc(l)}</td><td class="pc2">Always</td>${["head","viewer"].map(r=>`<td class="pc2"><label class="sw"><input type="checkbox" data-perm="${r}.${k}"${perms[r]?.[k]?" checked":""} aria-label="${esc(l)} for ${r}s"><span></span></label></td>`).join("")}</tr>`).join(""); }
+document.addEventListener("change", e=>{ const p=e.target.dataset?.perm; if(!p) return; const [r,k]=p.split("."); setDoc(doc(db,"settings","permissions"),{[r]:{[k]:e.target.checked}},{merge:true}).then(()=>toast("Access updated.")).catch(fail); });
 
 // ---------- structure ----------
 function renderHeads(){
@@ -499,7 +590,7 @@ $("ddgo").onclick=()=>{ f.own=cur; closeD(); location.hash="#tracker"; render();
 // ---------- access ----------
 const deptOpts = sel => '<option value="">No department</option>'+Object.keys(SLOTS).map(d=>`<option${d===sel?" selected":""}>${esc(d)}</option>`).join("");
 $("md").innerHTML = deptOpts("");
-function renderMembers(){
+function renderMembers(){ renderPerms();
   $("mt").tBodies[0].innerHTML = members.map(m=>{ const self=m.email===me.email; return `<tr><td>${esc(m.email)}${self?" (you)":""}</td><td><select data-role="${esc(m.email)}" aria-label="Level"${self?" disabled":""}>${["viewer","head","admin"].map(r=>`<option value="${r}"${r===m.role?" selected":""}>${r[0].toUpperCase()+r.slice(1)}</option>`).join("")}</select></td><td><select data-mdept="${esc(m.email)}" aria-label="Department">${deptOpts(m.dept||"")}</select></td><td>${self?"":`<button type="button" class="ghost sm" data-rm="${esc(m.email)}">Remove</button>`}</td></tr>`; }).join("");
 }
 $("mf").addEventListener("submit", e=>{ e.preventDefault(); const email=$("me1").value.trim().toLowerCase(); if(!email) return;
