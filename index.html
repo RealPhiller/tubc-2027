@@ -236,6 +236,35 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .cexp span{max-width:560px}
 .cbtn.pri2{background:var(--red);color:#fff;border-color:var(--red)}
 #tdg.done{color:#1e7a46;border-color:#1e7a46}
+.gbar{margin-top:20px;background:#e8f0fe;color:#174ea6;border-radius:16px;padding:16px 18px;display:grid;gap:12px;max-width:760px}
+.ghead{display:flex;gap:12px;align-items:flex-start}
+.ghead b{display:block;font:700 17px "Red Hat Display",sans-serif;color:#0b3d91}
+.ghead .gname{display:inline;font:inherit;font-weight:700;color:#0b3d91}
+.ghead span{display:block;font-size:13px;line-height:1.45;color:#174ea6;margin-top:2px}
+.grow{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.gsel{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.gsel select{min-height:40px;border-radius:999px;border:1px solid #aecbfa;background:#fff;color:#0b3d91;padding:0 14px;font:600 15px "Red Hat Text",sans-serif}
+.gchk{display:flex;align-items:center;gap:6px;font-size:13px}
+.gchk input{width:18px;height:18px;accent-color:#1a73e8}
+.gbtn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 20px 0 14px;border:0;border-radius:999px;background:#1a73e8;color:#fff;font:600 15px "Red Hat Text",sans-serif;cursor:pointer;box-shadow:0 1px 3px rgba(26,115,232,.35);transition:background .15s}
+.gbtn:hover{background:#1765cc}.gbtn:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}
+.gbtn:disabled{opacity:.7;cursor:progress}
+.gbtn.sm{min-height:40px;font-size:14px;padding:0 16px 0 12px}
+.gbtn.done{background:#137333}
+.gic{width:20px;height:20px;flex:none}.gic.big{width:34px;height:34px;background:#1a73e8;border-radius:10px;padding:5px}
+.gics{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid #aecbfa;background:#fff;color:#1a73e8;font:600 14px "Red Hat Text",sans-serif;cursor:pointer}
+@media (max-width:640px){.gbtn:not(.sm){width:100%;justify-content:center}.gsel{width:100%}.gsel select{flex:1}}
+.opick{position:relative;display:inline-block;min-width:150px}
+.opick>summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;padding:0 34px 0 12px;border:1px solid var(--line,#ccc);border-radius:6px;background:var(--bg,#fff);color:inherit;font:15px "Red Hat Text",sans-serif;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+.opick>summary::-webkit-details-marker{display:none}
+.opick>summary::after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);opacity:.7}
+.opop{position:absolute;z-index:60;top:calc(100% + 4px);left:0;min-width:240px;max-height:300px;overflow:auto;background:var(--bg,#fff);color:inherit;border:1px solid var(--line,#ccc);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:6px;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.opop label{display:flex;align-items:center;gap:8px;padding:8px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer}
+.opop label:hover{background:rgba(0,0,0,.06)}
+.opop input{width:18px;height:18px;accent-color:var(--red)}
+.opop .ohd{grid-column:1/-1;font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.65;padding:6px 8px 2px}
+.flab{display:grid;gap:4px;font-weight:600}
+.flab .opick{display:block}.flab .opick>summary{max-width:none}
 </style>
 </head>
 <body>
@@ -351,7 +380,17 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 <header class="band top"><div class="wrap">
   <div class="head"><div><h1 id="cmon">Calendar</h1><p class="sub" id="csub"></p></div>
   <div class="cnav"><button type="button" class="cbtn" id="cprev" aria-label="Previous month">‹</button><button type="button" class="cbtn" id="ctoday">Today</button><button type="button" class="cbtn" id="cnext" aria-label="Next month">›</button></div></div>
-  <div class="cexp"><button type="button" class="cbtn pri2" id="cgall">Add these to Google Calendar</button><button type="button" class="cbtn" id="cics">.ics file</button><span>Puts every task shown, with the owner filter applied, straight into your Google Calendar as all-day events. Click again after dates change to update them. The .ics file is for Apple Calendar or Outlook.</span></div>
+  <div class="gbar">
+    <div class="ghead"><svg class="gic big" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3" fill="#fff"/><rect x="3" y="4.5" width="18" height="5" rx="2" fill="#d2e3fc"/><rect x="7" y="2.5" width="2" height="4" rx="1" fill="#fff"/><rect x="15" y="2.5" width="2" height="4" rx="1" fill="#fff"/><path d="M8 13.5h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2zM8 16.8h2v2H8zm3 0h2v2h-2z" fill="#1a73e8"/></svg><div><b>Add tasks to your Google Calendar</b><span>Pick a department. Each department gets its own calendar in your Google Calendar, like <b class="gname">TUBC2027 - ER</b>, so you can tick it on or off. Clicking again after dates change updates the events instead of adding duplicates.</span></div></div>
+    <div class="grow">
+      <label class="gsel"><span>Department</span><select id="gdept" aria-label="Department to add"></select></label>
+      <label class="gchk"><input type="checkbox" id="gall" checked> Include tasks for everyone (All, All heads)</label>
+    </div>
+    <div class="grow">
+      <button type="button" class="gbtn" id="cgall"><svg class="gic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3" fill="#fff"/><rect x="3" y="4.5" width="18" height="5" rx="2" fill="#d2e3fc"/><rect x="7" y="2.5" width="2" height="4" rx="1" fill="#fff"/><rect x="15" y="2.5" width="2" height="4" rx="1" fill="#fff"/><path d="M8 13.5h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2zM8 16.8h2v2H8zm3 0h2v2h-2z" fill="#1a73e8"/></svg><span id="cglbl">Add to Google Calendar</span></button>
+      <button type="button" class="gics" id="cics">Download .ics (Apple, Outlook)</button>
+    </div>
+  </div>
 </div></header>
 <main class="band"><div class="wrap">
   <div class="tools"><label for="cown" class="o">Owner</label><select id="cown"></select>
@@ -363,14 +402,14 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 <dialog id="td" aria-labelledby="tdt"><div class="dh"><h3 id="tdt"></h3><button type="button" class="x" id="tdx" aria-label="Close">×</button></div>
   <p class="role" id="tdm"></p><p id="tdn"></p>
   <label for="tds" class="o">Status</label> <select id="tds" class="st"></select><p class="by" id="tdb"></p>
-  <div class="da"><button type="button" class="ghost" id="tdg">Add to Google Calendar</button><button type="button" class="ghost" id="tde">Edit task</button></div>
+  <div class="da"><button type="button" class="gbtn sm" id="tdg"><svg class="gic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3" fill="#fff"/><rect x="3" y="4.5" width="18" height="5" rx="2" fill="#d2e3fc"/><rect x="7" y="2.5" width="2" height="4" rx="1" fill="#fff"/><rect x="15" y="2.5" width="2" height="4" rx="1" fill="#fff"/><path d="M8 13.5h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2zM8 16.8h2v2H8zm3 0h2v2h-2z" fill="#1a73e8"/></svg><span>Add to Google Calendar</span></button><button type="button" class="ghost" id="tde">Edit task</button></div>
 </dialog>
 <dialog id="ed" aria-labelledby="edt"><form id="edf">
   <div class="dh"><h3 id="edt">Edit task</h3><button type="button" class="x" id="edx" aria-label="Close">×</button></div>
   <div class="ef">
     <label>Task<input id="et" required></label>
     <div class="two"><label>Due date<input id="edue" type="date"></label><label>Topic<select id="eph"></select></label></div>
-    <label>Owner <small style="font-weight:400;color:var(--mute)">Separate departments with commas, e.g. ER, Doc</small><input id="eown"></label>
+    <div class="flab">Owner <small style="font-weight:400;color:var(--mute)">Tick one or more</small><input type="hidden" id="eown" value=""><details class="opick" data-for="eown"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details></div>
     <label>Notes<textarea id="enote"></textarea></label>
   </div>
   <div class="da"><button type="button" class="ghost" id="edc">Cancel</button><button type="submit" class="pri">Save</button></div>
@@ -396,7 +435,7 @@ dialog h4{margin:18px 0 6px;font-size:15px}
   <form class="add" id="addf" hidden>
     <input class="wide" id="nt" placeholder="New task" aria-label="New task" required>
     <input id="nd" type="date" aria-label="Due date" required>
-    <input id="no" placeholder="Owner" aria-label="Owner" value="PVP">
+    <input type="hidden" id="no" value="PVP"><details class="opick" data-for="no"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details>
     <select id="np" aria-label="Phase"></select>
     <button type="submit">Add task</button>
   </form>
@@ -433,6 +472,8 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const today = new Date().toISOString().slice(0,10);
 const fmt = d => d ? new Date(d+"T00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}) + (d.slice(0,4)==="2026"?" ’26":"") : "";
+const DEPTS = ["PVP", ...Object.keys(SLOTS)];
+const OWNER_GROUPS = [["Leadership",["PVP","President"]],["Shared",["All","All heads"]],["Departments",Object.keys(SLOTS)]];
 const toks = s => String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
 
 let me = null, tasks = [], heads = {}, members = [], requests = [], unsub = [];
@@ -544,7 +585,7 @@ $("hide").onclick=()=>{f.hide=!f.hide;$("hide").setAttribute("aria-pressed",f.hi
 $("late").onclick=()=>{f.late=!f.late;$("late").setAttribute("aria-pressed",f.late);render();};
 $("np").innerHTML = PH.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join("");
 $("addf").addEventListener("submit", e=>{ e.preventDefault(); const title=$("nt").value.trim(); if(!title) return; const owner=$("no").value.trim()||"PVP";
-  addDoc(collection(db,"tasks"),{title,due:$("nd").value,owner,depts:toks(owner),status:"todo",phase:+$("np").value,note:"",order:$("nd").value?Date.parse($("nd").value)/86400000:99999,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{$("nt").value="";}).catch(fail); });
+  addDoc(collection(db,"tasks"),{title,due:$("nd").value,owner,depts:toks(owner),status:"todo",phase:+$("np").value,note:"",order:$("nd").value?Date.parse($("nd").value)/86400000:99999,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{$("nt").value=""; setPick("no","PVP");}).catch(fail); });
 $("seed").onclick = async ()=>{ const b=writeBatch(db); SEED.forEach(t=>b.set(doc(collection(db,"tasks")),{title:t[0],due:t[1],owner:t[2],depts:toks(t[2]),status:"todo",phase:t[4],note:t[5]||"",order:Date.parse(t[1])/86400000,updatedBy:"",updatedAt:serverTimestamp()})); try{ await b.commit(); toast("Starter tasks loaded."); }catch(e){ fail(e); } };
 
 
@@ -554,7 +595,7 @@ let cm=(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1);
 const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 const chip=t=>`<button type="button" class="chip2 ${t.status}${t.due<today&&t.status!=="dn"?" late":""}" data-task="${t.id}" title="${esc(t.title)} · ${esc(t.owner)}">${esc(t.title)}</button>`;
 function renderCal(){
-  if(!$("cal")) return;
+  if(!$("cal")) return; fillGDept();
   const owners=[...new Set(tasks.flatMap(t=>toks(t.owner)))].sort(); if(f.own&&!owners.includes(f.own)) owners.push(f.own);
   $("cown").innerHTML='<option value="">Everyone</option>'+owners.map(o=>`<option${o===f.own?" selected":""}>${esc(o)}</option>`).join("");
   const T=tasks.filter(t=>t.due&&(!f.own||toks(t.owner).includes(f.own)));
@@ -583,7 +624,7 @@ function openTask(id){ const t=tasks.find(x=>x.id===id); if(!t) return; curTask=
   $("tdn").textContent=t.note||""; $("tdn").hidden=!t.note;
   $("tds").innerHTML=Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("");
   $("tds").className="st "+t.status; $("tds").disabled=!canTask(t);
-  $("tde").hidden=!canEdit(t); $("tdg").hidden=!t.due; $("tdg").disabled=false; $("tdg").classList.remove("done"); $("tdg").textContent="Add to Google Calendar";
+  $("tde").hidden=!canEdit(t); $("tdg").hidden=!t.due; $("tdg").disabled=false; $("tdg").classList.remove("done"); $("tdg").lastChild.textContent="Add to Google Calendar";
   $("tdb").textContent=t.updatedBy?`Updated by ${t.updatedBy}`:(canTask(t)?"":"You can view this task but not change it.");
   try{$("td").showModal();}catch(e){$("td").setAttribute("open","");} }
 $("tds").addEventListener("change",e=>{ if(curTask){ setStatus(curTask,e.target.value); $("tds").className="st "+e.target.value; } });
@@ -594,7 +635,7 @@ document.addEventListener("click",e=>{ const c=e.target.closest("[data-task]"); 
 // ---------- edit + drag ----------
 let editId=null;
 function openEdit(id){ const t=tasks.find(x=>x.id===id); if(!t||!canEdit(t)) return; editId=id;
-  $("et").value=t.title||""; $("edue").value=t.due||""; $("eown").value=t.owner||""; $("enote").value=t.note||"";
+  $("et").value=t.title||""; $("edue").value=t.due||""; setPick("eown",t.owner||""); $("enote").value=t.note||"";
   $("eph").innerHTML=PH.map((p,i)=>`<option value="${i}"${i===t.phase?" selected":""}>${p[0]}</option>`).join("");
   try{ $("td").close(); }catch(e){}
   try{$("ed").showModal();}catch(e){$("ed").setAttribute("open","");} setTimeout(()=>$("et").focus(),50); }
@@ -649,20 +690,20 @@ const ymd = d => d.replace(/-/g,"");
 const nextDay = d => { const x=new Date(d+"T00:00"); x.setDate(x.getDate()+1); return iso(x).replace(/-/g,""); };
 function gcalUrl(t){ const p=new URLSearchParams({action:"TEMPLATE",text:"[TUBC] "+t.title,dates:ymd(t.due)+"/"+nextDay(t.due),details:[t.note,"Owner: "+t.owner,"Topic: "+(PH[t.phase]?.[0]||""),"Tracker: "+location.origin+location.pathname].filter(Boolean).join("\n")}); return "https://calendar.google.com/calendar/render?"+p.toString(); }
 const icsEsc = s => String(s||"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
-$("cics").onclick=()=>{ const T=tasks.filter(t=>t.due&&(!f.own||toks(t.owner).includes(f.own)));
+$("cics").onclick=()=>{ const T=gTasks(); const gd=$("gdept").value;
   if(!T.length){ toast("No tasks with dates to export."); return; }
   const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
-  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//TUBC 2027//Tracker//EN","CALSCALE:GREGORIAN","X-WR-CALNAME:TUBC 2027"+(f.own?" · "+f.own:"")];
+  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//TUBC 2027//Tracker//EN","CALSCALE:GREGORIAN","X-WR-CALNAME:TUBC 2027"+(gd?" · "+gd:"")];
   T.forEach(t=>lines.push("BEGIN:VEVENT","UID:"+t.id+"@tubc-2027","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+ymd(t.due),"DTEND;VALUE=DATE:"+nextDay(t.due),"SUMMARY:"+icsEsc("[TUBC] "+t.title),"DESCRIPTION:"+icsEsc([t.note,"Owner: "+t.owner,"Status: "+ST[t.status]].filter(Boolean).join("\n")),"END:VEVENT"));
   lines.push("END:VCALENDAR");
-  const blob=new Blob([lines.join("\r\n")],{type:"text/calendar"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="tubc-2027"+(f.own?"-"+f.own.toLowerCase().replace(/\W+/g,"-"):"")+".ics"; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); };
+  const blob=new Blob([lines.join("\r\n")],{type:"text/calendar"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="tubc-2027"+(gd?"-"+gd.toLowerCase().replace(/\W+/g,"-"):"")+".ics"; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); };
 
 
 // ---------- Google Calendar (direct, via Calendar API) ----------
 let gTok=null, gTokExp=0;
 async function gcalToken(){
   if(gTok && Date.now()<gTokExp) return gTok;
-  const pv=new GoogleAuthProvider(); pv.addScope("https://www.googleapis.com/auth/calendar.events");
+  const pv=new GoogleAuthProvider(); pv.addScope("https://www.googleapis.com/auth/calendar.app.created");
   pv.setCustomParameters({login_hint:auth.currentUser.email});
   const r=await reauthenticateWithPopup(auth.currentUser,pv);
   const c=GoogleAuthProvider.credentialFromResult(r);
@@ -675,13 +716,38 @@ function evBody(t){ return { summary:"[TUBC] "+t.title, status:"confirmed",
   description:[t.note,"Owner: "+t.owner,"Topic: "+(PH[t.phase]?.[0]||""),"Tracker: "+location.origin+location.pathname].filter(Boolean).join("\n"),
   start:{date:t.due}, end:{date:nextIso(t.due)}, transparency:"transparent",
   source:{title:"TUBC 2027 Tracker", url:location.origin+location.pathname} }; }
-async function pushEvent(tok,t){
-  const id=evId(t.id), base="https://www.googleapis.com/calendar/v3/calendars/primary/events", hd={Authorization:"Bearer "+tok,"Content-Type":"application/json"};
-  let r=await fetch(base+"/"+id,{method:"PUT",headers:hd,body:JSON.stringify({id,...evBody(t)})});
-  if(r.status===404) r=await fetch(base,{method:"POST",headers:hd,body:JSON.stringify({id,...evBody(t)})});
-  if(r.status===401){ gTok=null; }
+async function gapi(tok,method,url,body){
+  const r=await fetch("https://www.googleapis.com/calendar/v3"+url,{method,headers:{Authorization:"Bearer "+tok,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
+  if(r.status===401) gTok=null;
   if(!r.ok){ const e=new Error("api-"+r.status); e.status=r.status; throw e; }
-  return r.json();
+  return r.status===204?null:r.json();
+}
+// One Google calendar per department: "TUBC2027 - ER", so people can show/hide each one.
+const CAL_PREFIX="TUBC2027 - ";
+let calMap=null;
+const LS_CALS="tubc-gcals:";
+function cachedCals(){ try{ return JSON.parse(localStorage.getItem(LS_CALS+(auth.currentUser?.email||""))||"{}"); }catch(e){ return {}; } }
+function saveCals(m){ try{ localStorage.setItem(LS_CALS+(auth.currentUser?.email||""),JSON.stringify(m)); }catch(e){} }
+async function loadCals(tok){ if(calMap) return calMap; let m={};
+  try{ let pt=""; do{ const j=await gapi(tok,"GET","/users/me/calendarList?maxResults=250"+(pt?"&pageToken="+encodeURIComponent(pt):""));
+      (j.items||[]).forEach(c=>{ if((c.summary||"").startsWith(CAL_PREFIX)) m[c.summary]=c.id; }); pt=j.nextPageToken; } while(pt); saveCals(m); }
+  catch(e){ if(e.status!==403) throw e; m=cachedCals(); }
+  return calMap=m; }
+const calColor = n => String(1+[...n].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7)%24);
+async function calFor(tok,name){ const m=await loadCals(tok), full=CAL_PREFIX+name; if(m[full]) return m[full];
+  const c=await gapi(tok,"POST","/calendars",{summary:full,description:"TUBC 2027 tasks for "+name+". Added from "+location.origin+location.pathname,timeZone:"Asia/Bangkok"});
+  m[full]=c.id; saveCals(m); try{ await gapi(tok,"PATCH","/users/me/calendarList/"+encodeURIComponent(c.id),{colorId:calColor(name)}); }catch(e){}
+  return c.id; }
+// Which department calendars a task belongs in.
+function calNames(t,chosen){ if(chosen) return [chosen];
+  const o=(t.depts?.length?t.depts:toks(t.owner)).map(x=>x==="President"?"PVP":x==="All heads"?"All":x);
+  const u=[...new Set(o)]; return u.length?u:["PVP"]; }
+async function pushEvent(tok,t,chosen){
+  for(const name of calNames(t,chosen)){
+    const cal=encodeURIComponent(await calFor(tok,name)), id=evId(t.id), body={id,...evBody(t)};
+    try{ await gapi(tok,"PUT",`/calendars/${cal}/events/${id}`,body); }
+    catch(e){ if(e.status!==404) throw e; await gapi(tok,"POST",`/calendars/${cal}/events`,body); }
+  }
 }
 function gcalFail(e){ console.error(e);
   const c=e?.code||"";
@@ -691,17 +757,36 @@ function gcalFail(e){ console.error(e);
   if(e?.status===403) return toast("Google Calendar access wasn't granted. Click again and tick the calendar box.");
   toast("Couldn't add to Google Calendar. Try again."); }
 $("tdg").onclick=async()=>{ const t=tasks.find(x=>x.id===curTask); if(!t?.due) return; const b=$("tdg");
-  b.disabled=true; b.textContent="Adding…";
-  try{ const tok=await gcalToken(); await pushEvent(tok,t); b.textContent="✓ In your Google Calendar"; b.classList.add("done"); toast("Added to your Google Calendar."); }
-  catch(e){ b.disabled=false; b.textContent="Add to Google Calendar"; gcalFail(e); } };
-$("cgall").onclick=async()=>{ const T=tasks.filter(t=>t.due&&(!f.own||toks(t.owner).includes(f.own)));
-  if(!T.length){ toast("No tasks with dates to add."); return; }
-  const b=$("cgall"); b.disabled=true; const lbl=b.textContent;
+  const L=b.lastChild; b.disabled=true; L.textContent="Adding…";
+  try{ const tok=await gcalToken(); await pushEvent(tok,t); L.textContent="✓ In your Google Calendar"; b.classList.add("done"); toast("Added to "+calNames(t).map(n=>CAL_PREFIX+n).join(", ")+"."); }
+  catch(e){ b.disabled=false; L.textContent="Add to Google Calendar"; gcalFail(e); } };
+var EVERY=["All","All heads"];
+function gTasks(){ const d=$("gdept").value, inc=$("gall").checked;
+  return tasks.filter(t=>{ if(!t.due) return false; if(!d) return true; const o=t.depts?.length?t.depts:toks(t.owner);
+    if(d==="PVP") return o.some(x=>x==="PVP"||x==="President")||(inc&&EVERY.includes(o[0])&&o.length===1); return o.includes(d)||(inc&&o.some(x=>EVERY.includes(x))); }); }
+function gLabel(){ const n=gTasks().length, d=$("gdept").value; $("cglbl").textContent = n ? `Add ${n} ${d?d+" ":""}task${n>1?"s":""} to Google Calendar` : "No dated tasks for this department"; $("cgall").disabled=!n; }
+let gdPicked=false;
+function fillGDept(){ const sel=$("gdept"), cur=gdPicked?sel.value:(me?.dept||""); sel.innerHTML='<option value="">All departments</option><option value="PVP">PVP / President</option>'+Object.keys(SLOTS).map(d=>`<option${d===cur?" selected":""}>${esc(d)}</option>`).join(""); if(cur==="PVP") sel.value="PVP"; gLabel(); }
+$("gdept").addEventListener("change",()=>{gdPicked=true;gLabel();}); $("gall").addEventListener("change",gLabel);
+$("cgall").onclick=async()=>{ const T=gTasks(); if(!T.length) return;
+  const b=$("cgall"), L=$("cglbl"); b.disabled=true;
   try{ const tok=await gcalToken(); let n=0;
-    for(const t of T){ b.textContent=`Adding ${++n}/${T.length}…`; await pushEvent(tok,t); }
-    toast(`${T.length} task${T.length>1?"s":""} added to your Google Calendar.`); }
+    const gd=$("gdept").value||null; for(const t of T){ L.textContent=`Adding ${++n}/${T.length}…`; await pushEvent(tok,t,gd); }
+    toast(`${T.length} task${T.length>1?"s":""} added to Google Calendar${$("gdept").value?" under "+CAL_PREFIX+$("gdept").value:""}.`); }
   catch(e){ gcalFail(e); }
-  finally{ b.disabled=false; b.textContent=lbl; } };
+  finally{ b.disabled=false; gLabel(); } };
+
+
+// ---------- owner picker ----------
+function pickRender(d){ const inp=$(d.dataset.for), cur=toks(inp.value); const known=OWNER_GROUPS.flatMap(g=>g[1]); const extra=cur.filter(x=>!known.includes(x));
+  const box=(o)=>`<label><input type="checkbox" value="${esc(o)}"${cur.includes(o)?" checked":""}> ${esc(o)}</label>`;
+  d.querySelector(".opop").innerHTML=OWNER_GROUPS.map(([n,l])=>`<div class="ohd">${n}</div>`+l.map(box).join("")).join("")+(extra.length?'<div class="ohd">Other</div>'+extra.map(box).join(""):"");
+  d.querySelector("summary").textContent=cur.length?cur.join(", "):"Choose owner…"; }
+function setPick(id,val){ $(id).value=val; pickRender(document.querySelector(`.opick[data-for="${id}"]`)); }
+document.querySelectorAll(".opick").forEach(d=>{ pickRender(d);
+  d.addEventListener("change",e=>{ if(e.target.type!=="checkbox") return; const v=[...d.querySelectorAll("input:checked")].map(x=>x.value); $(d.dataset.for).value=v.join(", "); d.querySelector("summary").textContent=v.length?v.join(", "):"Choose owner…"; }); });
+document.addEventListener("click",e=>{ document.querySelectorAll(".opick[open]").forEach(d=>{ if(!d.contains(e.target)) d.open=false; }); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".opick[open]").forEach(d=>{ d.open=false; d.querySelector("summary").focus(); }); });
 
 // ---------- structure ----------
 function renderHeads(){
@@ -727,7 +812,7 @@ $("ddf").addEventListener("submit", e=>{ e.preventDefault(); const n=SLOTS[cur]|
 $("ddgo").onclick=()=>{ f.own=cur; closeD(); location.hash="#tracker"; render(); };
 
 // ---------- access ----------
-const deptOpts = sel => '<option value="">No department</option>'+Object.keys(SLOTS).map(d=>`<option${d===sel?" selected":""}>${esc(d)}</option>`).join("");
+const deptOpts = sel => '<option value="">No department</option>'+DEPTS.map(d=>`<option${d===sel?" selected":""}>${esc(d)}</option>`).join("");
 $("md").innerHTML = deptOpts("");
 function renderMembers(){ renderPerms();
   $("mt").tBodies[0].innerHTML = members.map(m=>{ const self=m.email===me.email; return `<tr><td>${m.name?`<b>${esc(m.name)}</b><br>`:""}${esc(m.email)}${self?" (you)":""}</td><td><select data-role="${esc(m.email)}" aria-label="Level"${self?" disabled":""}>${["viewer","head","admin"].map(r=>`<option value="${r}"${r===m.role?" selected":""}>${ROLE_LABEL[r]}</option>`).join("")}</select></td><td><select data-mdept="${esc(m.email)}" aria-label="Department">${deptOpts(m.dept||"")}</select></td><td>${self?"":`<button type="button" class="ghost sm" data-rm="${esc(m.email)}">Remove</button>`}</td></tr>`; }).join("");
