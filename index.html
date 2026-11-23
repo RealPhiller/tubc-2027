@@ -265,6 +265,42 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .opop .ohd{grid-column:1/-1;font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.65;padding:6px 8px 2px}
 .flab{display:grid;gap:4px;font-weight:600}
 .flab .opick{display:block}.flab .opick>summary{max-width:none}
+.cdbar{background:#17120f;color:#f3ece4;font:500 14px "Red Hat Text",sans-serif}
+.cdbar .wrap{display:flex;flex-wrap:wrap;gap:6px 22px;padding-top:8px;padding-bottom:8px;align-items:baseline}
+.cdi b{font:800 18px "Red Hat Display",sans-serif;color:#fff}
+.cdi small{opacity:.6;margin-left:6px;font-size:12px}
+.cdi.soon b{color:#ffb4a8}.cdi.past{opacity:.55}
+.mtools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-top:14px}
+.mselw{display:flex;align-items:center;gap:8px;font-weight:600}
+.mselw select{min-height:44px;border-radius:6px;border:0;padding:0 12px;font:600 16px "Red Hat Text",sans-serif;background:#fff;color:#17120f}
+.mchk{color:inherit}
+.mbar{height:8px;border-radius:99px;background:rgba(255,255,255,.25);margin-top:16px;max-width:520px;overflow:hidden}
+.mbar i{display:block;height:100%;background:#fff;border-radius:99px;width:0;transition:width .3s}
+.mgrid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:32px;align-items:start}
+@media (max-width:900px){.mgrid{grid-template-columns:1fr}}
+.mg{margin-bottom:26px}.mg h2{font:700 18px "Red Hat Display",sans-serif;display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.mg h2 .n{font:600 13px "Red Hat Text",sans-serif;background:rgba(0,0,0,.08);border-radius:99px;padding:1px 9px}
+.mg.over h2{color:var(--red)}.mg.over h2 .n{background:var(--red);color:#fff}
+.mg ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.mi{display:flex;align-items:center;gap:10px;background:var(--card,rgba(0,0,0,.03));border:1px solid var(--line,rgba(0,0,0,.1));border-radius:10px;padding:8px 10px}
+.mi .mt{flex:1;min-width:0;display:grid;grid-template-columns:72px 1fr;gap:2px 10px;text-align:left;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:4px 0}
+.mi .md{grid-row:span 2;font:700 14px "Red Hat Display",sans-serif;align-self:center}
+.mg.over .md{color:var(--red)}
+.mi .mtt{font-weight:600;line-height:1.3}.mi .mo{font-size:13px;opacity:.7}
+.mi.dn .mtt{text-decoration:line-through;opacity:.6}
+.mempty{opacity:.75;padding:12px 0}
+.mdone summary{cursor:pointer;font-weight:600;padding:6px 0}
+.feed{border-left:3px solid var(--red);padding-left:18px}
+.feed h2{font:700 18px "Red Hat Display",sans-serif;margin:0}.fsub{font-size:13px;opacity:.7;margin:2px 0 12px}
+.feed ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.feed li{font-size:14px;line-height:1.4}.feed li time{display:block;font-size:12px;opacity:.6}
+.feed .ft{background:none;border:0;padding:0;color:inherit;font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer;text-align:left}
+.feed .fd{opacity:.75}
+.hist{margin-top:14px;border-top:1px solid var(--line,rgba(0,0,0,.12));padding-top:10px}
+.hist h4{margin:0 0 6px;font:700 14px "Red Hat Display",sans-serif}
+.hist ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13px}
+.hist time{opacity:.6;margin-left:4px}
+.kdl{display:flex;align-items:center;gap:6px;font-weight:600}
 </style>
 </head>
 <body>
@@ -273,10 +309,11 @@ dialog h4{margin:18px 0 6px;font-size:15px}
   <span class="brand">TUBC 2027</span><span class="pname" id="pname"></span>
   <div class="drawer" id="drawer">
   <div class="dhead"><span class="brand">TUBC 2027</span><button type="button" class="x" id="dclose" aria-label="Close menu">×</button></div>
-  <div class="tabs" hidden><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#structure" id="t-structure">Committee structure</a><a href="#who" id="t-who">Who to ask</a><a href="#access" id="t-access" hidden>Access</a></div>
+  <div class="tabs" hidden><a href="#mine" id="t-mine">My tasks</a><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#structure" id="t-structure">Committee structure</a><a href="#who" id="t-who">Who to ask</a><a href="#access" id="t-access" hidden>Access</a></div>
   <div class="me" id="me" hidden><span id="mename"></span><span class="lvl" id="melvl"></span><button type="button" class="ghost sm" id="out">Sign out</button></div>
   </div>
 </div></nav>
+<div class="cdbar" id="cdbar" hidden><div class="wrap" id="cdin" role="status"></div></div>
 <div class="scrim" id="scrim" hidden></div>
 <div class="view gate" id="v-login" hidden><div class="gbox">
   <h1>TUBC 2027</h1><p>Sign in with the Google account your PVP added.</p>
@@ -293,6 +330,19 @@ dialog h4{margin:18px 0 6px;font-size:15px}
   <div class="rqdone" id="rqdone" hidden><b>Request sent.</b> You'll get in automatically once a PVP approves it. You can keep this page open or come back later.</div>
   <button type="button" class="ghost lite" id="out2">Use another account</button>
 </div></div>
+<div class="view" id="v-mine" hidden>
+<header class="band top"><div class="wrap">
+  <h1>My tasks</h1>
+  <p class="sub" id="msum">What your department needs to do next.</p>
+  <div class="mtools"><label class="mselw">Department <select id="mdept"></select></label>
+  <label class="gchk mchk"><input type="checkbox" id="mall" checked> Include tasks for everyone</label></div>
+  <div class="mbar" aria-hidden="true"><i id="mbarf"></i></div>
+</div></header>
+<main class="band"><div class="wrap mgrid">
+  <div id="mlist"></div>
+  <aside class="feed"><h2>Recent activity</h2><p class="fsub">Latest changes by everyone on the team.</p><ul id="feed"></ul></aside>
+</div></main>
+</div>
 <div class="view" id="v-access" hidden>
 <header class="band top"><div class="wrap"><h1>Access</h1><p class="sub">Who can sign in, and what each level is allowed to change.</p>
   <div class="legend"><span><b>Admin</b> edits everything and manages access</span><span><b>Head</b> and <b>Member</b>: whatever you switch on below</span></div>
@@ -307,6 +357,9 @@ dialog h4{margin:18px 0 6px;font-size:15px}
     <select id="mr" aria-label="Level"><option value="viewer">Member</option><option value="head">Head</option><option value="admin">Admin</option></select>
     <select id="md" aria-label="Department"></select><button type="submit">Add member</button></form>
   <div class="scroll"><table class="qt stack" id="mt"><thead><tr><th>Email</th><th>Level</th><th>Department</th><th></th></tr></thead><tbody></tbody></table></div>
+  <h2 class="ptitle">Key dates</h2>
+  <p class="plede">Used for the countdown at the top of every page.</p>
+  <form class="add" id="kdf"><label class="kdl">The Challenger <input type="date" id="kd1" required></label><label class="kdl">TUBC starts <input type="date" id="kd2" required></label><button type="submit">Save dates</button></form>
   <h2 class="ptitle">What each level can do</h2>
   <p class="plede">Turn a switch on to let that level do it. "Their department" means the department set for that person above. Changes apply right away for everyone.</p>
   <div class="scroll"><table class="qt" id="pm"><thead><tr><th>Permission</th><th class="pc2">Admin</th><th class="pc2">Head</th><th class="pc2">Member</th></tr></thead><tbody></tbody></table></div>
@@ -401,7 +454,7 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 </div>
 <dialog id="td" aria-labelledby="tdt"><div class="dh"><h3 id="tdt"></h3><button type="button" class="x" id="tdx" aria-label="Close">×</button></div>
   <p class="role" id="tdm"></p><p id="tdn"></p>
-  <label for="tds" class="o">Status</label> <select id="tds" class="st"></select><p class="by" id="tdb"></p>
+  <label for="tds" class="o">Status</label> <select id="tds" class="st"></select><p class="by" id="tdb"></p><div class="hist" id="tdh"></div>
   <div class="da"><button type="button" class="gbtn sm" id="tdg"><svg class="gic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3" fill="#fff"/><rect x="3" y="4.5" width="18" height="5" rx="2" fill="#d2e3fc"/><rect x="7" y="2.5" width="2" height="4" rx="1" fill="#fff"/><rect x="15" y="2.5" width="2" height="4" rx="1" fill="#fff"/><path d="M8 13.5h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2zM8 16.8h2v2H8zm3 0h2v2h-2z" fill="#1a73e8"/></svg><span>Add to Google Calendar</span></button><button type="button" class="ghost" id="tde">Edit task</button></div>
 </dialog>
 <dialog id="ed" aria-labelledby="edt"><form id="edf">
@@ -445,7 +498,7 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, reauthenticateWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, addDoc, getDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, addDoc, getDoc, writeBatch, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const SEED = [["Hold PVP kickoff and split department ownership among the 3 PVP", "2026-11-29", "PVP", "todo", 0, "Set up a PVP x Dept Line group for each department"], ["Read TUBC 2026 and CLG 2026 debriefs", "2026-11-30", "PVP", "todo", 0, ""], ["Pick tentative dates: CLG (mid–late Aug), TUBC (early Oct)", "2026-12-06", "President", "todo", 0, "Aj. Pong checks against exams, AUBCC and CIBCC"], ["Book first meeting with Aj. Pong", "2026-12-13", "President", "todo", 0, "Aim for mid-January"], ["Draft head recruitment post (positions and PVP contacts)", "2026-12-18", "PVP", "todo", 0, "ER 2, Inven, PR, Venue, CR 2, Excur, Photog, IT 2, Doc, Buddy"], ["Post head recruitment to the BBA Line group", "2026-12-23", "PVP", "todo", 0, "Competition, Case Writer, Uni Affairs and Treasurer need no application"], ["Close head applications", "2026-12-26", "PVP", "todo", 0, ""], ["Tell 2026 heads that 2027 heads will reach out", "2026-12-31", "PVP", "todo", 0, ""], ["Set up 2027 Master Drive with Dept_TUBC2027 folders, shared to tubc@tbs.tu.ac.th", "2027-01-05", "PVP", "todo", 0, "Split each department folder into TUBC and CLG"], ["Finalize all heads and add them to the All Head Line group", "2027-01-07", "PVP", "todo", 0, ""], ["Duplicate the handover file (Head 32 x 33) for heads to fill", "2027-01-07", "PVP", "todo", 0, ""], ["Meet Aj. Pong: dates, format, invited teams, case company pricing, sponsorship proposal, advisor scope", "2027-01-15", "President", "todo", 1, "Advisor scope: pre-screening, judge screening, judge briefing"], ["Meet BBA Office with Treasurer: project-opening documents and budget process", "2027-01-20", "President", "todo", 1, "BBA Office gives opinions; Aj. Pong decides"], ["Agree PR x CR lead-time rules", "2027-01-24", "PVP", "todo", 1, "CR asked for about 1 week of lead time and at most 2 revision rounds"], ["Run the first all-head meeting", "2027-01-24", "PVP", "todo", 1, "Intros and concerns, work allocation, overview, recruitment timeline, vote the biweekly day"], ["Log into the tbs.tu.ac.th email on all devices and change the password", "2027-01-24", "PVP", "todo", 1, ""], ["Heads meet previous heads: record the call, fill the handover file", "2027-01-31", "All heads", "todo", 1, ""], ["List potential universities and send pre-invites", "2027-01-31", "Uni Affairs", "todo", 1, ""], ["Contact sponsors and case companies before Q1 budgets close", "2027-01-31", "ER", "todo", 1, "The 5-hour case company is the hardest to find"], ["Committee info session", "2027-02-06", "PR, CR, Doc", "todo", 2, ""], ["Close committee applications (one week)", "2027-02-12", "Doc", "todo", 2, "Extend two days if few apply"], ["Review each head's interview questions", "2027-02-13", "PVP", "todo", 2, ""], ["Finish committee interviews", "2027-02-24", "All heads", "todo", 2, ""], ["Interview and select Oper and Stage-co", "2027-02-28", "PVP", "todo", 2, ""], ["Announce the committee", "2027-03-02", "PVP", "todo", 2, ""], ["Announce CLG and TUBC themes", "2027-03-21", "CR, PR", "todo", 3, ""], ["CLG budget research deadline", "2027-04-10", "Treasurer", "todo", 3, "Include shipping fees; screenshots of online orders are no longer accepted"], ["Finalize TUBC format, team count and cash prizes", "2027-04-19", "PVP", "todo", 3, ""], ["Send official invitations to selected universities", "2027-04-22", "Uni Affairs", "todo", 3, ""], ["Submit CLG project and budget to BBA Office", "2027-04-30", "Treasurer", "todo", 3, ""], ["Secure the CLG case company", "2027-05-15", "ER", "todo", 3, "Keep confidential"], ["Lock the TUBC venue", "2027-05-31", "Venue", "todo", 3, "A bottleneck both years: hotels fill up"], ["Website, Airtable, emails and bank account ready for CLG", "2027-06-27", "IT, Doc, Treasurer", "todo", 3, ""], ["Open CLG applications", "2027-06-28", "PVP", "todo", 3, ""], ["Send TUBC participation fee invoices", "2027-07-15", "Uni Affairs", "todo", 4, "Fees must arrive net of transfer fees; set a firm deadline"], ["TUBC budget research deadline", "2027-07-17", "Treasurer", "todo", 4, ""], ["CLG judge screening day", "2027-08-08", "ER, Doc, Inven, Oper", "todo", 4, ""], ["Secure TUBC case companies (5-hour and 24-hour)", "2027-08-15", "ER", "todo", 4, "Was critical by mid-August in 2026"], ["All staff first meet", "2027-08-16", "PVP, Oper", "todo", 4, ""], ["The Challenger (CLG) day", "2027-08-22", "All", "todo", 4, "Tentative date"], ["Committee photoshoot", "2027-09-10", "Photog", "todo", 5, ""], ["TUBC site inspection with all departments", "2027-09-14", "Venue, PVP", "todo", 5, "Each department brings its questions"], ["Send the welcoming package to universities", "2027-09-21", "Uni Affairs", "todo", 5, "Two weeks before the event"], ["TUBC budget approved; start ordering", "2027-10-01", "Treasurer", "todo", 5, "Over 10,000 THB needs a TOR, a quote and 2 comparison quotes first"], ["TUBC week", "2027-10-04", "All", "todo", 5, "Tentative date"], ["Run the committee debrief", "2027-10-18", "PVP", "todo", 5, ""]];
 
 // ---- settings ----
@@ -476,6 +529,7 @@ const DEPTS = ["PVP", ...Object.keys(SLOTS)];
 const OWNER_GROUPS = [["Leadership",["PVP","President"]],["Shared",["All","All heads"]],["Departments",Object.keys(SLOTS)]];
 const toks = s => String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
 
+let logs = [], ev = {challenger:"2027-08-22", tubc:"2027-10-04"};
 let me = null, tasks = [], heads = {}, members = [], requests = [], unsub = [];
 const ROLE_LABEL = {admin:"Admin",head:"Head",viewer:"Member"};
 const PERMS = [["statusOwn","Change status of their department's tasks"],["statusAny","Change status of any task"],["editOwn","Edit their department's tasks (name, date, owner, notes, topic)"],["editAny","Edit any task"],["move","Drag tasks between topics and reorder them"],["add","Add new tasks"],["del","Delete tasks"],["headsOwn","Edit head names for their department"],["headsAny","Edit head names for any department"]];
@@ -503,12 +557,12 @@ document.querySelector(".tabs").addEventListener("click", e=>{ if(e.target.close
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeMenu(); });
 
 // ---------- views ----------
-const VIEWS = ["login","noaccess","tracker","calendar","structure","who","access"];
-const PNAMES={tracker:"Tracker",calendar:"Calendar",structure:"Committee structure",who:"Who to ask",access:"Access"};
+const VIEWS = ["login","noaccess","mine","tracker","calendar","structure","who","access"];
+const PNAMES={mine:"My tasks",tracker:"Tracker",calendar:"Calendar",structure:"Committee structure",who:"Who to ask",access:"Access"};
 function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") : "";
   for(const n of VIEWS){ const el=$("v-"+n); if(el) el.hidden = n!==v; }
-  for(const n of ["tracker","calendar","structure","who","access"]){ const a=$("t-"+n); if(n===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); } }
-function route(){ if(!me) return; const h=location.hash.slice(1); show(["calendar","structure","who"].includes(h)||(h==="access"&&isAdmin())?h:"tracker"); }
+  for(const n of ["mine","tracker","calendar","structure","who","access"]){ const a=$("t-"+n); if(n===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); } }
+function route(){ if(!me) return; const h=location.hash.slice(1); show(["tracker","calendar","structure","who"].includes(h)||(h==="access"&&isAdmin())?h:"mine"); }
 window.addEventListener("hashchange", ()=>{ route(); window.scrollTo(0,0); });
 
 // ---------- auth ----------
@@ -516,7 +570,7 @@ $("login").onclick = async ()=>{ $("lerr").textContent=""; try{ const pv=new Goo
 $("out").onclick = $("out2").onclick = ()=>{ closeMenu(); signOut(auth); };
 
 onAuthStateChanged(auth, async u=>{
-  unsub.forEach(fn=>fn()); unsub=[]; me=null;
+  unsub.forEach(fn=>fn()); unsub=[]; me=null; $("cdbar").hidden=true; logs=[]; mdPicked=false;
   document.querySelector(".tabs").hidden = true; $("me").hidden = true; $("menu").hidden = true; $("pname").textContent = ""; closeMenu();
   if(!u){ show("login"); return; }
   const email = (u.email||"").toLowerCase();
@@ -533,11 +587,13 @@ onAuthStateChanged(auth, async u=>{
   $("mename").textContent = me.name; $("melvl").textContent = (ROLE_LABEL[me.role]||me.role) + (me.role==="head"&&me.dept?" · "+me.dept:"");
   $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("t-access").hidden = !isAdmin();
   if(me.role==="head" && me.dept) f.own = me.dept;
-  start(); route();
+  start(); route(); renderCd();
 });
 
 function start(){
   unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
+  unsub.push(onSnapshot(doc(db,"settings","event"), s=>{ if(s.exists()) ev={...ev,...s.data()}; renderCd(); if($("kd1")){ $("kd1").value=ev.challenger||""; $("kd2").value=ev.tubc||""; } }, ()=>{}));
+  unsub.push(onSnapshot(query(collection(db,"log"),orderBy("at","desc"),limit(200)), s=>{ logs=s.docs.map(d=>({id:d.id,...d.data()})); renderFeed(); if($("td").open&&curTask) renderHist(curTask); }, e=>console.warn("log",e)));
   unsub.push(onSnapshot(doc(db,"settings","permissions"), s=>{ const d=s.exists()?s.data():{}; perms={head:{...DEF_PERMS.head,...(d.head||{})},viewer:{...DEF_PERMS.viewer,...(d.viewer||{})}}; render(); renderHeads(); renderPerms(); }, fail));
   unsub.push(onSnapshot(collection(db,"heads"), s=>{ heads={}; s.docs.forEach(d=>heads[d.id]=d.data().list||[]); renderHeads(); }, fail));
   if(isAdmin()) unsub.push(onSnapshot(collection(db,"requests"), s=>{ requests = s.docs.map(d=>({email:d.id,...d.data()})).sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0)); renderRequests(); }, fail));
@@ -561,15 +617,16 @@ function render(){
     const d=T.filter(t=>t.phase===i&&t.status==="dn").length, n=T.filter(t=>t.phase===i).length;
     return `<section class="phase" id="ph${i}" data-phase="${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2><div class="rows" data-phase="${i}">${rows.length?rows.map(t=>{const ok=canTask(t),ed=canEdit(t),mv=canMove(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}" data-id="${t.id}"${mv?' draggable="true"':""}><span class="grip${mv?"":" off"}" title="${mv?"Drag to move":""}" aria-hidden="true">⋮⋮</span><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta m1"><span class="d">${fmt(t.due)}</span></div><div class="tcell"><span class="t">${esc(t.title)}</span>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta m2"><span class="o">${esc(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div><div class="acts">${ed?`<button class="ico" data-edit="${t.id}" aria-label="Edit task" title="Edit">✎</button>`:""}${can("del")?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:""}</div></div>`}).join(""):`<p class="empty drop-empty">${T.length?(f.own||f.hide||f.late?"Nothing here with these filters.":"No tasks in this topic yet."):"No tasks yet."}</p>`}</div></section>`;
   }).join("");
-  renderCal();
+  renderCal(); renderMine();
 }
-const setStatus = (id,status)=> updateDoc(doc(db,"tasks",id),{status,updatedBy:me.name,updatedAt:serverTimestamp()}).catch(fail);
+const setStatus = (id,status)=>{ const t=tasks.find(x=>x.id===id), old=t?.status;
+  return updateDoc(doc(db,"tasks",id),{status,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{ if(t&&old!==status) logIt(t,"status",`${ST[old]||old||"?"} → ${ST[status]}`); }).catch(fail); };
 
 document.addEventListener("click", e=>{
   const b=e.target.closest("[data-tick],[data-del],[data-go],.lvl1 .dept[data-dept],[data-rm],[data-edit]"); if(!b) return;
   if(b.dataset.edit){ openEdit(b.dataset.edit); return; }
   if(b.dataset.tick){ const t=tasks.find(x=>x.id===b.dataset.tick); if(t) setStatus(t.id, t.status==="dn"?"todo":"dn"); }
-  else if(b.dataset.del){ if(b.dataset.armed){ deleteDoc(doc(db,"tasks",b.dataset.del)).catch(fail); } else { b.dataset.armed=1; b.textContent="Delete?"; b.style.fontSize="13px"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="×"; b.style.fontSize=""; } },3000); } }
+  else if(b.dataset.del){ if(b.dataset.armed){ const dt=tasks.find(x=>x.id===b.dataset.del); deleteDoc(doc(db,"tasks",b.dataset.del)).then(()=>logIt(dt,"delete","Deleted the task")).catch(fail); } else { b.dataset.armed=1; b.textContent="Delete?"; b.style.fontSize="13px"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="×"; b.style.fontSize=""; } },3000); } }
   else if(b.dataset.go!==undefined){ $("ph"+b.dataset.go)?.scrollIntoView({behavior:"smooth"}); }
   else if(b.dataset.dept){ openDept(b.dataset.dept); }
   else if(b.dataset.rm){ if(b.dataset.armed){ deleteDoc(doc(db,"members",b.dataset.rm)).catch(fail); } else { b.dataset.armed=1; b.textContent="Remove?"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="Remove"; } },3000); } }
@@ -585,7 +642,7 @@ $("hide").onclick=()=>{f.hide=!f.hide;$("hide").setAttribute("aria-pressed",f.hi
 $("late").onclick=()=>{f.late=!f.late;$("late").setAttribute("aria-pressed",f.late);render();};
 $("np").innerHTML = PH.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join("");
 $("addf").addEventListener("submit", e=>{ e.preventDefault(); const title=$("nt").value.trim(); if(!title) return; const owner=$("no").value.trim()||"PVP";
-  addDoc(collection(db,"tasks"),{title,due:$("nd").value,owner,depts:toks(owner),status:"todo",phase:+$("np").value,note:"",order:$("nd").value?Date.parse($("nd").value)/86400000:99999,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{$("nt").value=""; setPick("no","PVP");}).catch(fail); });
+  addDoc(collection(db,"tasks"),{title,due:$("nd").value,owner,depts:toks(owner),status:"todo",phase:+$("np").value,note:"",order:$("nd").value?Date.parse($("nd").value)/86400000:99999,updatedBy:me.name,updatedAt:serverTimestamp()}).then(r=>{ logIt({id:r.id,title},"add","Added for "+owner); $("nt").value=""; setPick("no","PVP");}).catch(fail); });
 $("seed").onclick = async ()=>{ const b=writeBatch(db); SEED.forEach(t=>b.set(doc(collection(db,"tasks")),{title:t[0],due:t[1],owner:t[2],depts:toks(t[2]),status:"todo",phase:t[4],note:t[5]||"",order:Date.parse(t[1])/86400000,updatedBy:"",updatedAt:serverTimestamp()})); try{ await b.commit(); toast("Starter tasks loaded."); }catch(e){ fail(e); } };
 
 
@@ -625,6 +682,7 @@ function openTask(id){ const t=tasks.find(x=>x.id===id); if(!t) return; curTask=
   $("tds").innerHTML=Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("");
   $("tds").className="st "+t.status; $("tds").disabled=!canTask(t);
   $("tde").hidden=!canEdit(t); $("tdg").hidden=!t.due; $("tdg").disabled=false; $("tdg").classList.remove("done"); $("tdg").lastChild.textContent="Add to Google Calendar";
+  renderHist(id);
   $("tdb").textContent=t.updatedBy?`Updated by ${t.updatedBy}`:(canTask(t)?"":"You can view this task but not change it.");
   try{$("td").showModal();}catch(e){$("td").setAttribute("open","");} }
 $("tds").addEventListener("change",e=>{ if(curTask){ setStatus(curTask,e.target.value); $("tds").className="st "+e.target.value; } });
@@ -646,7 +704,8 @@ $("edf").addEventListener("submit", e=>{ e.preventDefault(); const t=tasks.find(
   const upd={title,due,owner,depts:toks(owner),note:$("enote").value.trim(),phase,updatedBy:me.name,updatedAt:serverTimestamp()};
   if(due!==t.due && typeof t.order!=="number") upd.order=due?Date.parse(due)/86400000:99999;
   if(phase!==t.phase){ const inP=tasks.filter(x=>x.phase===phase&&x.id!==t.id); upd.order=inP.length?Math.max(...inP.map(ordKey))+1:ordKey(t); }
-  updateDoc(doc(db,"tasks",editId),upd).then(()=>{closeE();toast("Task saved.");}).catch(fail); });
+  const ch=[]; if(title!==t.title) ch.push("renamed"); if(due!==(t.due||"")) ch.push(`due ${fmt(t.due)||"none"} → ${fmt(due)||"none"}`); if(owner!==t.owner) ch.push(`owner ${t.owner} → ${owner}`); if(phase!==t.phase) ch.push(`moved to ${PH[phase][0]}`); if(upd.note!==(t.note||"")) ch.push("note updated");
+  updateDoc(doc(db,"tasks",editId),upd).then(()=>{ if(ch.length) logIt({id:t.id,title},"edit",ch.join(", ")); closeE();toast("Task saved.");}).catch(fail); });
 $("tde").onclick=()=>{ if(curTask) openEdit(curTask); };
 
 let dragId=null;
@@ -663,8 +722,8 @@ document.addEventListener("drop", e=>{ if(!dragId) return; const box=e.target.cl
   const order= prev==null&&next==null ? ordKey(tasks.find(x=>x.id===dragId)) : prev==null ? next-1 : next==null ? prev+1 : (prev+next)/2;
   const t=tasks.find(x=>x.id===dragId); clearDrop(); const id=dragId; dragId=null;
   if(!t || (t.phase===phase && ordKey(t)===order)) return;
-  t.phase=phase; t.order=order; render();
-  updateDoc(doc(db,"tasks",id),{phase,order,updatedBy:me.name,updatedAt:serverTimestamp()}).catch(fail); });
+  const oldP=t.phase; t.phase=phase; t.order=order; render();
+  updateDoc(doc(db,"tasks",id),{phase,order,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{ if(oldP!==phase) logIt(t,"move",`Moved to ${PH[phase][0]}`); }).catch(fail); });
 
 // ---------- permissions matrix ----------
 function renderPerms(){ if(!$("pm")||!isAdmin()) return;
@@ -787,6 +846,49 @@ document.querySelectorAll(".opick").forEach(d=>{ pickRender(d);
   d.addEventListener("change",e=>{ if(e.target.type!=="checkbox") return; const v=[...d.querySelectorAll("input:checked")].map(x=>x.value); $(d.dataset.for).value=v.join(", "); d.querySelector("summary").textContent=v.length?v.join(", "):"Choose owner…"; }); });
 document.addEventListener("click",e=>{ document.querySelectorAll(".opick[open]").forEach(d=>{ if(!d.contains(e.target)) d.open=false; }); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".opick[open]").forEach(d=>{ d.open=false; d.querySelector("summary").focus(); }); });
+
+
+// ---------- activity log ----------
+function logIt(t,action,detail){ if(!me||!t) return;
+  addDoc(collection(db,"log"),{task:t.id||"",title:String(t.title||"").slice(0,200),action,detail:String(detail||"").slice(0,300),by:me.name,email:me.email,at:serverTimestamp()}).catch(e=>console.warn("log",e)); }
+function rel(ts){ const d=ts?.toDate?ts.toDate():null; if(!d) return "just now"; const m=Math.round((Date.now()-d)/60000);
+  if(m<1) return "just now"; if(m<60) return m+" min ago"; const hh=Math.round(m/60); if(hh<24) return hh+" h ago"; if(hh<48) return "yesterday";
+  return d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); }
+const VERB={status:"updated",edit:"edited",move:"moved",add:"added",delete:"deleted"};
+function renderFeed(){ if(!$("feed")) return; const L=logs.slice(0,25);
+  $("feed").innerHTML=L.length?L.map(l=>`<li><b>${esc(l.by||"Someone")}</b> ${VERB[l.action]||"changed"} ${tasks.some(t=>t.id===l.task)?`<button type="button" class="ft" data-task="${esc(l.task)}">${esc(l.title)}</button>`:`<i>${esc(l.title)}</i>`}<br><span class="fd">${esc(l.detail||"")}</span><time>${rel(l.at)}</time></li>`).join(""):'<li class="fd">No changes yet. Edits and status updates will show up here.</li>'; }
+function renderHist(id){ if(!$("tdh")) return; const L=logs.filter(l=>l.task===id).slice(0,8);
+  $("tdh").innerHTML=L.length?'<h4>History</h4><ul>'+L.map(l=>`<li><b>${esc(l.by||"")}</b>: ${esc(l.detail||VERB[l.action]||"")}<time>${rel(l.at)}</time></li>`).join("")+"</ul>":""; }
+
+// ---------- countdown ----------
+function renderCd(){ const el=$("cdbar"); if(!el) return; if(!me){ el.hidden=true; return; }
+  const d0=new Date(iso(new Date())+"T00:00");
+  const item=(lbl,d)=>{ if(!d) return ""; const n=Math.round((new Date(d+"T00:00")-d0)/864e5);
+    const txt = n>1?`${lbl} in <b>${n}</b> days`: n===1?`${lbl} is <b>tomorrow</b>`: n===0?`${lbl} is <b>today</b>`:`${lbl} done ✓`;
+    return `<span class="cdi${n<0?" past":""}${n>=0&&n<=14?" soon":""}">${txt}<small>${fmt(d)}${d.slice(0,4)!=="2026"?" "+d.slice(0,4):""}</small></span>`; };
+  $("cdin").innerHTML=item("The Challenger",ev.challenger)+item("TUBC",ev.tubc); el.hidden=false; }
+$("kdf").addEventListener("submit",e=>{ e.preventDefault(); setDoc(doc(db,"settings","event"),{challenger:$("kd1").value,tubc:$("kd2").value},{merge:true}).then(()=>toast("Key dates saved.")).catch(fail); });
+
+// ---------- my tasks ----------
+let mdPicked=false;
+$("mdept").addEventListener("change",()=>{ mdPicked=true; renderMine(); });
+$("mall").addEventListener("change",renderMine);
+function renderMine(){ if(!$("mlist")||!me) return;
+  const sel=$("mdept"), cur=mdPicked?sel.value:(me.dept||"");
+  sel.innerHTML='<option value="">Choose a department…</option>'+DEPTS.map(d=>`<option${d===cur?" selected":""}>${esc(d)}</option>`).join(""); sel.value=cur;
+  if(!cur){ $("mlist").innerHTML='<p class="mempty">Pick a department above to see its tasks. Ask a PVP to set your department in Access so this opens automatically.</p>'; $("msum").textContent="What your department needs to do next."; $("mbarf").style.width="0"; renderFeed(); return; }
+  const inc=$("mall").checked, shared=["All","All heads"];
+  const T=tasks.filter(t=>{ const o=t.depts?.length?t.depts:toks(t.owner); return o.includes(cur)||(cur==="PVP"&&o.includes("President"))||(inc&&o.some(x=>shared.includes(x))); });
+  const td=iso(new Date()), plus=n=>{ const x=new Date(); x.setDate(x.getDate()+n); return iso(x); }, w=plus(7), m=plus(30);
+  const open=T.filter(t=>t.status!=="dn").sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")), done=T.filter(t=>t.status==="dn");
+  const G=[["over","Overdue",open.filter(t=>t.due&&t.due<td)],["week","Due in the next 7 days",open.filter(t=>t.due&&t.due>=td&&t.due<=w)],["month","Next 30 days",open.filter(t=>t.due>w&&t.due<=m)],["later","Later",open.filter(t=>t.due>m)],["nod","No date",open.filter(t=>!t.due)]];
+  const item=t=>`<li class="mi ${t.status}"><button type="button" class="mt" data-task="${t.id}"><span class="md">${t.due?fmt(t.due):"—"}</span><span class="mtt">${esc(t.title)}</span><span class="mo">${esc(t.owner)} · ${PH[t.phase]?.[0]||""}</span></button><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${canTask(t)?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></li>`;
+  const over=G[0][2].length;
+  $("msum").textContent=`${cur}: ${open.length} open${over?` · ${over} overdue`:""} · ${done.length} of ${T.length} done`;
+  $("mbarf").style.width=(T.length?done.length/T.length*100:0)+"%";
+  $("mlist").innerHTML=(open.length?G.filter(g=>g[2].length).map(([k,l,a])=>`<section class="mg ${k}"><h2>${l} <span class="n">${a.length}</span></h2><ul>${a.map(item).join("")}</ul></section>`).join(""):'<p class="mempty">Nothing open for this department. 🎉</p>')
+    +(done.length?`<details class="mdone"><summary>Done (${done.length})</summary><ul style="list-style:none;padding:0;display:grid;gap:8px;margin-top:8px">${done.map(item).join("")}</ul></details>`:"");
+  renderFeed(); }
 
 // ---------- structure ----------
 function renderHeads(){
