@@ -70,7 +70,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124zb";
+const BUILD="b20261125a";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -149,7 +149,7 @@ onAuthStateChanged(auth, async u=>{
   $("bnav").hidden = false; document.body.classList.add("authed");
   me.photo=u.photoURL||""; syncProfile(u);
   if(me.role==="head" && me.dept) f.own = me.dept;
-  start(); route(); renderCd();
+  start(); route(); renderCd(); setTimeout(maybeTour, 1500);
 });
 
 function start(){
@@ -905,6 +905,86 @@ $("hch").addEventListener("click",e=>{ const b=e.target.closest("[data-hb]"); if
 $("hlog").addEventListener("click",e=>{ const g=e.target.closest("[data-go]"); if(g) hbGo(g.dataset.go); }); // task rows open via the page-wide [data-task] handler
 $("hp").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); closeBot(); $("hb").focus(); } });
 document.addEventListener("click",e=>{ if($("hp").hidden) return; if(!e.target.isConnected||e.target.closest("#hp,#hb,dialog")) return; closeBot(); });
+
+// ---------- first-time tour (shown once per account; replay from the avatar menu) ----------
+const TOUR_KEY = () => "tubc-tour-v1:" + (me?.email || "");
+let tour = null;
+const tourPick = (...sels) => sels.map(s => document.querySelector(s)).find(el => el && el.getClientRects().length && getComputedStyle(el).visibility !== "hidden") || null;
+function tourSteps(){
+  const nm = people[me.email]?.nick || String(me.name || "").split(" ")[0];
+  const phone = innerWidth <= 760, ios = /iPhone|iPad/.test(navigator.userAgent);
+  return [
+    { title: `Welcome, ${nm}!`, text: "This is where the TUBC 2027 committee keeps track of every task. Here's a one-minute tour of the main parts." },
+    { el: () => tourPick('.bnav a[data-v="mine"]', "#t-mine"), title: "My tasks",
+      text: me.dept ? `Your department's tasks (${me.dept}): overdue first, then the next 7 days and later. Start here every day.` : "Pick a department at the top of this page to see its tasks. Ask a PVP to set your department so it opens automatically." },
+    { el: () => tourPick("#mlist .mi"), title: "A task",
+      text: tasks.some(canTask) ? "Tap the name to open details, steps, links and comments. Change the status with the box on the right." : "Tap the name to open details, links and comments. You can comment and @mention a person or a whole department (e.g. @Oper)." },
+    seeOverview() && { el: () => tourPick("#b-overview", "#t-overview"), title: "Overview", text: "The big picture: progress by department and by phase." },
+    { el: () => tourPick('.bnav a[data-v="tracker"]', "#t-tracker"), title: "Tracker", text: "Every task, grouped by phase from Kickoff to TUBC. Filter by owner, or show only late tasks." + (tourPick("#srchbtn") ? "" : " The search bar at the top of that page finds any task.") },
+    { el: () => tourPick('.bnav a[data-v="calendar"]', "#t-calendar"), title: "Calendar",
+      text: "Tasks by date, plus events like exam weeks." + (tasks.some(canEdit) ? " On a computer you can drag a task to another day, or click a day to add one." : "") + " You can also add the dates to your own Google Calendar." },
+    { el: () => tourPick("#srchbtn", "#tsearch"), title: "Search", text: "Find any task by name, owner or notes." + (phone ? "" : " Shortcut: Ctrl+K (⌘K on Mac).") },
+    { el: () => tourPick("#hb"), title: "Quick answers", text: "Tap for your department's tasks, what's overdue, or what's due today and tomorrow. No typing needed." },
+    can("add") && { el: () => tourPick("#fab"), title: "Add a task", text: "Tap + to add a new task with a due date and owner." },
+    { el: () => tourPick("#mename", "#menu"), title: "Your account",
+      text: (tourPick("#mename") ? "Tap your name" : "Open the menu (☰), then your name") + " to edit your profile (nickname, LINE ID), get notified when someone tags you, and switch light or dark. You can replay this tour from there too." + (ios ? " On iPhone, add the site to your Home Screen first to get notifications." : "") },
+    { title: "You're all set 🎉", text: "If you get stuck, ask your department head or a PVP. Have a great TUBC 2027!" }
+  ].filter(Boolean);
+}
+function startTour(){
+  if (!me || tour) return;
+  closeUM(); closeMenu();
+  if (curView !== "mine") location.hash = "#mine";
+  setTimeout(() => {
+    const steps = tourSteps().filter(s => !s.el || s.el());
+    tour = { steps, i: 0, back: document.activeElement };
+    $("tour").hidden = false; document.body.classList.add("touring");
+    tourShow();
+  }, 350);
+}
+function endTour(){
+  if (!tour) return;
+  try { localStorage.setItem(TOUR_KEY(), "1"); } catch {}
+  $("tour").hidden = true; document.body.classList.remove("touring");
+  const back = tour.back; tour = null; back?.focus?.();
+}
+function tourShow(){
+  const s = tour.steps[tour.i], el = s.el ? s.el() : null, n = tour.steps.length;
+  $("tourn").textContent = `${tour.i + 1} of ${n}`; $("tourt").textContent = s.title; $("tourp").textContent = s.text;
+  $("tourback").hidden = tour.i === 0; $("tournext").textContent = tour.i === n - 1 ? "Done" : "Next";
+  $("tourskip").hidden = tour.i === n - 1;
+  if (el) { const r = el.getBoundingClientRect(); if (r.top < 60 || r.bottom > innerHeight - 20) el.scrollIntoView({ block: "center" }); }
+  tourPlace(el);
+  setTimeout(() => $("tournext").focus(), 50);
+}
+function tourPlace(el){
+  const hole = $("tourhole"), card = $("tourcard"), pad = 6, cw = card.offsetWidth, ch = card.offsetHeight, m = 12;
+  const W = innerWidth, Hh = innerHeight, outer = `M0 0H${W}V${Hh}H0Z`;
+  if (!el) { $("tourpath").setAttribute("d", outer); hole.className = "tour-hole none"; Object.assign(card.style, { left: (W - cw) / 2 + "px", top: Math.max(m, (Hh - ch) / 2) + "px" }); return; }
+  const r = el.getBoundingClientRect(), x = r.left - pad, y = r.top - pad, w = r.width + pad * 2, h = r.height + pad * 2, k = Math.min(12, w / 2, h / 2);
+  // Dim everything except a rounded cut-out around the target (SVG even-odd fill draws reliably everywhere, unlike a huge box-shadow).
+  $("tourpath").setAttribute("d", outer + `M${x + k} ${y}H${x + w - k}A${k} ${k} 0 0 1 ${x + w} ${y + k}V${y + h - k}A${k} ${k} 0 0 1 ${x + w - k} ${y + h}H${x + k}A${k} ${k} 0 0 1 ${x} ${y + h - k}V${y + k}A${k} ${k} 0 0 1 ${x + k} ${y}Z`);
+  hole.className = "tour-hole";
+  Object.assign(hole.style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px" });
+  const below = r.bottom + pad + m + ch <= innerHeight, top = below ? r.bottom + pad + m : Math.max(m, r.top - pad - m - ch);
+  const left = Math.min(innerWidth - cw - m, Math.max(m, r.left + r.width / 2 - cw / 2));
+  Object.assign(card.style, { left: left + "px", top: top + "px" });
+}
+function tourGo(d){ if (!tour) return; const j = tour.i + d; if (j < 0) return; if (j >= tour.steps.length) return endTour(); tour.i = j; tourShow(); }
+$("tournext").onclick = () => tourGo(1);
+$("tourback").onclick = () => tourGo(-1);
+$("tourskip").onclick = endTour;
+$("umtour").onclick = () => { try { localStorage.removeItem(TOUR_KEY()); } catch {} startTour(); };
+document.addEventListener("keydown", e => { if (!tour) return; if (e.key === "Escape") { e.preventDefault(); endTour(); } else if (e.key === "ArrowRight") tourGo(1); else if (e.key === "ArrowLeft") tourGo(-1); });
+addEventListener("resize", () => { if (tour) tourPlace(tour.steps[tour.i].el ? tour.steps[tour.i].el() : null); });
+addEventListener("scroll", () => { if (tour) tourPlace(tour.steps[tour.i].el ? tour.steps[tour.i].el() : null); }, { passive: true });
+// Runs shortly after sign-in, once per account, when nothing else is open.
+function maybeTour(){
+  if (!me || tour || ["login", "noaccess"].includes(curView)) return;
+  try { if (localStorage.getItem(TOUR_KEY())) return; } catch { return; }
+  if (document.querySelector("dialog[open]")) { setTimeout(maybeTour, 3000); return; }
+  startTour();
+}
 
 // ---------- notifications when someone tags you ----------
 const NKEY="tubc-notify";

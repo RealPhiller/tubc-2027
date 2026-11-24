@@ -671,6 +671,21 @@ small.opt{font-weight:400;color:var(--mute)}
 .evc input:checked+span{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ec)}
 .evc input:focus-visible+span{outline:2px solid var(--gold);outline-offset:4px}
 .evdel{margin-right:auto;border:0;background:none;color:#c8302d;font:600 14px "Red Hat Text",sans-serif;cursor:pointer;padding:8px 4px}
+/* first-time tour */
+.tour{position:fixed;inset:0;z-index:1000}
+.tour[hidden]{display:none}
+.tour-dim{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.tour-dim path{fill:rgba(12,8,6,.64)}
+.tour-hole{position:fixed;border-radius:12px;pointer-events:none;outline:2px solid var(--gold);outline-offset:2px}
+.tour-hole.none{left:50%;top:50%;width:0;height:0;outline:0}
+.tour-card{position:fixed;width:min(340px,calc(100vw - 24px));background:var(--bg);color:var(--ink);border-radius:14px;padding:16px 16px 12px;box-shadow:0 14px 44px rgba(0,0,0,.38);transition:left .3s cubic-bezier(.2,.8,.2,1),top .3s cubic-bezier(.2,.8,.2,1);animation:hpin .2s ease-out}
+.tour-n{font:600 12px "Red Hat Text",sans-serif;color:var(--mute)}
+.tour-card h3{margin:2px 0 6px;font:700 19px "Red Hat Display",sans-serif}
+.tour-card p{margin:0 0 14px;font:14.5px/1.5 "Red Hat Text",sans-serif}
+.tour-a{display:flex;align-items:center;gap:8px}
+.tour-a span{flex:1}
+.tour-a button{min-height:40px}
+body.touring{overflow:hidden}
 </style>
 </head>
 <body>
@@ -688,6 +703,7 @@ small.opt{font-weight:400;color:var(--mute)}
     <a href="#access" class="umi" id="umaccess" hidden>Access <span class="badge" id="umrq" hidden></span></a>
     <div class="umrow"><span>Theme</span><div class="seg3" role="radiogroup" aria-label="Theme"><button type="button" role="radio" data-theme-set="light">Light</button><button type="button" role="radio" data-theme-set="auto">Auto</button><button type="button" role="radio" data-theme-set="dark">Dark</button></div></div>
     <button type="button" class="umi" id="umnotif"><span>Notify me when tagged</span><span class="nst" id="umnst"></span></button>
+    <button type="button" class="umi" id="umtour">Take the tour</button>
     <button type="button" class="umi out" id="out">Sign out</button>
   </div></div></div>
   </div>
@@ -943,6 +959,7 @@ small.opt{font-weight:400;color:var(--mute)}
 </nav>
 <button type="button" class="fab" id="fab" aria-label="Add task" title="Add task" hidden>+</button>
 <button type="button" class="hb" id="hb" aria-label="Quick answers" title="Quick answers" aria-expanded="false" aria-controls="hp" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg></button>
+<div class="tour" id="tour" role="dialog" aria-modal="true" aria-labelledby="tourt" hidden><svg class="tour-dim" id="tourdim" aria-hidden="true"><path id="tourpath" fill-rule="evenodd"/></svg><div class="tour-hole none" id="tourhole"></div><div class="tour-card" id="tourcard"><div class="tour-n" id="tourn"></div><h3 id="tourt"></h3><p id="tourp"></p><div class="tour-a"><button type="button" class="ghost" id="tourskip">Skip tour</button><span></span><button type="button" class="ghost" id="tourback">Back</button><button type="button" class="pri" id="tournext">Next</button></div></div></div>
 <section class="hp" id="hp" role="dialog" aria-label="Quick answers" hidden><div class="hph"><span>Quick answers</span><button type="button" id="hpx" aria-label="Close">×</button></div><div class="hlog" id="hlog" aria-live="polite"></div><div class="hch" id="hch" role="group" aria-label="Choices"></div></section>
 <div class="view" id="v-tracker" hidden>
 <header class="band top"><div class="wrap">
