@@ -567,11 +567,11 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
 .subbar.anim{transition:transform .32s cubic-bezier(.2,.8,.2,1),width .32s cubic-bezier(.2,.8,.2,1)}
 :root[data-theme=dark] .subtabs a[aria-current=page]{color:#9b1b1e}
 /* helper bubble */
-.hb{position:fixed;left:max(20px,env(safe-area-inset-left));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:21;width:52px;height:52px;border-radius:50%;border:0;background:var(--gold);color:#17120f;box-shadow:0 6px 20px rgba(232,168,23,.45);cursor:pointer;display:grid;place-items:center;transition:transform .15s}
+.hb{position:fixed;left:max(20px,env(safe-area-inset-left));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:21;width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--red);box-shadow:0 6px 20px rgba(0,0,0,.18);cursor:pointer;display:grid;place-items:center;transition:transform .15s}
 .hb:hover{transform:scale(1.06)}.hb:active{transform:scale(.96)}
-.hb:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+.hb:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .hb svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.hb[aria-expanded=true]{background:#c98f0e;box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 35%,transparent),0 6px 20px rgba(232,168,23,.45)}
+.hb[aria-expanded=true]{background:var(--red);color:#fff;border-color:var(--red)}
 .hp{position:fixed;left:max(20px,env(safe-area-inset-left));bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:21;width:min(380px,calc(100vw - 32px));max-height:min(460px,calc(100dvh - 140px));display:flex;flex-direction:column;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);overflow:hidden;transform-origin:bottom left;animation:hpin .18s ease-out}
 .hp[hidden]{display:none}
 @keyframes hpin{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
@@ -1042,7 +1042,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124x";
+const BUILD="b20261124y";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
