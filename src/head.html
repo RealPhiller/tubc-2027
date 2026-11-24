@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#71191a">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="TUBC 2027"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>try{var _t=localStorage.getItem("tubc-theme");if(_t==="light"||_t==="dark")document.documentElement.setAttribute("data-theme",_t);}catch(e){}</script>
+<script>(function(){var u=navigator.userAgent;if(/\bLine\//i.test(u)&&!/openExternalBrowser=1/.test(location.search)){var q=location.search?location.search+"&":"?";location.replace(location.pathname+q+"openExternalBrowser=1"+location.hash);}})();</script>
+<title>TUBC 2027 Tracker</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<link rel="stylesheet" href="assets.css?v=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE work: a PVP's control sheet
+   IDEA a competition run-sheet: phases as bands on a year line, tasks as ticket rows
+   PICTURE the year timeline: six phase segments filling with done tasks, a today marker
+   COLOUR Thammasat red ground band, white panels, gold for done, ink black
+   TYPE Red Hat Display + Red Hat Text
+   LAYOUT title + overall % in red band, timeline beneath; filters; phase lists stack */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#121014);--panel:light-dark(#faf7f5,#1c1a1f);--ink:light-dark(#17120f,#f1ece8);--mute:light-dark(#6b625c,#a59c96);--line:light-dark(#e7e0db,#2e2a31);--red:#9b1b1e;--redd:light-dark(#9b1b1e,#5a1012);--gold:#e8a817;--goldsoft:light-dark(#fbefcf,#3d3015);--blue:light-dark(#dbe7ff,#1c2a47);--blk:light-dark(#fde0de,#47191b)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Red Hat Text",system-ui,sans-serif;overflow-x:clip}
+h1,h2{font-family:"Red Hat Display",system-ui,sans-serif;letter-spacing:-.02em;line-height:1.05;margin:0}
+.band{padding:clamp(24px,4vw,48px) max(5vw,16px)}.view{overflow-x:clip}
+.top{background:var(--redd);color:#fff}
+.wrap{max-width:1240px;margin:0 auto}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px 32px}
+h1{font-size:clamp(32px,5vw,48px);text-wrap:balance}
+.sub{margin:8px 0 0;opacity:.85}
+.big{font:700 clamp(40px,7vw,64px)/1 "Red Hat Display",sans-serif;white-space:nowrap}
+.big small{font-size:16px;font-weight:500;display:block;opacity:.85;margin-top:4px}
+.line{margin-top:28px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;position:relative}
+.seg{background:rgba(255,255,255,.14);border-radius:4px;padding:10px 10px 12px;cursor:pointer;border:0;color:#fff;text-align:left;font:inherit;min-height:44px}
+.seg:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.seg b{display:block;font-size:14px}.seg span{font-size:13px;opacity:.85;white-space:nowrap}
+.bar{height:6px;background:rgba(255,255,255,.22);border-radius:3px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.now{position:absolute;top:-10px;bottom:-6px;width:2px;background:var(--gold)}
+.now::after{content:"Today";position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--gold);white-space:nowrap}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px}
+select,input{font:16px "Red Hat Text",sans-serif;padding:8px 10px;min-height:44px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 14px;min-height:44px;font:500 15px "Red Hat Text",sans-serif;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.save{margin-left:auto;font-size:13px;color:var(--mute)}
+.phase{margin:0 0 28px;scroll-margin-top:72px}
+.phase h2{font-size:22px;display:flex;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.phase h2 span{font:500 15px "Red Hat Text",sans-serif;color:var(--mute);white-space:nowrap}
+.row{display:grid;grid-template-columns:18px 44px 92px minmax(0,1fr) 150px 128px 76px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.row.done .t{text-decoration:line-through;color:var(--mute)}
+.row.late .d{color:#c8302d;font-weight:600}
+.tick{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center;color:transparent;font-size:18px}
+.row.done .tick{background:var(--gold);border-color:var(--gold);color:#17120f}
+.d{font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.t{font-weight:500}.n{display:block;font-size:14px;color:var(--mute);font-weight:400}
+.o{font-size:14px;color:var(--mute)}
+.st{min-height:36px;padding:4px 8px;font-size:14px;border-radius:999px;border:0}
+.st.todo{background:var(--panel)}.st.prog{background:var(--blue)}.st.blk{background:var(--blk)}.st.dn{background:var(--goldsoft)}
+.del{border:0;background:none;color:var(--mute);cursor:pointer;font-size:20px;min-height:36px}
+.add{background:var(--panel);border-radius:8px;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) 160px 150px 150px auto;gap:10px;margin-top:8px}
+.add button{background:var(--red);color:#fff;border:0;border-radius:6px;padding:0 18px;min-height:44px;font:600 15px "Red Hat Text",sans-serif;cursor:pointer}
+.empty{color:var(--mute);padding:12px 0}
+.foot{font-size:13px;color:var(--mute)}
+@media(max-width:760px){.line{grid-template-columns:repeat(3,minmax(0,1fr))}.now{display:none}.row{grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"k t x" "k d d" "k s s";row-gap:6px;align-items:start}.row .tick{margin-top:2px}.row .m1{grid-area:d;font-size:14px;color:var(--mute)}.row .m2{grid-area:s;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.row .tick{grid-area:k}.row .tcell{grid-area:t}.row .acts{grid-area:x}.grip{display:none!important}.add{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.add .wide{grid-column:1/-1}}
+@media(min-width:761px){.row .meta{display:contents}}
+@media(prefers-reduced-motion:reduce){.bar i{transition:none}}
+.nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:0 max(5vw,16px)}
+.nav .wrap{display:flex;align-items:center;gap:24px;min-height:56px;flex-wrap:wrap}
+.brand{font:700 18px "Red Hat Display",sans-serif;color:var(--red);letter-spacing:-.01em;white-space:nowrap}
+:root[data-theme=dark] .brand{color:#f0605f}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .brand{color:#f0605f}}
+.tabs{display:flex;gap:4px}
+.tabs a{display:flex;align-items:center;min-height:56px;padding:0 14px;color:var(--mute);text-decoration:none;font-weight:600;border-bottom:3px solid transparent}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current=page]{color:var(--ink);border-bottom-color:var(--red)}
+.tabs a:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:20px;font-size:14px;opacity:.9}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.tree{overflow-x:auto;padding-bottom:8px}
+.root{display:flex;justify-content:center}
+.node{border-radius:8px;padding:10px 14px;background:var(--bg);border:2px solid var(--line);font-weight:600;line-height:1.25}
+.node small{display:block;font-weight:500;font-size:13px;color:var(--mute)}
+.node.top{background:var(--ink);color:var(--bg);border-color:var(--ink);text-align:center;padding:14px 24px;font:700 20px/1.2 "Red Hat Display",sans-serif}
+.node.top small{color:inherit;opacity:.75;font-family:"Red Hat Text",sans-serif}
+.node.pres{background:var(--red);border-color:var(--red);color:#fff}
+.node.pres small{color:#fff;opacity:.85}
+.node.vp{border-color:var(--red)}
+.node.sh{border-color:var(--gold);background:var(--goldsoft)}
+.node.fr{border-color:var(--mute)}
+.stem{width:2px;height:28px;background:var(--mute);margin:0 auto}
+.lvl1{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:14px;position:relative;padding-top:28px;margin:0;list-style:none;min-width:800px}
+.lvl1::before{content:"";position:absolute;top:0;left:calc(10% - 5px);right:calc(10% - 5px);border-top:2px solid var(--mute)}
+.lvl1>li{position:relative}
+.lvl1>li::before{content:"";position:absolute;top:-28px;left:50%;height:28px;border-left:2px solid var(--mute)}
+.leaves{list-style:none;margin:0 0 0 18px;padding:0}
+.leaves li{position:relative;padding:6px 0 6px 22px}
+.leaves li::before{content:"";position:absolute;left:0;top:0;bottom:0;border-left:2px solid var(--line)}
+.leaves li:last-child::before{bottom:calc(100% - 25px)}
+.leaves li::after{content:"";position:absolute;left:0;top:24px;width:16px;border-top:2px solid var(--line)}
+.dept{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:15px;font-weight:500;white-space:nowrap}
+.dept b{background:var(--ink);color:var(--bg);border-radius:999px;font-size:12px;font-weight:600;height:22px;padding:0 8px;display:inline-grid;place-items:center}
+.leaves .leaves{margin-left:12px}
+.lvl1>li.joins{display:flex;flex-direction:column}
+.joins .leaves>li:last-child::before{bottom:0}
+.trunk{flex:1;min-height:12px;margin-left:18px;border-left:2px solid var(--line)}
+.lvl1>li.join{grid-column:1/3;grid-row:2;padding-top:20px}
+.lvl1>li.join::before{top:-14px;left:18px;width:calc(50% + 7px);height:14px;border:2px solid var(--line);border-top:0}
+.lvl1>li.join::after{content:"";position:absolute;top:0;left:calc(25% + 21.5px);height:20px;border-left:2px solid var(--line)}
+.jb{width:max-content;margin-left:calc(25% + 22.5px);transform:translateX(-50%);text-align:center}
+.jb small{display:block;font-size:13px;color:var(--mute);margin-top:4px}
+@media(max-width:860px){.lvl1{grid-template-columns:minmax(0,1fr);min-width:0;padding:0 0 0 28px;margin-left:20px;gap:18px}.lvl1::before{display:none}.lvl1>li::before{top:20px;left:-28px;height:0;width:26px;border-left:0;border-top:2px solid var(--mute)}.lvl1>li::after{content:"";position:absolute;left:-28px;top:-18px;height:40px;border-left:2px solid var(--mute)}.lvl1>li:not(:last-child)::after{height:auto;bottom:-18px}.root{justify-content:flex-start}.stem{margin:0 0 0 20px;height:18px}.trunk{display:none}.joins .leaves>li:last-child::before{bottom:calc(100% - 25px)}.lvl1>li.join{grid-column:auto;grid-row:auto;padding-top:0;margin-top:-10px}.lvl1>li.join::before{top:0;left:-28px;width:auto;height:0;border:0}.lvl1>li.join::after{left:-28px;top:-18px;height:auto;bottom:-18px;border-left:2px solid var(--mute)}.jb{margin-left:18px;transform:none;text-align:left}}
+.dgrid{list-style:none;margin:0 auto;padding:18px 0 0;max-width:1000px;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;border-top:2px solid var(--mute)}.dgrid .dept{width:100%;cursor:pointer;font-family:inherit;color:var(--ink);flex-wrap:wrap;text-align:left;min-height:64px;border-left:4px solid var(--dc);padding:10px 12px}.dgrid .dept:hover{border-color:var(--red);border-left-color:var(--dc)}
+.lvl1 .dept{cursor:pointer;font-family:inherit;color:var(--ink);flex-wrap:wrap;text-align:left;min-height:36px}
+.lvl1 .dept:hover{border-color:var(--red)}
+.hn{flex-basis:100%;font-size:13px;font-weight:400;color:var(--mute);white-space:normal}
+.hn.tbc{font-style:italic}
+dialog{border:0;border-radius:10px;padding:20px;width:min(480px,calc(100% - 32px));background:var(--bg);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dh{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.dh h3{margin:0;font:700 22px "Red Hat Display",sans-serif}
+.x{border:0;background:none;color:var(--ink);font-size:26px;min-width:44px;min-height:44px;cursor:pointer}
+dialog h4{margin:18px 0 6px;font-size:15px}
+.hr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:8px}
+.hr input{width:100%}
+.tk{font-size:14px;padding:6px 0;border-bottom:1px solid var(--line);display:flex;gap:10px}
+.tk span{white-space:nowrap;color:var(--mute);font-variant-numeric:tabular-nums}
+.da{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap}
+.pri,.ghost{min-height:44px;padding:0 16px;border-radius:6px;font:600 15px "Red Hat Text",sans-serif;cursor:pointer}
+.pri{background:var(--red);color:#fff;border:0}
+.ghost{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.people{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pc{border:1px solid var(--line);border-radius:8px;padding:16px;background:var(--bg)}
+.pc.lead{border:2px solid var(--red)}
+.pc h3{margin:0;font:700 19px/1.2 "Red Hat Display",sans-serif}
+.pc h3 span{font:500 14px "Red Hat Text",sans-serif;color:var(--mute)}
+.pc ul{margin:0;padding-left:18px;font-size:15px}
+.pc li{margin:3px 0}
+.pn{font-size:13px;color:var(--mute);margin:8px 0 0}
+.rule{background:var(--goldsoft);border-radius:8px;padding:12px 16px;margin:16px 0 28px}
+.qh{font-size:22px;margin-bottom:10px}
+.qt{width:100%;border-collapse:collapse;font-size:15px}
+.qt th{text-align:left;font-size:13px;color:var(--mute);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--ink)}
+.qt td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.qt td:nth-child(2){font-weight:600;white-space:nowrap}
+.tabs{overflow-x:auto}
+@media(max-width:860px){.people{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media(max-width:600px){.people{grid-template-columns:minmax(0,1fr)}.stack thead{display:none}.stack tr{display:grid;padding:10px 0;border-bottom:1px solid var(--line)}.stack td{border:0;padding:2px 0}.stack td:nth-child(2){white-space:normal}.hr{grid-template-columns:minmax(0,1fr)}}
+.me{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:14px}
+.lvl{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;text-transform:capitalize}
+.sm{min-height:36px;padding:0 12px;font-size:14px}
+.gate{min-height:calc(100vh - 57px);display:grid;place-items:center;padding:24px 16px;background:var(--redd);color:#fff}
+.gbox{max-width:420px;text-align:center}.gbox p{opacity:.9}
+.big2{min-height:52px;font-size:17px;padding:0 24px;background:#fff;color:#17120f}
+.err{color:#ffd7d6;min-height:1.5em}
+.by{display:block;font-size:12px;color:var(--mute)}
+.row button:disabled,.row select:disabled{opacity:.45;cursor:not-allowed}
+#seed{margin:0 0 16px}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:9;max-width:calc(100% - 32px)}
+.cnav{display:flex;gap:6px}
+.cbtn{min-height:44px;min-width:44px;padding:0 14px;border-radius:6px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;font:600 16px "Red Hat Text",sans-serif;cursor:pointer}
+.cbtn:hover{background:rgba(255,255,255,.12)}
+.key{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.key i.todo,.chip2.todo{background:var(--panel);border:1px solid var(--line)}
+.key i.prog,.chip2.prog{background:var(--blue)}
+.key i.blk,.chip2.blk{background:var(--blk)}
+.key i.dn,.chip2.dn{background:var(--goldsoft)}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.cal .dow{font-size:13px;font-weight:600;color:var(--mute);padding:8px;border-right:1px solid var(--line);border-bottom:2px solid var(--ink)}
+.cal .day{min-height:112px;padding:6px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.cal .day.out{background:var(--panel)}.cal .day.out .dn2{opacity:.4}
+.dn2{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.cal .day.today .dn2{background:var(--red);color:#fff;border-radius:999px;padding:0 7px;align-self:flex-start}
+.chip2{display:block;width:100%;text-align:left;border:0;border-radius:4px;padding:3px 6px;font:500 12px/1.3 "Red Hat Text",sans-serif;color:var(--ink);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip2.dn{text-decoration:line-through;color:var(--mute)}
+.chip2.late{box-shadow:inset 3px 0 0 #c8302d}
+.more{font-size:12px;color:var(--mute);border:0;background:none;text-align:left;cursor:pointer;padding:0 6px}
+.agenda{display:none}
+.ag h3{font:700 16px "Red Hat Display",sans-serif;margin:18px 0 6px}
+.ag .chip2{white-space:normal;font-size:14px;padding:8px 10px;margin-bottom:6px}
+#tdn{margin:6px 0 14px}
+@media(max-width:700px){.cal{display:none}.agenda{display:block}}
+.grip{color:var(--mute);cursor:grab;font-size:14px;letter-spacing:-3px;user-select:none;text-align:center}
+.grip.off{visibility:hidden}
+.row.dragging{opacity:.4}
+.row.drop-before{box-shadow:inset 0 3px 0 var(--red)}
+.row.drop-after{box-shadow:inset 0 -3px 0 var(--red)}
+.rows{min-height:24px;border-radius:6px}
+.rows.drop-into{outline:2px dashed var(--red);outline-offset:2px}
+.acts{display:flex;justify-content:flex-end;gap:2px}
+.ico{border:0;background:none;color:var(--mute);cursor:pointer;font-size:17px;min-width:36px;min-height:36px;border-radius:6px}
+.ico:hover,.del:hover{color:var(--ink);background:var(--panel)}
+.ef{display:grid;gap:12px;margin-top:12px}
+.ef label{display:grid;gap:4px;font-size:14px;font-weight:600}
+.ef input,.ef select,.ef textarea{width:100%;font:16px "Red Hat Text",sans-serif;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.ef textarea{min-height:80px;resize:vertical}
+.ef .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.ptitle{font-size:22px;margin:32px 0 6px}
+.plede{color:var(--mute);margin:0 0 12px;font-size:15px}
+.pc2{text-align:center;white-space:nowrap;width:96px}
+.sw{position:relative;display:inline-block;width:44px;height:26px;cursor:pointer}
+.sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.sw span{position:absolute;inset:0;background:var(--line);border-radius:999px;transition:background .15s}
+.sw span::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw input:checked+span{background:var(--red)}
+.sw input:checked+span::after{transform:translateX(18px)}
+.sw input:focus-visible+span{outline:3px solid var(--gold);outline-offset:2px}
+@media(max-width:600px){.ef .two{grid-template-columns:minmax(0,1fr)}}
+.menu,.pname,.dhead,.scrim{display:none}
+.drawer{display:contents}
+@media(max-width:1240px){
+.nav{z-index:40}
+.nav .wrap{flex-wrap:nowrap;gap:10px;min-height:56px}
+.menu{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;margin-left:-10px;padding:0 10px;border:0;background:none;cursor:pointer}
+.menu span{display:block;height:2px;background:var(--ink);border-radius:2px}
+.menu:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.pname{display:block;margin-left:auto;font-weight:600;font-size:15px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drawer{position:fixed;top:0;left:0;bottom:0;z-index:30;width:min(300px,84vw);background:var(--bg);display:flex;flex-direction:column;padding:12px 16px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 0 40px rgba(0,0,0,.25);transform:translateX(-105%);transition:transform .22s ease;overflow-y:auto;visibility:hidden}
+.drawer.open{transform:none;visibility:visible}
+.dhead{display:flex;justify-content:space-between;align-items:center;min-height:48px;margin-bottom:8px}
+.drawer .tabs{flex-direction:column;gap:2px;overflow:visible}
+.drawer .tabs a{min-height:50px;padding:0 14px;border-bottom:0;border-left:3px solid transparent;border-radius:0 8px 8px 0;font-size:17px}
+.drawer .tabs a[aria-current=page]{border-left-color:var(--red);background:var(--panel);color:var(--ink)}
+.drawer .me{margin:auto 0 0;padding-top:16px;border-top:1px solid var(--line);flex-direction:column;align-items:flex-start;gap:8px;font-size:15px}
+.drawer .me .ghost{width:100%}
+.scrim{display:block;position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.4)}
+.phase{scroll-margin-top:64px}
+}
+@media(max-width:1240px) and (prefers-reduced-motion:reduce){.drawer{transition:none}}
+.rqf{display:grid;gap:12px;text-align:left;margin:18px 0 12px}
+.rqf label{display:grid;gap:4px;font-size:14px;font-weight:600}
+.rqf small{font-weight:400;opacity:.8}
+.rqf input,.rqf select{width:100%;font:16px "Red Hat Text",sans-serif;padding:10px 12px;border:0;border-radius:6px;background:#fff;color:#17120f;min-height:44px}
+.rqdone{background:rgba(255,255,255,.14);border-radius:8px;padding:14px 16px;margin:18px 0 12px;text-align:left}
+.ghost.lite{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
+.cnt{display:inline-block;background:var(--red);color:#fff;border-radius:999px;font:600 13px "Red Hat Text",sans-serif;padding:2px 9px;vertical-align:middle}
+.gcal{display:inline-flex;align-items:center;text-decoration:none}
+.cexp{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:16px;font-size:13px;opacity:.9}
+.cexp span{max-width:560px}
+.cbtn.pri2{background:var(--red);color:#fff;border-color:var(--red)}
+#tdg.done{color:#1e7a46;border-color:#1e7a46}
+.gbar{margin-top:20px;background:#e8f0fe;color:#174ea6;border-radius:16px;padding:16px 18px;display:grid;gap:12px;max-width:760px}
+.ghead{display:flex;gap:12px;align-items:flex-start}
+.ghead b{display:block;font:700 17px "Red Hat Display",sans-serif;color:#0b3d91}
+.ghead .gname{display:inline;font:inherit;font-weight:700;color:#0b3d91}
+.ghead span{display:block;font-size:13px;line-height:1.45;color:#174ea6;margin-top:2px}
+.grow{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.gsel{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.gsel select{min-height:40px;border-radius:999px;border:1px solid #aecbfa;background:#fff;color:#0b3d91;padding:0 14px;font:600 15px "Red Hat Text",sans-serif}
+.gchk{display:flex;align-items:center;gap:6px;font-size:13px}
+.gchk input{width:18px;height:18px;accent-color:#1a73e8}
+.gbtn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 20px 0 14px;border:0;border-radius:999px;background:#1a73e8;color:#fff;font:600 15px "Red Hat Text",sans-serif;cursor:pointer;box-shadow:0 1px 3px rgba(26,115,232,.35);transition:background .15s}
+.gbtn:hover{background:#1765cc}.gbtn:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}
+.gbtn:disabled{opacity:.7;cursor:progress}
+.gbtn.sm{min-height:40px;font-size:14px;padding:0 16px 0 12px}
+.gbtn.done{background:#137333}
+.gic{width:20px;height:20px;flex:none}.gic.big{width:34px;height:34px;background:#1a73e8;border-radius:10px;padding:5px}
+.gics{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid #aecbfa;background:#fff;color:#1a73e8;font:600 14px "Red Hat Text",sans-serif;cursor:pointer}
+@media (max-width:640px){.gbtn:not(.sm){width:100%;justify-content:center}.gsel{width:100%}.gsel select{flex:1}}
+.opick{position:relative;display:inline-block;min-width:150px}
+.opick>summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;padding:0 34px 0 12px;border:1px solid var(--line,#ccc);border-radius:6px;background:var(--bg,#fff);color:inherit;font:15px "Red Hat Text",sans-serif;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+.opick>summary::-webkit-details-marker{display:none}
+.opick>summary::after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);opacity:.7}
+.opop{position:absolute;z-index:60;top:calc(100% + 4px);left:0;min-width:240px;max-height:300px;overflow:auto;background:var(--bg,#fff);color:inherit;border:1px solid var(--line,#ccc);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:6px;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.opop label{display:flex;align-items:center;gap:8px;padding:8px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer}
+.opop label:hover{background:rgba(0,0,0,.06)}
+.opop input{width:18px;height:18px;accent-color:var(--red)}
+.opop .ohd{grid-column:1/-1;font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.65;padding:6px 8px 2px}
+.flab{display:grid;gap:4px;font-weight:600}
+.flab .opick{display:block}.flab .opick>summary{max-width:none}
+.cdbar{background:var(--redd);color:#fff;font:500 14px "Red Hat Text",sans-serif;padding:14px max(5vw,16px) 0}
+.cdbar .wrap{display:flex;flex-wrap:wrap;gap:10px}
+.cdi{display:grid;grid-template-columns:auto 1fr;align-items:baseline;column-gap:8px;row-gap:2px;min-width:0;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:8px 14px}
+.cdi em{grid-column:1/-1;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cdi span{white-space:nowrap}
+.cdi b{font:800 22px/1 "Red Hat Display",sans-serif;color:#fff}
+.cdi small{opacity:.7;font-size:12px;white-space:nowrap;text-align:right}
+.cdi.soon{border-color:var(--gold)}.cdi.soon b{color:#ffd77a}.cdi.past{opacity:.55}
+@media(max-width:640px){.cdbar .wrap{display:grid;grid-template-columns:1fr 1fr}.cdi{grid-template-columns:1fr}.cdi small{text-align:left}}
+.mtools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-top:14px}
+.mselw{display:flex;align-items:center;gap:8px;font-weight:600}
+.mselw select{min-height:44px;border-radius:6px;border:0;padding:0 12px;font:600 16px "Red Hat Text",sans-serif;background:#fff;color:#17120f}
+.mchk{color:inherit}
+.mbar{height:8px;border-radius:99px;background:rgba(255,255,255,.25);margin-top:16px;max-width:520px;overflow:hidden}
+.mbar i{display:block;height:100%;background:#fff;border-radius:99px;width:0;transition:width .3s}
+.mgrid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:32px;align-items:start}
+@media (max-width:900px){.mgrid{grid-template-columns:1fr}}
+.mg{margin-bottom:26px}.mg h2{font:700 18px "Red Hat Display",sans-serif;display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.mg h2 .n{font:600 13px "Red Hat Text",sans-serif;background:rgba(0,0,0,.08);border-radius:99px;padding:1px 9px}
+.mg.over h2{color:var(--red)}.mg.over h2 .n{background:var(--red);color:#fff}
+.mg ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.mi{display:flex;align-items:center;gap:10px;background:var(--card,rgba(0,0,0,.03));border:1px solid var(--line,rgba(0,0,0,.1));border-radius:10px;padding:8px 10px}
+.mi .mt{flex:1;min-width:0;display:grid;grid-template-columns:72px 1fr;gap:2px 10px;text-align:left;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:4px 0}
+.mi .md{grid-row:span 2;font:700 14px "Red Hat Display",sans-serif;align-self:center}
+.mg.over .md{color:var(--red)}
+.mi .mtt{font-weight:600;line-height:1.3}.mi .mo{font-size:13px;opacity:.7}
+.mi.dn .mtt{text-decoration:line-through;opacity:.6}
+.mempty{opacity:.75;padding:12px 0}
+.mdone summary{cursor:pointer;font-weight:600;padding:6px 0}
+.feed{border-left:3px solid var(--red);padding-left:18px}
+.feed h2{font:700 18px "Red Hat Display",sans-serif;margin:0}.fsub{font-size:13px;opacity:.7;margin:2px 0 12px}
+.feed ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.feed li{font-size:14px;line-height:1.4}.feed li time{display:block;font-size:12px;opacity:.6}
+.feed .ft{background:none;border:0;padding:0;color:inherit;font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer;text-align:left}
+.feed .fd{opacity:.75}
+.hist{margin-top:14px;border-top:1px solid var(--line,rgba(0,0,0,.12));padding-top:10px}
+.hist h4{margin:0 0 6px;font:700 14px "Red Hat Display",sans-serif}
+.hist ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13px}
+.hist time{opacity:.6;margin-left:4px}
+.kdl{display:flex;align-items:center;gap:6px;font-weight:600}
+/* ---- motion ---- */
+.mbar i{transition:width .7s cubic-bezier(.2,.8,.2,1)!important}
+.row.justdone{animation:rowflash 1.1s ease-out var(--ad,0ms) both}
+@keyframes rowflash{0%{background:rgba(242,183,5,.28)}100%{background:transparent}}
+.row.justdone .tick,.mi.justdone select{animation:tickpop .5s cubic-bezier(.3,1.7,.5,1) var(--ad,0ms) both}
+@keyframes tickpop{0%{transform:scale(.55)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
+.row.justdone .t,.mi.justdone .mtt{text-decoration:none!important;background:linear-gradient(currentColor,currentColor) left 55%/0 1.5px no-repeat;animation:strike .4s ease-out calc(var(--ad,0ms) + .18s) forwards}
+@keyframes strike{to{background-size:100% 1.5px}}
+.row.justdone .tcell,.mi.justdone .mt{animation:dim .5s ease calc(var(--ad,0ms) + .5s) both}
+@keyframes dim{from{opacity:1}to{opacity:.7}}
+.row{transition:padding .18s ease}
+.row.drop-before{padding-top:30px}
+.row.drop-after{padding-bottom:30px}
+.row.dragging{transform:scale(.98);transition:transform .15s,opacity .15s}
+.gate{position:relative;overflow:hidden;background:linear-gradient(180deg,#71191a 0%,#5e1517 45%,#3a0f15 78%,#1f080b 100%);isolation:isolate}
+.gate::before{content:"";position:absolute;inset:0;background:radial-gradient(700px 420px at 50% 38%,rgba(255,190,120,.10),transparent 70%);z-index:-1;animation:gglow 9s ease-in-out infinite alternate}
+@keyframes gglow{from{opacity:.6}to{opacity:1}}
+.gsky{position:absolute;left:0;right:0;bottom:0;height:min(46vh,420px);z-index:-1;opacity:.95;animation:gsky 1.4s cubic-bezier(.2,.8,.2,1) .1s both}
+@keyframes gsky{from{opacity:0;transform:translateY(40px)}to{opacity:.95;transform:none}}
+.gbox{position:relative;z-index:1;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+.gbox>*{animation:gup .6s cubic-bezier(.2,.8,.2,1) both}
+.gbox>:nth-child(2){animation-delay:.12s}.gbox>:nth-child(3){animation-delay:.22s}.gbox>:nth-child(4){animation-delay:.32s}.gbox>:nth-child(5){animation-delay:.4s}.gbox>:nth-child(6){animation-delay:.48s}
+@keyframes gup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.glogo{font-size:clamp(44px,9vw,76px);line-height:1;letter-spacing:-.02em;margin-bottom:10px}
+.glogo span{display:inline-block;animation:gup .7s cubic-bezier(.2,.8,.2,1) both}.glogo span+span{animation-delay:.12s;color:var(--gold)}
+.gline{display:block;height:4px;width:96px;margin:0 auto 18px;background:var(--gold);border-radius:4px;transform-origin:center;animation:gline .7s cubic-bezier(.2,.8,.2,1) .35s both}
+@keyframes gline{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.row.drop-before{padding-top:10px}.row.drop-after{padding-bottom:10px}}
+.brand{display:inline-flex;align-items:center;gap:8px}
+.bmark{display:inline-block;width:28px;height:28px;flex:none}
+.gmarkw{display:grid;place-items:center;margin-bottom:14px}
+.gmark{width:clamp(120px,26vw,168px);aspect-ratio:243/240;filter:drop-shadow(0 10px 24px rgba(0,0,0,.35));animation:gmin .9s cubic-bezier(.2,1.3,.4,1) both,gfloat 6s ease-in-out 1.1s infinite}
+@keyframes gmin{0%{opacity:0;transform:translateY(-24px) scale(.7) rotate(-8deg)}100%{opacity:1;transform:none}}
+@keyframes gfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.gmarkw::after{content:"";position:absolute;width:clamp(150px,32vw,210px);aspect-ratio:1;border-radius:50%;border:2px solid rgba(242,183,5,.5);animation:gring 2.4s ease-out .6s 2 both;pointer-events:none}
+.gmarkw{position:relative}
+@keyframes gring{0%{opacity:0;transform:scale(.7)}30%{opacity:1}100%{opacity:0;transform:scale(1.25)}}
+:root[data-gate] .nav{background:#71191a;border-bottom-color:transparent;padding-top:env(safe-area-inset-top)}
+:root[data-gate] .nav .brand{color:#fff}
+:root[data-gate] .nav .tlogo{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+:root[data-gate] body{background:#1f080b}
+.gate{min-height:calc(100vh - 57px);min-height:calc(100svh - 57px - env(safe-area-inset-top))}
+.inapp{display:grid;gap:6px;text-align:left;background:rgba(255,255,255,.1);border:1px solid var(--gold);border-radius:12px;padding:12px 14px;margin:0 0 14px;font-size:14px;line-height:1.45}
+.inapp b{color:#ffd77a}.inapp .ghost{justify-self:start;margin-top:4px}
+
+/* ---- dept colours ---- */
+.dt{white-space:nowrap}.dt::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--dc,#868e96);margin-right:5px;vertical-align:1px}
+.row[style*="--dc"]{box-shadow:inset 3px 0 0 var(--dc)}
+.row{padding-left:10px}
+.chip2[style*="--dc"]{box-shadow:inset 3px 0 0 var(--dc);padding-left:8px}
+.mi[style*="--dc"]{box-shadow:inset 3px 0 0 var(--dc)}
+.tx{display:block;font-size:12px;color:var(--mute);margin-top:2px}
+/* ---- task dialog: steps, links, comments ---- */
+#td{width:min(620px,calc(100% - 24px));max-height:calc(100dvh - 24px)}
+.tsec{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.tsec h4{margin:0 0 8px;font:700 14px "Red Hat Display",sans-serif;display:flex;align-items:center;gap:8px}
+.tsec h4 small{font:500 12px "Red Hat Text",sans-serif;color:var(--mute)}
+.ckbar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin:0 0 8px}.ckbar i{display:block;height:100%;background:var(--ok,#2b8a3e);border-radius:99px;transition:width .3s}
+.cks{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.cks li{display:flex;align-items:center;gap:10px;min-height:36px;padding:2px 4px;border-radius:6px}
+.cks li:hover{background:var(--panel)}
+.cks input{width:18px;height:18px;accent-color:var(--red);flex:none}
+.cks label{flex:1;font-size:15px;cursor:pointer}
+.cks li.on label{text-decoration:line-through;color:var(--mute)}
+.mini{border:0;background:none;color:var(--mute);font-size:18px;line-height:1;width:32px;height:32px;border-radius:6px;cursor:pointer;flex:none}
+.mini:hover{background:var(--panel);color:var(--red)}
+.inl{display:flex;gap:8px;margin-top:8px}
+.inl input{flex:1;min-width:0;font:15px "Red Hat Text",sans-serif;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.inl button{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:0 14px;min-height:40px;font:600 14px "Red Hat Text",sans-serif;cursor:pointer}
+.lks{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.lks li{display:flex;align-items:center;gap:8px}
+.lks a{flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink);text-decoration:none;font-size:14px}
+.lks a:hover{border-color:var(--red)}
+.lks a b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lks a .lh{color:var(--mute);font-size:12px;white-space:nowrap;margin-left:auto}
+.lks .lic{flex:none;width:22px;height:22px;border-radius:5px;display:grid;place-items:center;font:700 11px "Red Hat Text",sans-serif;color:#fff;background:#868e96}
+.cms{list-style:none;margin:0;padding:0;display:grid;gap:10px;max-height:280px;overflow:auto}
+.cms li{display:grid;grid-template-columns:32px 1fr;gap:8px}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--dc,#868e96);color:#fff;font:700 13px "Red Hat Text",sans-serif}
+.cmb{background:var(--panel);border-radius:10px;padding:8px 10px;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
+.cmb header{display:flex;gap:8px;align-items:baseline;font-size:12px;color:var(--mute);margin-bottom:2px}
+.cmb header b{color:var(--ink);font-size:13px}
+.cmb .cdel{margin-left:auto;border:0;background:none;color:var(--mute);font-size:12px;cursor:pointer}
+.cmb .at{color:var(--red);font-weight:600}.cmb .atd{color:var(--dc);background:color-mix(in srgb,var(--dc) 12%,transparent);padding:0 4px;border-radius:4px}.mpop .avd{font-weight:700;border-radius:6px}
+.cmw{position:relative;margin-top:10px}
+.cmw textarea{width:100%;min-height:64px;resize:vertical;font:15px "Red Hat Text",sans-serif;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.cmw .row2{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--mute)}
+.mpop{position:absolute;left:0;bottom:calc(100% + 4px);z-index:5;background:var(--bg);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:220px;max-height:220px;overflow:auto;padding:4px}
+.mpop button{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;padding:6px 8px;border-radius:6px;text-align:left;font:14px "Red Hat Text",sans-serif;color:var(--ink);cursor:pointer}
+.mpop button small{color:var(--mute)}
+.mpop button:hover,.mpop button.on{background:var(--panel)}
+.mpop .av{width:24px;height:24px;font-size:11px}
+/* ---- mentions ---- */
+.mens{margin-bottom:22px}
+.mens ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.mens li button{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg);color:var(--ink);font:14px/1.4 "Red Hat Text",sans-serif;cursor:pointer}
+.mens li.new button{border-color:var(--gold);background:var(--goldsoft)}
+.mens li button small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+.badge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--red);color:#fff;font:700 11px "Red Hat Text",sans-serif;margin-left:6px;vertical-align:2px}
+/* ---- overview ---- */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}
+.kpi{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font:800 28px/1.1 "Red Hat Display",sans-serif}
+.kpi span{font-size:13px;opacity:.85}
+.kpi.warn{border-color:var(--gold)}.kpi.warn b{color:#ffd77a}
+.ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.oc{display:block;width:100%;text-align:left;border:1px solid var(--line);border-top:4px solid var(--dc);border-radius:10px;padding:14px;background:var(--bg);color:var(--ink);font:inherit;cursor:pointer}
+.oc:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.oc h3{margin:0;font:700 17px "Red Hat Display",sans-serif;display:flex;justify-content:space-between;gap:8px}
+.oc h3 em{font-style:normal;font-size:13px;color:var(--mute);font-weight:600}
+.oc .hn2{font-size:13px;color:var(--mute);margin:2px 0 10px}
+.otop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}.otop .hn2{margin-bottom:0}
+.orw{position:relative;flex:none;width:52px;height:52px;display:grid;place-items:center}
+.orw svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.orw circle{fill:none;stroke-width:5}.orw .otr{stroke:var(--line)}
+.orw .orc{stroke:var(--dc);stroke-linecap:round;stroke-dasharray:100 100;stroke-dashoffset:100;transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)}
+.orw b{position:relative;font:700 12px "Red Hat Display",sans-serif;color:var(--ink);font-variant-numeric:tabular-nums}
+.orw.full b{color:var(--dc);font-size:11px}
+.oc:hover .orc{stroke-width:6}
+.obar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.obar i{display:block;height:100%;background:var(--dc);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.ost{display:flex;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:8px;color:var(--mute)}
+.ost .bad{color:var(--red);font-weight:700}
+.onext{font-size:13px;margin-top:8px;border-top:1px dashed var(--line);padding-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.onext b{font-weight:600}
+.ocols{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px}
+.olist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.olist li button{display:grid;grid-template-columns:70px 1fr auto;gap:10px;align-items:baseline;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);padding:8px 0;background:none;color:var(--ink);font:14px "Red Hat Text",sans-serif;cursor:pointer}
+.olist .d{color:var(--mute);font-size:13px}.olist .late .d{color:var(--red);font-weight:700}
+.ofin{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px}
+.ofin a{display:block;border:1px solid var(--line);border-radius:10px;padding:14px;color:var(--ink);text-decoration:none}
+.ofin a b{display:block;font:800 22px "Red Hat Display",sans-serif}.ofin a span{font-size:13px;color:var(--mute)}
+@media(max-width:760px){.kpis{grid-template-columns:1fr 1fr}.ocols,.ofin{grid-template-columns:1fr}}
+@media(max-width:600px){#okpi{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:14px}#okpi .kpi{padding:8px 8px 7px;border-radius:10px}#okpi .kpi b{font-size:20px}#okpi .kpi span{font-size:11px;line-height:1.2;display:block}
+#v-overview .band.top .sub{font-size:14px}
+.ogrid{grid-template-columns:1fr 1fr;gap:8px}.oc{padding:10px 10px 9px;border-top-width:3px}.oc h3{font-size:15px}.oc .hn2{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.otop{gap:6px;margin-bottom:2px}.otop>div{min-width:0}.orw{width:40px;height:40px}.orw b{font-size:10.5px}.orw.full b{font-size:9.5px}.orw circle{stroke-width:5.5}
+.ost{font-size:11.5px;gap:4px 8px;margin-top:6px}.onext{display:none}}
+/* ---- sponsors ---- */
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity}
+.col{background:var(--panel);border-radius:10px;padding:10px;min-height:200px;scroll-snap-align:start;display:flex;flex-direction:column;gap:8px}
+.col h3{margin:0 2px 2px;font:700 14px "Red Hat Display",sans-serif;display:flex;justify-content:space-between;align-items:baseline}
+.col h3 span{font:600 12px "Red Hat Text",sans-serif;color:var(--mute)}
+.col.drop{outline:2px dashed var(--red);outline-offset:-2px}
+.sc{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);color:var(--ink);font:14px/1.35 "Red Hat Text",sans-serif;cursor:pointer}
+.sc[draggable=true]{cursor:grab}.sc.dragging{opacity:.4}
+.sc b{display:block;font-size:15px}
+.sc .amt{font-weight:700;color:var(--ok,#2b8a3e)}
+.sc small{display:block;color:var(--mute);font-size:12px;margin-top:4px}
+.sc small.late{color:var(--red);font-weight:600}
+.col.no .sc{opacity:.7}
+.ssum{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.ssum .kpi{min-width:150px}
+.addb{border:1px dashed var(--line);background:none;border-radius:8px;padding:8px;color:var(--mute);font:600 14px "Red Hat Text",sans-serif;cursor:pointer}
+.addb:hover{color:var(--red);border-color:var(--red)}
+/* ---- bottom bar + FAB ---- */
+.bnav{display:none}
+.fab{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:20;width:56px;height:56px;border-radius:50%;border:0;background:var(--red);color:#fff;font:400 32px/1 "Red Hat Text",sans-serif;box-shadow:0 6px 20px rgba(155,27,30,.45);cursor:pointer;display:grid;place-items:center;transition:transform .15s}
+.fab:hover{transform:scale(1.06)}.fab:active{transform:scale(.96)}
+.fab:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+:root[data-gate] .fab,:root[data-gate] .bnav{display:none!important}
+@media(max-width:760px){
+.bnav{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);border-top:1px solid var(--line);padding:4px 4px env(safe-area-inset-bottom,0px)}
+.bnav a,.bnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:54px;border:0;background:none;color:var(--mute);font:600 11px "Red Hat Text",sans-serif;text-decoration:none;cursor:pointer;position:relative}
+.bnav svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bnav [aria-current=page]{color:var(--red)}
+.bnav .badge{position:absolute;top:4px;left:calc(50% + 6px);margin:0}
+body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
+.fab{bottom:calc(76px + env(safe-area-inset-bottom,0px));right:16px}
+.toast{bottom:calc(140px + env(safe-area-inset-bottom,0px))}
+}
+.tlink{border:0;background:none;padding:0;margin:0;text-align:left;font:inherit;color:inherit;cursor:pointer}.tlink:hover{text-decoration:underline;text-underline-offset:3px}
+.pri.sm{min-height:36px;padding:0 16px;font-size:14px}
+.hist:empty{display:none}
+@media(min-width:1241px){.nav .wrap{flex-wrap:nowrap;gap:16px}.tabs{flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tabs a{white-space:nowrap;flex:none}.me{flex:none}}
+@media(min-width:1241px) and (max-width:1400px){#menm{display:none}.tabs a{padding:0 9px;font-size:15px}}
+
+/* ---- profile ---- */
+.mename{display:inline-flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;border-radius:999px;padding:2px 10px 2px 2px}
+.mename:hover{background:var(--panel)}
+.meav{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--dc,#868e96);color:#fff;font:700 12px "Red Hat Text",sans-serif;object-fit:cover;flex:none}
+.pfhead{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.pfhead h1{margin:0}
+.pfhead .sub{margin:4px 0 0}
+.pfav{width:88px;height:88px;border-radius:50%;display:grid;place-items:center;background:var(--dc,#868e96);color:#fff;font:800 32px "Red Hat Display",sans-serif;border:3px solid rgba(255,255,255,.6);object-fit:cover;flex:none}
+.pfav.sm{width:48px;height:48px;font-size:18px;border:0}
+.pfnick{font-weight:500;opacity:.8;font-size:.6em}
+.pfrole{display:flex;gap:10px;align-items:center;margin:10px 0 0;flex-wrap:wrap}
+.pfrole .lvl{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff}
+.pfrole .dt{background:rgba(255,255,255,.15);border-radius:999px;padding:2px 10px;font-size:13px}
+.pfgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:32px}
+.pfstats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pfs{border:1px solid var(--line);border-radius:10px;padding:14px}
+.pfs b{display:block;font:800 26px "Red Hat Display",sans-serif}
+.pfs span{font-size:13px;color:var(--mute)}
+.avb{border:0;cursor:pointer;padding:0}
+.pch{display:flex;gap:12px;align-items:center}.pch h3{margin:0}.pch .role{margin:2px 0 0}
+.pcdl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0 0;font-size:14px}
+.pcdl dt{color:var(--mute);font-weight:600}.pcdl dd{margin:0;overflow-wrap:anywhere}
+@media(max-width:760px){.pfgrid{grid-template-columns:1fr}.pfav{width:64px;height:64px;font-size:24px}}
+.mgrid{grid-template-areas:"list mens" "list feed";row-gap:24px}.mgrid #mlist{grid-area:list}.mgrid .mens{grid-area:mens;margin:0}.mgrid .mfeed{grid-area:feed}
+@media (max-width:900px){.mgrid{grid-template-areas:"mens" "list" "feed"}.mgrid .mens{border:1px solid var(--gold);border-left:4px solid var(--gold);border-radius:10px;padding:14px 16px;background:var(--goldsoft)}.mgrid .mens li button{background:var(--bg)}}
+
+/* ---- avatar menu ---- */
+.umw{position:relative}
+.mename{border:0;background:none;cursor:pointer;font:inherit;position:relative}
+.udot{position:absolute;top:0;left:22px;width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--bg)}
+.umenu{position:absolute;right:0;top:calc(100% + 8px);z-index:45;min-width:260px;background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,.18);padding:6px;display:grid;gap:2px;transform-origin:top right}
+.umenu:not([hidden]){animation:umin .16s cubic-bezier(.2,.8,.2,1)}
+@keyframes umin{from{opacity:0;transform:scale(.96) translateY(-4px)}to{opacity:1;transform:none}}
+.umh{display:grid;gap:2px;padding:10px 10px 12px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.umh b{font-size:15px}.umh span{font-size:13px;color:var(--mute);overflow-wrap:anywhere}.umh .lvl{justify-self:start;margin-top:4px;color:var(--ink)}
+.umi{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;border-radius:8px;padding:10px;font:500 14px "Red Hat Text",sans-serif;color:var(--ink);text-decoration:none;cursor:pointer}
+.umi:hover,.umi:focus-visible{background:var(--panel)}
+.umi.out{color:var(--red)}
+.umi .nst{font-size:12px;color:var(--mute);font-weight:600}.umi .nst.on{color:#2b8a3e}
+.umrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;font:500 14px "Red Hat Text",sans-serif}
+.seg3{display:inline-flex;background:var(--panel);border-radius:8px;padding:2px}
+.seg3 button{border:0;background:none;padding:5px 10px;border-radius:6px;font:600 12px "Red Hat Text",sans-serif;color:var(--mute);cursor:pointer}
+.seg3 button[aria-checked=true]{background:var(--bg);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.ico2{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--bg);color:var(--mute);border-radius:8px;height:36px;padding:0 10px;font:600 13px "Red Hat Text",sans-serif;cursor:pointer}
+.ico2 svg,.tsearch svg,.qkin svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;flex:none}
+.ico2:hover{color:var(--ink);border-color:var(--ink)}
+@media(min-width:1241px){.ico2 span{display:none}}
+@media(max-width:1240px){.drawer .umenu{position:static;box-shadow:none;border:0;padding:0;min-width:0;animation:none}.drawer .umw{width:100%}.drawer .mename{padding-left:0}.drawer .ico2{width:100%;justify-content:flex-start;height:44px;font-size:15px}.drawer .umh b,.drawer .umh span:not(.lvl){display:none}.drawer .umh{padding:4px 0 8px}}
+/* ---- search ---- */
+.tsearch{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--mute);font:500 14px "Red Hat Text",sans-serif;cursor:pointer;margin-right:6px}
+.tsearch:hover{border-color:var(--ink);color:var(--ink)}
+kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;color:var(--mute);background:var(--panel)}
+@media(max-width:760px){.tsearch kbd{display:none}.tsearch{flex:1 1 100%;margin:0 0 4px}}
+.qk{width:min(640px,calc(100% - 24px));padding:0;margin-top:12vh;border-radius:14px;overflow:hidden}
+.qkin{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);color:var(--mute)}
+.qkin input{flex:1;min-width:0;border:0;outline:0;background:none;font:17px "Red Hat Text",sans-serif;color:var(--ink)}
+#qkl{list-style:none;margin:0;padding:6px;max-height:min(420px,55vh);overflow:auto}
+#qkl li{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:baseline;padding:10px;border-radius:8px;cursor:pointer;box-shadow:inset 3px 0 0 var(--dc,transparent)}
+#qkl li.on,#qkl li:hover{background:var(--panel)}
+#qkl .d{font-size:12px;color:var(--mute)}#qkl .t{font-weight:600}#qkl .t mark{background:var(--goldsoft);color:inherit;border-radius:3px}
+#qkl .s{font-size:12px;color:var(--mute);white-space:nowrap}
+#qkl .none{display:block;color:var(--mute);cursor:default;box-shadow:none}
+.qkh{display:flex;gap:16px;margin:0;padding:8px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--mute)}
+@media(max-width:760px){.qk{margin-top:8px;max-height:calc(100dvh - 16px)}.qkh{display:none}}
+/* ---- sliding underline + team sub-tabs ---- */
+@media(min-width:1241px){.tabs{position:relative}.tabs.hasbar a[aria-current=page]{border-bottom-color:transparent}.tabbar{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--red);border-radius:3px 3px 0 0;pointer-events:none;opacity:0}.tabs.hasbar .tabbar{opacity:1}.tabbar.anim{transition:transform .32s cubic-bezier(.2,.8,.2,1),width .32s cubic-bezier(.2,.8,.2,1)}}
+@media(max-width:1240px){.tabbar{display:none}}
+.subtabs{position:relative;display:inline-flex;gap:4px;background:rgba(0,0,0,.18);border-radius:10px;padding:4px;margin:0 0 18px}
+.subtabs a{position:relative;z-index:1;padding:8px 16px;border-radius:7px;color:rgba(255,255,255,.85);text-decoration:none;font:600 14px "Red Hat Text",sans-serif}
+.subtabs a[aria-current=page]{color:var(--redd,#9b1b1e)}
+.subbar{position:absolute;top:4px;bottom:4px;left:0;width:0;background:#fff;border-radius:7px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.subbar.anim{transition:transform .32s cubic-bezier(.2,.8,.2,1),width .32s cubic-bezier(.2,.8,.2,1)}
+:root[data-theme=dark] .subtabs a[aria-current=page]{color:#9b1b1e}
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Pages"><div class="wrap">
+  <button type="button" class="menu" id="menu" aria-label="Open menu" aria-controls="drawer" aria-expanded="false" hidden><span></span><span></span><span></span></button>
+  <span class="brand"><i class="tlogo bmark" aria-hidden="true"></i>TUBC 2027</span><span class="pname" id="pname"></span>
+  <div class="drawer" id="drawer">
+  <div class="dhead"><span class="brand"><i class="tlogo bmark" aria-hidden="true"></i>TUBC 2027</span><button type="button" class="x" id="dclose" aria-label="Close menu">×</button></div>
+  <div class="tabs" hidden><a href="#mine" id="t-mine">My tasks<span class="badge" id="mbadge" hidden></span></a><a href="#overview" id="t-overview" hidden>Overview</a><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#sponsors" id="t-sponsors" hidden>Sponsors</a><a href="#team" id="t-team">Team</a><i class="tabbar" id="tabbar" aria-hidden="true"></i></div>
+  <div class="me" id="me" hidden><button type="button" class="ico2" id="srchbtn" aria-label="Search tasks" title="Search tasks (Ctrl+K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></button>
+  <div class="umw"><button type="button" id="mename" class="mename" aria-haspopup="true" aria-expanded="false" aria-controls="umenu" title="Account"><span class="meav" id="meav"></span><span id="menm"></span><span class="udot" id="udot" hidden></span></button>
+  <div class="umenu" id="umenu" hidden>
+    <div class="umh"><b id="umname"></b><span id="umemail"></span><span class="lvl" id="melvl"></span></div>
+    <a href="#profile" class="umi">My profile</a>
+    <a href="#access" class="umi" id="umaccess" hidden>Access <span class="badge" id="umrq" hidden></span></a>
+    <div class="umrow"><span>Theme</span><div class="seg3" role="radiogroup" aria-label="Theme"><button type="button" role="radio" data-theme-set="light">Light</button><button type="button" role="radio" data-theme-set="auto">Auto</button><button type="button" role="radio" data-theme-set="dark">Dark</button></div></div>
+    <button type="button" class="umi" id="umnotif"><span>Notify me when tagged</span><span class="nst" id="umnst"></span></button>
+    <button type="button" class="umi out" id="out">Sign out</button>
+  </div></div></div>
+  </div>
+</div></nav>
+<div class="cdbar" id="cdbar" hidden><div class="wrap" id="cdin" role="status"></div></div>
+<div class="scrim" id="scrim" hidden></div>
+<div class="view gate" id="v-login" hidden><div class="gsky" aria-hidden="true"></div><div class="gbox">
+  <div class="gmarkw"><div class="tlogo gmark" role="img" aria-label="TUBC logo"></div></div><h1 class="glogo"><span>TUBC</span> <span>2027</span></h1><span class="gline" aria-hidden="true"></span><p>Sign in with your Google account. New here? You can ask to join after signing in.</p>
+  <div class="inapp" id="inapp" hidden><b>Open this page in Safari or Chrome to sign in.</b><span>Google sign-in doesn't work inside apps like LINE, Instagram or Facebook. Tap ··· or the share icon and choose <i>Open in browser</i>, or copy the link.</span><button type="button" class="ghost lite" id="inappcopy">Copy link</button></div>
+  <button type="button" class="pri big2" id="login">Sign in with Google</button><p class="err" id="lerr"></p>
+</div></div>
+<div class="view gate" id="v-noaccess" hidden><div class="gsky" aria-hidden="true"></div><div class="gbox">
+  <h1>Join TUBC 2027</h1><p>Signed in as <b id="naemail"></b>. Send a request and a PVP will approve it.</p>
+  <form class="rqf" id="rqf">
+    <label>Your name<input id="rqn" required maxlength="80"></label>
+    <label>Department<select id="rqd"></select></label>
+    <label>Note for the PVP <small>(optional)</small><input id="rqnote" maxlength="200" placeholder="e.g. Head of ER, BBA 33"></label>
+    <button type="submit" class="pri big2">Request access</button>
+  </form>
+  <div class="rqdone" id="rqdone" hidden><b>Request sent.</b> You'll get in automatically once a PVP approves it. You can keep this page open or come back later.</div>
+  <button type="button" class="ghost lite" id="out2">Use another account</button>
+</div></div>
+<div class="view" id="v-profile" hidden>
+<header class="band top"><div class="wrap"><div class="pfhead" id="pfhead"></div></div></header>
+<main class="band"><div class="wrap pfgrid">
+  <form class="pff" id="pff">
+    <h2 class="ptitle" style="margin-top:0">Edit profile</h2>
+    <p class="plede">Your name is how you show up in comments, @mentions and "Updated by". Your contact details are visible to the team.</p>
+    <div class="ef">
+      <div class="two"><label>Name<input id="pfname" maxlength="80" required></label><label>Nickname<input id="pfnick" maxlength="60" placeholder="e.g. Philler"></label></div>
+      <div class="two"><label>LINE ID<input id="pfline" maxlength="60"></label><label>Phone<input id="pfphone" type="tel" maxlength="60" inputmode="tel"></label></div>
+      <label>Batch / year<input id="pfbatch" maxlength="60" placeholder="e.g. BBA 33, year 3"></label>
+      <label>About you<textarea id="pfbio" maxlength="300" placeholder="What you work on, best time to reach you…"></textarea></label>
+    </div>
+    <div class="da" style="justify-content:flex-start"><button type="submit" class="pri">Save profile</button><button type="button" class="ghost" id="pfcancel">Undo changes</button></div>
+    <p class="foot">Level and department are set by a PVP on the Access page.</p>
+  </form>
+  <aside><h2 class="ptitle" style="margin-top:0">At a glance</h2><div class="pfstats" id="pfst"></div></aside>
+</div></main>
+</div>
+<dialog id="pcd" aria-label="Profile"><div id="pcard"></div></dialog>
+<div class="view" id="v-mine" hidden>
+<header class="band top"><div class="wrap">
+  <h1>My tasks</h1>
+  <p class="sub" id="msum">What your department needs to do next.</p>
+  <div class="mtools"><label class="mselw">Department <select id="mdept"></select></label>
+  <label class="gchk mchk"><input type="checkbox" id="mall" checked> Include tasks for everyone</label></div>
+  <div class="mbar" aria-hidden="true"><i id="mbarf"></i></div>
+</div></header>
+<main class="band"><div class="wrap mgrid">
+  <div class="mens feed" id="mens" hidden><h2>Mentions <span class="badge" id="mencnt" hidden></span></h2><p class="fsub">Comments that tag you.</p><ul id="menl"></ul></div>
+  <div id="mlist"></div>
+  <aside class="feed mfeed"><h2>Recent activity</h2><p class="fsub">Latest changes by everyone on the team.</p><ul id="feed"></ul></aside>
+</div></main>
+</div>
+<div class="view" id="v-access" hidden>
+<header class="band top"><div class="wrap"><h1>Access</h1><p class="sub">Who can sign in, and what each level is allowed to change.</p>
+  <div class="legend"><span><b>Admin</b> edits everything and manages access</span><span><b>Head</b> and <b>Member</b>: whatever you switch on below</span></div>
+</div></header>
+<main class="band"><div class="wrap">
+  <div id="rqbox" hidden><h2 class="ptitle" style="margin-top:0">Waiting for approval <span class="cnt" id="rqcnt"></span></h2>
+  <p class="plede">People who signed in and asked to join. Choose their level and department, then approve.</p>
+  <div class="scroll"><table class="qt stack" id="rq"><thead><tr><th>Person</th><th>Note</th><th>Level</th><th>Department</th><th></th></tr></thead><tbody></tbody></table></div></div>
+  <h2 class="ptitle">Members</h2>
+  <p class="plede">You can also add someone directly by email.</p>
+  <form class="add" id="mf"><input class="wide" id="me1" type="email" placeholder="name@gmail.com" aria-label="Email" required>
+    <select id="mr" aria-label="Level"><option value="viewer">Member</option><option value="head">Head</option><option value="admin">Admin</option></select>
+    <select id="md" aria-label="Department"></select><button type="submit">Add member</button></form>
+  <div class="scroll"><table class="qt stack" id="mt"><thead><tr><th>Email</th><th>Level</th><th>Department</th><th></th></tr></thead><tbody></tbody></table></div>
+  <h2 class="ptitle">Key dates</h2>
+  <p class="plede">Used for the countdown at the top of every page.</p>
+  <form class="add" id="kdf"><label class="kdl">The Challenger <input type="date" id="kd1" required></label><label class="kdl">TUBC starts <input type="date" id="kd2" required></label><button type="submit">Save dates</button></form>
+  <h2 class="ptitle">What each level can do</h2>
+  <p class="plede">Turn a switch on to let that level do it. "Their department" means the department set for that person above. Changes apply right away for everyone.</p>
+  <div class="scroll"><table class="qt" id="pm"><thead><tr><th>Permission</th><th class="pc2">Admin</th><th class="pc2">Head</th><th class="pc2">Member</th></tr></thead><tbody></tbody></table></div>
+  <h2 class="ptitle">Who can see Sponsors</h2>
+  <p class="plede">Sponsor names and amounts are only shown to the departments you tick. "Edit" lets them add, move and delete sponsors. Admins always have full access.</p>
+  <div class="scroll"><table class="qt" id="spa"><thead><tr><th>Department</th><th class="pc2">See</th><th class="pc2">Edit</th></tr></thead><tbody></tbody></table></div>
+</div></main>
+</div>
+<div class="view" id="v-structure" hidden>
+<header class="band top"><div class="wrap">
+  <nav class="subtabs" aria-label="Team"><a href="#structure" data-sub="structure">Committee</a><a href="#who" data-sub="who" class="subwho">Who to ask</a><i class="subbar" aria-hidden="true"></i></nav>
+  <h1>Committee structure</h1>
+  <p class="sub" id="stsub">Who in the PVP looks after which department, and how many heads each has. Tap a department to add its heads or see its tasks.</p>
+  <div class="legend" id="stleg"><span><i style="background:#fff"></i>President</span><span><i style="border:2px solid #fff"></i>Vice president</span><span><i style="background:var(--gold)"></i>Shared by all PVP</span><span><i style="background:rgba(255,255,255,.4)"></i>Freelance</span></div>
+</div></header>
+<main class="band"><div class="wrap">
+  <div class="tree flat" id="tflat" hidden>
+    <div class="root"><div class="node top">TUBC 2027<small>Organizing committee</small></div></div>
+    <div class="stem"></div>
+    <div class="root"><div class="node pres">PVP<small>Puripat · Sattam · Krang</small></div></div>
+    <div class="stem"></div>
+    <ul class="dgrid" id="dgrid"></ul>
+  </div>
+  <div class="tree" id="tpvp">
+    <div class="root"><div class="node top">TUBC 2027<small>Organizing committee</small></div></div>
+    <div class="stem"></div>
+    <ul class="lvl1">
+      <li class="joins"><div class="node pres">Puripat<small>President</small></div>
+        <ul class="leaves"><li><button type="button" class="dept" data-dept="Oper">Oper<b>2 heads</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Inven">Inven<b>1 head</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Doc">Doc<b>1 head</b><span class="hn"></span></button></li></ul><div class="trunk"></div></li>
+      <li class="joins"><div class="node vp">Sattam<small>Vice president</small></div>
+        <ul class="leaves"><li><button type="button" class="dept" data-dept="CR">CR<b>2 heads</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="PR">PR<b>1 head</b><span class="hn"></span></button></li></ul><div class="trunk"></div></li>
+      <li class="join"><div class="jb"><button type="button" class="dept" data-dept="Buddy">Buddy<b>1 head</b><span class="hn"></span></button><small>Shared by Puripat and Sattam</small></div></li>
+      <li><div class="node vp">Krang<small>Vice president</small></div>
+        <ul class="leaves"><li><button type="button" class="dept" data-dept="Stage-co">Stage-co<b>1 head</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="IT">IT<b>2 heads</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Photog">Photog<b>1 head</b><span class="hn"></span></button></li></ul></li>
+      <li><div class="node sh">All PVP<small>ช่วยกันเถอะ!</small></div>
+        <ul class="leaves"><li><button type="button" class="dept" data-dept="ER">ER<b>2 heads</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Excur">Excur<b>1 head</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Treasurer">Treasurer<b>2 heads</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Venue">Venue<b>1 head</b><span class="hn"></span></button></li></ul></li>
+      <li><div class="node fr">Freelance<small>No application round</small></div>
+        <ul class="leaves"><li><span class="dept">Competition team<b>3 people</b></span>
+          <ul class="leaves"><li><button type="button" class="dept" data-dept="Case Writer">Case Writer<b>yr3, yr4</b><span class="hn"></span></button></li><li><button type="button" class="dept" data-dept="Uni Affairs">Uni Affairs<b>1 head</b><span class="hn"></span></button></li></ul></li></ul></li>
+    </ul>
+  </div>
+</div></main>
+</div>
+<div class="view" id="v-who" hidden>
+<header class="band top"><div class="wrap">
+  <nav class="subtabs" aria-label="Team"><a href="#structure" data-sub="structure">Committee</a><a href="#who" data-sub="who" class="subwho">Who to ask</a><i class="subbar" aria-hidden="true"></i></nav>
+  <h1>Who to ask</h1>
+  <p class="sub">Who decides, who handles money and who helps with what, from the 2025 and 2026 meeting notes.</p>
+</div></header>
+<main class="band"><div class="wrap">
+  <div class="people">
+    <article class="pc lead"><h3>Aj. Worapong <span>(Aj. Pong)</span></h3><p class="role">Advisor · makes the final decisions</p><ul><li>Competition dates, format and invited teams</li><li>Case companies, judges and sponsorship pricing</li><li>Approves the excursion plan</li><li>Rules Q&amp;A at case opening, judge briefing</li><li>Lent working capital for Excursion and Inventory in 2026</li></ul></article>
+    <article class="pc"><h3>P'A</h3><p class="role">Advisor · case side</p><ul><li>Guides case writers on what the case should cover</li><li>Pre-screening of CLG submissions in past years</li><li>Brings alumni judges for judge screening</li></ul><p class="pn">Written as P'Eye in some 2025 notes.</p></article>
+    <article class="pc"><h3>P'Ray</h3><p class="role">BBA Office · venue and project</p><ul><li>Hotel negotiation; BBA has good rates at Hilton</li><li>Project opening questions</li><li>Room bookings at TBS (e.g. room 500)</li></ul></article>
+    <article class="pc"><h3>P'Tik</h3><p class="role">BBA Office · money</p><ul><li>Budget review before submission</li><li>Disbursement: ว.119 (under 10,000 THB), TOR, quotes</li><li>Returning CLG registration fees to the faculty</li></ul></article>
+    <article class="pc"><h3>P'Om <span>(พี่อ๋อม)</span></h3><p class="role">BBA Office · sponsor documents</p><ul><li>Donation form, receipts and thank-you letters for sponsors</li><li>Documents sponsors need for tax deduction</li></ul></article>
+    <article class="pc"><h3>P'Nhee</h3><p class="role">BBA Office</p><p class="pn">Listed in the BBA Office contacts; no specific role in the notes.</p></article>
+  </div>
+  <p class="rule"><b>BBA Office gives opinions, not decisions.</b> Agree the plan with Aj. Pong first, then work out the process with the office.</p>
+  <h2 class="qh">I need to…</h2>
+  <div class="scroll"><table class="qt stack"><thead><tr><th>I need to…</th><th>Go to</th><th>Remember</th></tr></thead><tbody>
+    <tr><td>Change dates, format or the number of teams</td><td>Aj. Pong</td><td>Bring a proposal, a fallback and your floor</td></tr>
+    <tr><td>Buy something over 10,000 THB</td><td>Treasurer → P'Tik</td><td>TOR, quote and 2 comparison quotes before ordering</td></tr>
+    <tr><td>Buy something under 10,000 THB</td><td>Treasurer → P'Tik</td><td>Pay first; receipt into the system within 5 working days</td></tr>
+    <tr><td>Accept sponsor money</td><td>ER → P'Om</td><td>Sponsor transfers to the faculty, then fills the donation form</td></tr>
+    <tr><td>Book or negotiate a hotel</td><td>Venue → P'Ray</td><td>Budget at 100% headcount, guarantee 80% with the hotel</td></tr>
+    <tr><td>Borrow iPads</td><td>Inventory → Pridi library</td><td>Loan letter goes to Rangsit; ask about 2 months ahead</td></tr>
+    <tr><td>Borrow computers or AV gear</td><td>IT → BBA IT center</td><td>Borrow together with Photog and Inventory</td></tr>
+    <tr><td>Buy stationery</td><td>Inventory → TU Book Center</td><td>No comparison quote needed; allow lead time if out of stock</td></tr>
+    <tr><td>Book a bus for company visit</td><td>Venue → BBA Office</td><td>Ask the office for a discount</td></tr>
+  </tbody></table></div>
+</div></main>
+</div>
+<dialog id="dd" aria-labelledby="ddt"><form method="dialog" id="ddf">
+  <div class="dh"><h3 id="ddt"></h3><button type="button" class="x" id="ddx" aria-label="Close">×</button></div>
+  <p class="role" id="ddr"></p>
+  <div id="ddh"></div>
+  <h4>Open tasks</h4>
+  <div id="ddtk"></div>
+  <div class="da"><button type="button" class="ghost" id="ddgo">See in Tracker</button><button type="submit" class="pri" id="dds">Save heads</button></div>
+</form></dialog>
+<div class="view" id="v-calendar" hidden>
+<header class="band top"><div class="wrap">
+  <div class="head"><div><h1 id="cmon">Calendar</h1><p class="sub" id="csub"></p></div>
+  <div class="cnav"><button type="button" class="cbtn" id="cprev" aria-label="Previous month">‹</button><button type="button" class="cbtn" id="ctoday">Today</button><button type="button" class="cbtn" id="cnext" aria-label="Next month">›</button></div></div>
+  <div class="gbar">
+    <div class="ghead"><svg class="gic big" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3" fill="#fff"/><rect x="3" y="4.5" width="18" height="5" rx="2" fill="#d2e3fc"/><rect x="7" y="2.5" width="2" height="4" rx="1" fill="#fff"/><rect x="15" y="2.5" width="2" height="4" rx="1" fill="#fff"/><path d="M8 13.5h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2zM8 16.8h2v2H8zm3 0h2v2h-2z" fill="#1a73e8"/></svg><div><b>Add tasks to your Google Calendar</b><span>Pick a department. Each department gets its own calendar in your Google Calendar, like <b class="gname">TUBC2027 - ER</b>, so you can tick it on or off. Clicking again after dates change updates the events instead of adding duplicates.</span></div></div>
+    <div class="grow">
+      <label class="gsel"><span>Department</span><select id="gdept" aria-label="Department to add"></select></label>
+      <label class="gchk"><input type="checkbox" id="gall" checked> Include tasks for everyone (All, All heads)</label>
+    </div>
+    <div class="grow">
+      <button type="button" class="gbtn" id="cgall"><svg class="gic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3" fill="#fff"/><rect x="3" y="4.5" width="18" height="5" rx="2" fill="#d2e3fc"/><rect x="7" y="2.5" width="2" height="4" rx="1" fill="#fff"/><rect x="15" y="2.5" width="2" height="4" rx="1" fill="#fff"/><path d="M8 13.5h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2zM8 16.8h2v2H8zm3 0h2v2h-2z" fill="#1a73e8"/></svg><span id="cglbl">Add to Google Calendar</span></button>
+      <button type="button" class="gics" id="cics">Download .ics (Apple, Outlook)</button>
+    </div>
+  </div>
+</div></header>
+<main class="band"><div class="wrap">
+  <div class="tools"><label for="cown" class="o">Owner</label><select id="cown"></select>
+    <span class="key"><i class="todo"></i>To do</span><span class="key"><i class="prog"></i>In progress</span><span class="key"><i class="blk"></i>Blocked</span><span class="key"><i class="dn"></i>Done</span></div>
+  <div class="cal" id="cal"></div>
+  <div class="agenda" id="agenda"></div>
+</div></main>
+</div>
+<dialog id="td" aria-labelledby="tdt"><div class="dh"><h3 id="tdt"></h3><button type="button" class="x" id="tdx" aria-label="Close">×</button></div>
+  <p class="role" id="tdm"></p><p id="tdn"></p>
+  <label for="tds" class="o">Status</label> <select id="tds" class="st"></select><p class="by" id="tdb"></p><div class="hist" id="tdh"></div>
+  <section class="tsec" id="tck"><h4>Steps <small id="tckc"></small></h4><div class="ckbar"><i id="tckb"></i></div><ul class="cks" id="tckl"></ul><form class="inl" id="tckf"><input id="tcki" maxlength="140" placeholder="Add a step" aria-label="New step"><button type="submit">Add</button></form></section>
+  <section class="tsec" id="tlk"><h4>Links <small>Drive, Canva, Docs…</small></h4><ul class="lks" id="tlkl"></ul><form class="inl" id="tlkf"><input id="tlku" type="url" placeholder="https://…" aria-label="Link address" required><input id="tlkn" maxlength="60" placeholder="Name (optional)" aria-label="Link name"><button type="submit">Add</button></form></section>
+  <section class="tsec" id="tcm"><h4>Comments <small id="tcmc"></small></h4><ul class="cms" id="tcml"></ul><form class="cmw" id="tcmf"><div class="mpop" id="mpop" hidden></div><textarea id="tcmi" maxlength="1000" placeholder="Write a comment. Type @ to tag someone." aria-label="Comment"></textarea><div class="row2"><span>Type @ to tag a person or a whole department (e.g. @Oper).</span><button type="submit" class="pri sm">Post</button></div></form></section>
+  <div class="da"><button type="button" class="gbtn sm" id="tdg"><svg class="gic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3" fill="#fff"/><rect x="3" y="4.5" width="18" height="5" rx="2" fill="#d2e3fc"/><rect x="7" y="2.5" width="2" height="4" rx="1" fill="#fff"/><rect x="15" y="2.5" width="2" height="4" rx="1" fill="#fff"/><path d="M8 13.5h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2zM8 16.8h2v2H8zm3 0h2v2h-2z" fill="#1a73e8"/></svg><span>Add to Google Calendar</span></button><button type="button" class="ghost" id="tde">Edit task</button></div>
+</dialog>
+<dialog id="ed" aria-labelledby="edt"><form id="edf">
+  <div class="dh"><h3 id="edt">Edit task</h3><button type="button" class="x" id="edx" aria-label="Close">×</button></div>
+  <div class="ef">
+    <label>Task<input id="et" required></label>
+    <div class="two"><label>Due date<input id="edue" type="date"></label><label>Topic<select id="eph"></select></label></div>
+    <div class="flab">Owner <small style="font-weight:400;color:var(--mute)">Tick one or more</small><input type="hidden" id="eown" value=""><details class="opick" data-for="eown"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details></div>
+    <label>Notes<textarea id="enote"></textarea></label>
+  </div>
+  <div class="da"><button type="button" class="ghost" id="edc">Cancel</button><button type="submit" class="pri">Save</button></div>
+</form></dialog>
+
+<div class="view" id="v-overview" hidden>
+<header class="band top"><div class="wrap">
+  <h1>Overview</h1><p class="sub">Every department at a glance. Tap a department to open its tasks.</p>
+  <div class="kpis" id="okpi"></div>
+</div></header>
+<main class="band"><div class="wrap">
+  <div class="ogrid" id="ogrid"></div>
+  <div class="ocols"><div><h2 class="ptitle" style="margin-top:0">Overdue</h2><ul class="olist" id="olate"></ul></div><div><h2 class="ptitle" style="margin-top:0">Due in the next 7 days</h2><ul class="olist" id="oweek"></ul></div></div>
+  <div class="ofin" id="ofin"></div>
+</div></main>
+</div>
+<div class="view" id="v-sponsors" hidden>
+<header class="band top"><div class="wrap">
+  <h1>Sponsors</h1><p class="sub">From first contact to signed documents. Drag a card to move it, or tap it to edit. Only departments chosen on the Access page can see this.</p>
+  <div class="ssum" id="ssum"></div>
+</div></header>
+<main class="band"><div class="wrap"><div class="board" id="board"></div><p class="foot">Money from sponsors goes to the faculty first, then the sponsor fills the donation form (P'Om).</p></div></main>
+</div>
+<dialog id="sd" aria-labelledby="sdt"><form id="sdf">
+  <div class="dh"><h3 id="sdt">Sponsor</h3><button type="button" class="x" id="sdx" aria-label="Close">×</button></div>
+  <div class="ef">
+    <label>Company<input id="sn" required maxlength="80"></label>
+    <div class="two"><label>Stage<select id="sst"></select></label><label>Amount (THB)<input id="sam" type="number" min="0" step="1000" inputmode="numeric"></label></div>
+    <div class="two"><label>Package / in-kind<input id="spk" maxlength="80" placeholder="e.g. Gold, case company, drinks"></label><label>Next step by<input id="snx" type="date"></label></div>
+    <div class="two"><label>Our contact<input id="sow" maxlength="60" placeholder="Who on our side"></label><label>Their contact<input id="sct" maxlength="120" placeholder="Name, email or phone"></label></div>
+    <label>Notes<textarea id="sno" maxlength="1000"></textarea></label>
+  </div>
+  <div class="da"><button type="button" class="ghost" id="sdel" hidden>Delete</button><button type="button" class="ghost" id="sdc">Cancel</button><button type="submit" class="pri" id="sds">Save</button></div>
+</form></dialog>
+<dialog id="nwd" aria-labelledby="nwt"><form id="nwf">
+  <div class="dh"><h3 id="nwt">New task</h3><button type="button" class="x" id="nwx" aria-label="Close">×</button></div>
+  <div class="ef">
+    <label>Task<input id="nwtt" required maxlength="200"></label>
+    <div class="two"><label>Due date<input id="nwd2" type="date" required></label><label>Topic<select id="nwp"></select></label></div>
+    <div class="flab">Owner <small style="font-weight:400;color:var(--mute)">Tick one or more</small><input type="hidden" id="nwo" value="PVP"><details class="opick" data-for="nwo"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details></div>
+  </div>
+  <div class="da"><button type="button" class="ghost" id="nwc">Cancel</button><button type="submit" class="pri">Add task</button></div>
+</form></dialog>
+<dialog id="qk" class="qk" aria-label="Search tasks"><div class="qkin"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="qki" type="search" placeholder="Search tasks, owners, notes…" autocomplete="off" aria-label="Search tasks" aria-controls="qkl"><kbd>Esc</kbd></div><ul id="qkl" role="listbox"></ul><p class="qkh"><span>↑ ↓ move</span><span>Enter open</span><span>Esc close</span></p></dialog>
+<nav class="bnav" id="bnav" aria-label="Quick pages" hidden>
+  <a href="#mine" data-v="mine"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>My tasks<span class="badge" id="bbadge" hidden></span></a>
+  <a href="#tracker" data-v="tracker"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Tracker</a>
+  <a href="#calendar" data-v="calendar"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>Calendar</a>
+  <a href="#overview" data-v="overview" id="b-overview" hidden><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Overview</a>
+  <button type="button" id="bmore"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>More</button>
+</nav>
+<button type="button" class="fab" id="fab" aria-label="Add task" title="Add task" hidden>+</button>
+<div class="view" id="v-tracker" hidden>
+<header class="band top"><div class="wrap">
+  <div class="head">
+    <div><h1>TUBC 2027 PVP tracker</h1><p class="sub">The Challenger and TUBC, from PVP kickoff to debrief</p></div>
+    <div class="big" id="pct">0%<small id="cnt">0 of 0 tasks done</small></div>
+  </div>
+  <div class="line" id="line"></div>
+</div></header>
+<main class="band"><div class="wrap">
+  <div class="tools">
+    <button type="button" class="tsearch" id="tsearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search tasks</span><kbd>Ctrl K</kbd></button>
+    <label for="own" class="o">Owner</label>
+    <select id="own"><option value="">Everyone</option></select>
+    <button class="chip" id="hide" aria-pressed="false">Hide done</button>
+    <button class="chip" id="late" aria-pressed="false">Overdue only</button>
+    <span class="save" id="save">Connecting…</span>
+  </div>
+  <div id="list"></div>
+  <button type="button" class="pri" id="seed" hidden>Load the 46 starter tasks</button>
+  <form class="add" id="addf" hidden>
+    <input class="wide" id="nt" placeholder="New task" aria-label="New task" required>
+    <input id="nd" type="date" aria-label="Due date" required>
+    <input type="hidden" id="no" value="PVP"><details class="opick" data-for="no"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details>
+    <select id="np" aria-label="Phase"></select>
+    <button type="submit">Add task</button>
+  </form>
+  <p class="foot">Dates for 2027 are estimated from the 2025 and 2026 timelines. CLG day and TUBC week are tentative until Aj. Pong confirms.</p>
+</div></main>
+</div>
