@@ -603,6 +603,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 const isAdmin = () => me?.role==="admin";
+const isHeadUp = () => me?.role==="admin" || me?.role==="head";
 const can = k => isAdmin() || !!(perms[me?.role]||{})[k];
 const mine = t => !!me?.dept && (t.depts||toks(t.owner)).includes(me.dept);
 const canTask = t => can("statusAny") || (can("statusOwn") && mine(t));
@@ -630,7 +631,7 @@ function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") :
   let tc=document.querySelector('meta[name="theme-color"]'); if(!tc){ tc=document.createElement("meta"); tc.name="theme-color"; document.head.appendChild(tc); }
   tc.content = gate ? "#71191a" : getComputedStyle(document.querySelector(".nav")).backgroundColor;
   for(const n of ["mine","tracker","calendar","structure","who","access"]){ const a=$("t-"+n); if(n===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); } }
-function route(){ if(!me) return; const h=location.hash.slice(1); show(["tracker","calendar","structure","who"].includes(h)||(h==="access"&&isAdmin())?h:"mine"); }
+function route(){ if(!me) return; const h=location.hash.slice(1); show(["tracker","calendar","structure"].includes(h)||(h==="who"&&isHeadUp())||(h==="access"&&isAdmin())?h:"mine"); }
 window.addEventListener("hashchange", ()=>{ route(); window.scrollTo(0,0); });
 
 // ---------- auth ----------
@@ -656,7 +657,7 @@ onAuthStateChanged(auth, async u=>{
     return; }
   me = {email, name:u.displayName||email, role:m.role, dept:m.dept||""};
   $("mename").textContent = me.name; $("melvl").textContent = (ROLE_LABEL[me.role]||me.role) + (me.role==="head"&&me.dept?" · "+me.dept:"");
-  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("t-access").hidden = !isAdmin();
+  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("t-access").hidden = !isAdmin(); $("t-who").hidden = !isHeadUp();
   if(me.role==="head" && me.dept) f.own = me.dept;
   start(); route(); renderCd();
 });
