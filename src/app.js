@@ -70,7 +70,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124za";
+const BUILD="b20261124zb";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -538,7 +538,7 @@ function rel(ts){ const d=ts?.toDate?ts.toDate():null; if(!d) return "just now";
   if(m<1) return "just now"; if(m<60) return m+" min ago"; const hh=Math.round(m/60); if(hh<24) return hh+" h ago"; if(hh<48) return "yesterday";
   return d.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); }
 const VERB={status:"updated",edit:"edited",move:"moved",add:"added",delete:"deleted"};
-function renderFeed(){ if(!$("feed")) return; const L=logs.slice(0,25);
+function renderFeed(){ if(!$("feed")) return; const L=logs.slice(0,10);
   $("feed").innerHTML=L.length?L.map(l=>`<li><b>${esc(l.by||"Someone")}</b> ${VERB[l.action]||"changed"} ${tasks.some(t=>t.id===l.task)?`<button type="button" class="ft" data-task="${esc(l.task)}">${esc(l.title)}</button>`:`<i>${esc(l.title)}</i>`}<br><span class="fd">${esc(l.detail||"")}</span><time>${rel(l.at)}</time></li>`).join(""):'<li class="fd">No changes yet. Edits and status updates will show up here.</li>'; }
 function renderHist(id){ if(!$("tdh")) return; const L=logs.filter(l=>l.task===id).slice(0,8);
   $("tdh").innerHTML=L.length?'<h4>History</h4><ul>'+L.map(l=>`<li><b>${esc(l.by||"")}</b>: ${esc(l.detail||VERB[l.action]||"")}<time>${rel(l.at)}</time></li>`).join("")+"</ul>":""; }
