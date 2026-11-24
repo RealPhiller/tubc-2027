@@ -1,0 +1,124 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function email() { return request.auth.token.email.lower(); }
+    function bootAdmin() { return signedIn() && email() in ['puripat_rob67@tbs.tu.ac.th']; }
+    function memberDoc() { return /databases/$(database)/documents/members/$(email()); }
+    function isMember() { return signedIn() && exists(memberDoc()); }
+    function member() { return get(memberDoc()).data; }
+    function role() { return member().role; }
+    function dept() { return member().get('dept', ''); }
+    function isAdmin() { return bootAdmin() || (isMember() && role() == 'admin'); }
+    function canRead() { return isAdmin() || isMember(); }
+
+    // Permission switches set on the Access page (settings/permissions).
+    function permsDoc() { return /databases/$(database)/documents/settings/permissions; }
+    function defaults() { return {'head': {'statusOwn': true, 'headsOwn': true}, 'viewer': {}}; }
+    function roleDefaults() { return defaults().get(role(), {}); }
+    function p(k) {
+      return isMember() && (exists(permsDoc())
+        ? get(permsDoc()).data.get(role(), {}).get(k, roleDefaults().get(k, false))
+        : roleDefaults().get(k, false));
+    }
+    function mine() { return dept() != '' && dept() in resource.data.get('depts', []); }
+
+    match /members/{memberEmail} {
+      allow read: if isAdmin() || (signedIn() && memberEmail == email());
+      allow write: if isAdmin();
+    }
+
+    // Access requests: a signed-in person who is not a member may ask to join, once, for their own email.
+    match /requests/{reqEmail} {
+      allow read: if isAdmin() || (signedIn() && reqEmail == email());
+      allow create, update: if signedIn() && reqEmail == email() && !isMember()
+        && request.resource.data.keys().hasOnly(['name', 'dept', 'note', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80
+        && request.resource.data.get('dept', '') is string && request.resource.data.get('dept', '').size() <= 40
+        && request.resource.data.get('note', '') is string && request.resource.data.get('note', '').size() <= 200;
+      allow delete: if isAdmin() || (signedIn() && reqEmail == email());
+    }
+
+    // Activity log: members add entries in their own name; nobody edits them; admins may delete.
+    match /log/{logId} {
+      allow read: if canRead();
+      allow create: if canRead()
+        && request.resource.data.keys().hasOnly(['task', 'title', 'action', 'detail', 'by', 'email', 'at'])
+        && request.resource.data.email == email()
+        && request.resource.data.at == request.time
+        && request.resource.data.action in ['status', 'edit', 'move', 'add', 'delete', 'comment']
+        && request.resource.data.title is string && request.resource.data.title.size() <= 200
+        && request.resource.data.detail is string && request.resource.data.detail.size() <= 300
+        && request.resource.data.by is string && request.resource.data.by.size() <= 120;
+      allow delete: if isAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read: if canRead();
+      allow write: if isAdmin();
+    }
+
+    match /tasks/{taskId} {
+      allow read: if canRead();
+      allow create: if isAdmin() || p('add');
+      allow delete: if isAdmin() || p('del');
+      allow update: if isAdmin() || (isMember() && (
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedBy', 'updatedAt'])
+          && (p('statusAny') || (p('statusOwn') && mine())))
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phase', 'order', 'updatedBy', 'updatedAt'])
+          && (p('move') || p('editAny') || (p('editOwn') && mine())))
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['checks', 'updatedBy', 'updatedAt'])
+          && (p('statusAny') || (p('statusOwn') && mine()) || p('editAny') || (p('editOwn') && mine())))
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'due', 'owner', 'depts', 'note', 'phase', 'order', 'checks', 'links', 'updatedBy', 'updatedAt'])
+          && (p('editAny') || (p('editOwn') && mine())))
+      )) && request.resource.data.get('checks', []).size() <= 40 && request.resource.data.get('links', []).size() <= 20;
+    }
+
+    // Names for @mentions: each member keeps their own entry.
+    match /people/{personEmail} {
+      allow read: if canRead();
+      allow write: if ((isMember() && personEmail == email() && request.resource.data.dept == dept()) || isAdmin())
+        && request.resource.data.keys().hasOnly(['name', 'dept', 'nick', 'line', 'phone', 'batch', 'bio'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 120
+        && request.resource.data.dept is string && request.resource.data.dept.size() <= 40
+        && request.resource.data.get('nick', '').size() <= 60 && request.resource.data.get('line', '').size() <= 60
+        && request.resource.data.get('phone', '').size() <= 60 && request.resource.data.get('batch', '').size() <= 60
+        && request.resource.data.get('bio', '').size() <= 300;
+    }
+
+    // Task comments: anyone on the team may comment in their own name; authors and admins may delete.
+    match /comments/{commentId} {
+      allow read: if canRead();
+      allow create: if canRead()
+        && request.resource.data.keys().hasOnly(['task', 'text', 'by', 'email', 'at', 'mentions'])
+        && request.resource.data.email == email()
+        && request.resource.data.at == request.time
+        && request.resource.data.task is string && request.resource.data.task.size() <= 60
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
+        && request.resource.data.by is string && request.resource.data.by.size() <= 120
+        && request.resource.data.mentions is list && request.resource.data.mentions.size() <= 20;
+      allow delete: if isAdmin() || (canRead() && resource.data.email == email());
+    }
+
+    // Sponsor pipeline: only departments ticked on the Access page (settings/sponsors) can see or edit it.
+    function sponsDoc() { return /databases/$(database)/documents/settings/sponsors; }
+    function sponsList(k) { return exists(sponsDoc()) ? get(sponsDoc()).data.get(k, []) : ['ER', 'PVP', 'Treasurer']; }
+    function sponsEdit() { return isAdmin() || (isMember() && dept() != '' && dept() in sponsList('edit')); }
+    function sponsSee() { return sponsEdit() || (isMember() && dept() != '' && dept() in sponsList('see')); }
+    match /sponsors/{sponsorId} {
+      allow read: if sponsSee();
+      allow create, update: if sponsEdit()
+        && request.resource.data.keys().hasOnly(['name', 'stage', 'amount', 'pkg', 'next', 'owner', 'contact', 'note', 'updatedBy', 'updatedAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80
+        && request.resource.data.stage in ['lead', 'meet', 'prop', 'yes', 'docs', 'no']
+        && request.resource.data.get('note', '').size() <= 1000;
+      allow delete: if sponsEdit();
+    }
+
+    match /heads/{deptName} {
+      allow read: if canRead();
+      allow write: if isAdmin() || p('headsAny') || (p('headsOwn') && dept() == deptName);
+    }
+  }
+}
