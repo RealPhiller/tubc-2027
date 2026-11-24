@@ -63,7 +63,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124r";
+const BUILD="b20261124t";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -253,7 +253,21 @@ function openTask(id){ const t=tasks.find(x=>x.id===id); if(!t) return; curTask=
   $("tdb").textContent=t.updatedBy?`Updated by ${t.updatedBy}`:(canTask(t)?"":"You can view this task but not change it.");
   try{$("td").showModal();}catch(e){$("td").setAttribute("open","");} }
 $("tds").addEventListener("change",e=>{ if(curTask){ setStatus(curTask,e.target.value); $("tds").className="st "+e.target.value; } });
-$("tdx").onclick=()=>{ try{$("td").close();}catch(e){$("td").removeAttribute("open");} };
+$("tdx").onclick=()=>closeTd();
+// ---------- task details as a bottom sheet on phones (drag the top bar down, tap above, ✕ or Esc to close) ----------
+const sheetMQ=matchMedia("(max-width:760px)");
+function closeTd(){ const d=$("td"); if(!d.open) return;
+  const done=()=>{ d.classList.remove("closing"); d.style.transition=d.style.transform=""; try{d.close();}catch(e){d.removeAttribute("open");} };
+  if(!sheetMQ.matches||!motion()){ done(); return; }
+  d.classList.add("closing"); d.style.transition="transform .22s ease-in"; d.style.transform="translateY(100%)"; setTimeout(done,220); }
+let shY=null, shDy=0;
+$("td").addEventListener("pointerdown",e=>{ const d=$("td"); if(!sheetMQ.matches||d.scrollTop>0||!e.target.closest(".grab,.dh")||e.target.closest("button")) return;
+  shY=e.clientY; shDy=0; d.style.transition="none"; try{d.setPointerCapture(e.pointerId);}catch(_){} });
+$("td").addEventListener("pointermove",e=>{ if(shY==null) return; shDy=Math.max(0,e.clientY-shY); $("td").style.transform=shDy?`translateY(${shDy}px)`:""; });
+const shEnd=()=>{ if(shY==null) return; const d=$("td"); shY=null; if(shDy>90) closeTd(); else { d.style.transition="transform .2s ease-out"; d.style.transform=""; } };
+$("td").addEventListener("pointerup",shEnd); $("td").addEventListener("pointercancel",shEnd);
+$("td").addEventListener("cancel",e=>{ if(sheetMQ.matches&&motion()){ e.preventDefault(); closeTd(); } });
+$("td").addEventListener("click",e=>{ if(sheetMQ.matches&&e.target===$("td")&&e.clientY<$("td").getBoundingClientRect().top) closeTd(); });
 document.addEventListener("click",e=>{ const c=e.target.closest("[data-task]"); if(c){ openTask(c.dataset.task); return; } const mo=e.target.closest("[data-day]"); if(mo){ const ts=tasks.filter(t=>t.due===mo.dataset.day&&(!f.own||toks(t.owner).includes(f.own))); mo.outerHTML=ts.slice(3).map(chip).join(""); } });
 
 
@@ -779,12 +793,17 @@ function hbAnswer(k){ const td=iso(new Date()), open=tasks.filter(t=>t.status!==
     hbSay(a.length||b.length?hbGroups([["over","Today",a],["","Tomorrow",b]],td,"#calendar","Calendar"):"Nothing is due today or tomorrow. 🎉",a.length+b.length>0);
   }
   hbMenu(); }
-function hbAsk(label,k){ const you=hbAdd("you",""); you.textContent=label; hbAnswer(k); $("hlog").scrollTop=you.offsetTop-8; }
+let hbBusy=false;
+// Show "• • •" briefly before the answer so it reads like a reply (skipped when reduced motion is on).
+function hbAsk(label,k){ if(hbBusy) return; const log=$("hlog"), you=hbAdd("you",""); you.textContent=label;
+  if(!motion()){ hbAnswer(k); log.scrollTop=you.offsetTop-8; return; }
+  hbBusy=true; $("hch").classList.add("busy"); const dots=hbAdd("bot typing",'<span class="hty"><i></i><i></i><i></i></span>'); dots.setAttribute("aria-hidden","true"); log.scrollTop=log.scrollHeight;
+  setTimeout(()=>{ dots.remove(); hbAnswer(k); log.scrollTop=you.offsetTop-8; hbBusy=false; $("hch").classList.remove("busy"); },450); }
 function hbGo(go){ closeBot(); if(go==="late"){ if(location.hash!=="#tracker") location.hash="#tracker"; if(!f.late) $("late").click(); } else location.hash=go; }
 $("hb").onclick=()=>{ if($("hp").hidden) openBot(); else closeBot(); };
 $("hpx").onclick=()=>{ closeBot(); $("hb").focus(); };
 $("hch").addEventListener("click",e=>{ const b=e.target.closest("[data-hb]"); if(b) hbAsk(b.textContent,b.dataset.hb); });
-$("hlog").addEventListener("click",e=>{ const t=e.target.closest("[data-task]"); if(t){ openTask(t.dataset.task); return; } const g=e.target.closest("[data-go]"); if(g) hbGo(g.dataset.go); });
+$("hlog").addEventListener("click",e=>{ const g=e.target.closest("[data-go]"); if(g) hbGo(g.dataset.go); }); // task rows open via the page-wide [data-task] handler
 $("hp").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); closeBot(); $("hb").focus(); } });
 document.addEventListener("click",e=>{ if($("hp").hidden) return; if(!e.target.isConnected||e.target.closest("#hp,#hb,dialog")) return; closeBot(); });
 

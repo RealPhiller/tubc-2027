@@ -579,6 +579,15 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
 .hm.bot{align-self:flex-start;background:var(--panel);border-bottom-left-radius:4px}
 .hm.you{align-self:flex-end;background:var(--red);color:#fff;border-bottom-right-radius:4px}
 .hm.bot.wide{max-width:100%;width:100%}
+.hm{animation:hmin .22s ease-out both}
+.hm.you{transform-origin:bottom right}
+@keyframes hmin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.hm.typing{padding:11px 14px}
+.hty{display:flex;gap:4px}
+.hty i{width:6px;height:6px;border-radius:50%;background:var(--mute);animation:hty 1s ease-in-out infinite}
+.hty i:nth-child(2){animation-delay:.15s}.hty i:nth-child(3){animation-delay:.3s}
+@keyframes hty{0%,60%,100%{opacity:.35;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+.hch.busy button{opacity:.55;pointer-events:none}
 .hm h4{margin:8px 0 4px;font:700 12px "Red Hat Text",sans-serif;text-transform:uppercase;letter-spacing:.04em;color:var(--mute)}
 .hm h4:first-child{margin-top:0}
 .hm h4.over{color:var(--red)}
@@ -598,6 +607,18 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
 .hch button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 :root[data-gate] .hb,:root[data-gate] .hp{display:none!important}
 @media(max-width:760px){.hb{bottom:calc(76px + env(safe-area-inset-bottom,0px));left:16px}.hp{left:16px;bottom:calc(138px + env(safe-area-inset-bottom,0px));max-height:min(460px,calc(100dvh - 210px))}}
+/* task details: bottom sheet on phones */
+#td .grab{display:none}
+@keyframes sheetup{from{transform:translateY(100%)}to{transform:none}}
+@media(max-width:760px){
+#td{margin:0;inset:auto 0 0 0;width:100%;max-width:100%;max-height:calc(100dvh - 40px);border-radius:18px 18px 0 0;padding:0 18px calc(20px + env(safe-area-inset-bottom,0px));overscroll-behavior:contain;box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+#td[open]{animation:sheetup .3s cubic-bezier(.2,.8,.2,1)}
+#td .grab{display:block;height:26px;margin:0 -18px;cursor:grab;touch-action:none}
+#td .grab::before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:10px auto 0}
+#td .dh{touch-action:none}
+#td::backdrop{transition:opacity .22s}
+#td.closing::backdrop{opacity:0}
+}
 </style>
 </head>
 <body>
@@ -791,7 +812,7 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
   <div class="agenda" id="agenda"></div>
 </div></main>
 </div>
-<dialog id="td" aria-labelledby="tdt"><div class="dh"><h3 id="tdt"></h3><button type="button" class="x" id="tdx" aria-label="Close">×</button></div>
+<dialog id="td" aria-labelledby="tdt"><div class="grab" aria-hidden="true"></div><div class="dh"><h3 id="tdt"></h3><button type="button" class="x" id="tdx" aria-label="Close">×</button></div>
   <p class="role" id="tdm"></p><p id="tdn"></p>
   <label for="tds" class="o">Status</label> <select id="tds" class="st"></select><p class="by" id="tdb"></p><div class="hist" id="tdh"></div>
   <section class="tsec" id="tck"><h4>Steps <small id="tckc"></small></h4><div class="ckbar"><i id="tckb"></i></div><ul class="cks" id="tckl"></ul><form class="inl" id="tckf"><input id="tcki" maxlength="140" placeholder="Add a step" aria-label="New step"><button type="submit">Add</button></form></section>
@@ -954,7 +975,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124r";
+const BUILD="b20261124t";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -1144,7 +1165,21 @@ function openTask(id){ const t=tasks.find(x=>x.id===id); if(!t) return; curTask=
   $("tdb").textContent=t.updatedBy?`Updated by ${t.updatedBy}`:(canTask(t)?"":"You can view this task but not change it.");
   try{$("td").showModal();}catch(e){$("td").setAttribute("open","");} }
 $("tds").addEventListener("change",e=>{ if(curTask){ setStatus(curTask,e.target.value); $("tds").className="st "+e.target.value; } });
-$("tdx").onclick=()=>{ try{$("td").close();}catch(e){$("td").removeAttribute("open");} };
+$("tdx").onclick=()=>closeTd();
+// ---------- task details as a bottom sheet on phones (drag the top bar down, tap above, ✕ or Esc to close) ----------
+const sheetMQ=matchMedia("(max-width:760px)");
+function closeTd(){ const d=$("td"); if(!d.open) return;
+  const done=()=>{ d.classList.remove("closing"); d.style.transition=d.style.transform=""; try{d.close();}catch(e){d.removeAttribute("open");} };
+  if(!sheetMQ.matches||!motion()){ done(); return; }
+  d.classList.add("closing"); d.style.transition="transform .22s ease-in"; d.style.transform="translateY(100%)"; setTimeout(done,220); }
+let shY=null, shDy=0;
+$("td").addEventListener("pointerdown",e=>{ const d=$("td"); if(!sheetMQ.matches||d.scrollTop>0||!e.target.closest(".grab,.dh")||e.target.closest("button")) return;
+  shY=e.clientY; shDy=0; d.style.transition="none"; try{d.setPointerCapture(e.pointerId);}catch(_){} });
+$("td").addEventListener("pointermove",e=>{ if(shY==null) return; shDy=Math.max(0,e.clientY-shY); $("td").style.transform=shDy?`translateY(${shDy}px)`:""; });
+const shEnd=()=>{ if(shY==null) return; const d=$("td"); shY=null; if(shDy>90) closeTd(); else { d.style.transition="transform .2s ease-out"; d.style.transform=""; } };
+$("td").addEventListener("pointerup",shEnd); $("td").addEventListener("pointercancel",shEnd);
+$("td").addEventListener("cancel",e=>{ if(sheetMQ.matches&&motion()){ e.preventDefault(); closeTd(); } });
+$("td").addEventListener("click",e=>{ if(sheetMQ.matches&&e.target===$("td")&&e.clientY<$("td").getBoundingClientRect().top) closeTd(); });
 document.addEventListener("click",e=>{ const c=e.target.closest("[data-task]"); if(c){ openTask(c.dataset.task); return; } const mo=e.target.closest("[data-day]"); if(mo){ const ts=tasks.filter(t=>t.due===mo.dataset.day&&(!f.own||toks(t.owner).includes(f.own))); mo.outerHTML=ts.slice(3).map(chip).join(""); } });
 
 
@@ -1670,12 +1705,17 @@ function hbAnswer(k){ const td=iso(new Date()), open=tasks.filter(t=>t.status!==
     hbSay(a.length||b.length?hbGroups([["over","Today",a],["","Tomorrow",b]],td,"#calendar","Calendar"):"Nothing is due today or tomorrow. 🎉",a.length+b.length>0);
   }
   hbMenu(); }
-function hbAsk(label,k){ const you=hbAdd("you",""); you.textContent=label; hbAnswer(k); $("hlog").scrollTop=you.offsetTop-8; }
+let hbBusy=false;
+// Show "• • •" briefly before the answer so it reads like a reply (skipped when reduced motion is on).
+function hbAsk(label,k){ if(hbBusy) return; const log=$("hlog"), you=hbAdd("you",""); you.textContent=label;
+  if(!motion()){ hbAnswer(k); log.scrollTop=you.offsetTop-8; return; }
+  hbBusy=true; $("hch").classList.add("busy"); const dots=hbAdd("bot typing",'<span class="hty"><i></i><i></i><i></i></span>'); dots.setAttribute("aria-hidden","true"); log.scrollTop=log.scrollHeight;
+  setTimeout(()=>{ dots.remove(); hbAnswer(k); log.scrollTop=you.offsetTop-8; hbBusy=false; $("hch").classList.remove("busy"); },450); }
 function hbGo(go){ closeBot(); if(go==="late"){ if(location.hash!=="#tracker") location.hash="#tracker"; if(!f.late) $("late").click(); } else location.hash=go; }
 $("hb").onclick=()=>{ if($("hp").hidden) openBot(); else closeBot(); };
 $("hpx").onclick=()=>{ closeBot(); $("hb").focus(); };
 $("hch").addEventListener("click",e=>{ const b=e.target.closest("[data-hb]"); if(b) hbAsk(b.textContent,b.dataset.hb); });
-$("hlog").addEventListener("click",e=>{ const t=e.target.closest("[data-task]"); if(t){ openTask(t.dataset.task); return; } const g=e.target.closest("[data-go]"); if(g) hbGo(g.dataset.go); });
+$("hlog").addEventListener("click",e=>{ const g=e.target.closest("[data-go]"); if(g) hbGo(g.dataset.go); }); // task rows open via the page-wide [data-task] handler
 $("hp").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); closeBot(); $("hb").focus(); } });
 document.addEventListener("click",e=>{ if($("hp").hidden) return; if(!e.target.isConnected||e.target.closest("#hp,#hb,dialog")) return; closeBot(); });
 
