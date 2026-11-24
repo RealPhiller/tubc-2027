@@ -114,6 +114,7 @@ select,input{font:16px "Red Hat Text",sans-serif;padding:8px 10px;min-height:44p
 .jb{width:max-content;margin-left:calc(25% + 22.5px);transform:translateX(-50%);text-align:center}
 .jb small{display:block;font-size:13px;color:var(--mute);margin-top:4px}
 @media(max-width:860px){.lvl1{grid-template-columns:minmax(0,1fr);min-width:0;padding:0 0 0 28px;margin-left:20px;gap:18px}.lvl1::before{display:none}.lvl1>li::before{top:20px;left:-28px;height:0;width:26px;border-left:0;border-top:2px solid var(--mute)}.lvl1>li::after{content:"";position:absolute;left:-28px;top:-18px;height:40px;border-left:2px solid var(--mute)}.lvl1>li:not(:last-child)::after{height:auto;bottom:-18px}.root{justify-content:flex-start}.stem{margin:0 0 0 20px;height:18px}.trunk{display:none}.joins .leaves>li:last-child::before{bottom:calc(100% - 25px)}.lvl1>li.join{grid-column:auto;grid-row:auto;padding-top:0;margin-top:-10px}.lvl1>li.join::before{top:0;left:-28px;width:auto;height:0;border:0}.lvl1>li.join::after{left:-28px;top:-18px;height:auto;bottom:-18px;border-left:2px solid var(--mute)}.jb{margin-left:18px;transform:none;text-align:left}}
+.dgrid{list-style:none;margin:0 auto;padding:18px 0 0;max-width:1000px;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;border-top:2px solid var(--mute)}.dgrid .dept{width:100%;cursor:pointer;font-family:inherit;color:var(--ink);flex-wrap:wrap;text-align:left;min-height:64px;border-left:4px solid var(--dc);padding:10px 12px}.dgrid .dept:hover{border-color:var(--red);border-left-color:var(--dc)}
 .lvl1 .dept{cursor:pointer;font-family:inherit;color:var(--ink);flex-wrap:wrap;text-align:left;min-height:36px}
 .lvl1 .dept:hover{border-color:var(--red)}
 .hn{flex-basis:100%;font-size:13px;font-weight:400;color:var(--mute);white-space:normal}
@@ -657,11 +658,18 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
 <header class="band top"><div class="wrap">
   <nav class="subtabs" aria-label="Team"><a href="#structure" data-sub="structure">Committee</a><a href="#who" data-sub="who" class="subwho">Who to ask</a><i class="subbar" aria-hidden="true"></i></nav>
   <h1>Committee structure</h1>
-  <p class="sub">Who in the PVP looks after which department, and how many heads each has. Tap a department to add its heads or see its tasks.</p>
-  <div class="legend"><span><i style="background:#fff"></i>President</span><span><i style="border:2px solid #fff"></i>Vice president</span><span><i style="background:var(--gold)"></i>Shared by all PVP</span><span><i style="background:rgba(255,255,255,.4)"></i>Freelance</span></div>
+  <p class="sub" id="stsub">Who in the PVP looks after which department, and how many heads each has. Tap a department to add its heads or see its tasks.</p>
+  <div class="legend" id="stleg"><span><i style="background:#fff"></i>President</span><span><i style="border:2px solid #fff"></i>Vice president</span><span><i style="background:var(--gold)"></i>Shared by all PVP</span><span><i style="background:rgba(255,255,255,.4)"></i>Freelance</span></div>
 </div></header>
 <main class="band"><div class="wrap">
-  <div class="tree">
+  <div class="tree flat" id="tflat" hidden>
+    <div class="root"><div class="node top">TUBC 2027<small>Organizing committee</small></div></div>
+    <div class="stem"></div>
+    <div class="root"><div class="node pres">PVP<small>Puripat · Sattam · Krang</small></div></div>
+    <div class="stem"></div>
+    <ul class="dgrid" id="dgrid"></ul>
+  </div>
+  <div class="tree" id="tpvp">
     <div class="root"><div class="node top">TUBC 2027<small>Organizing committee</small></div></div>
     <div class="stem"></div>
     <ul class="lvl1">
@@ -903,7 +911,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124n";
+const BUILD="b20261124o";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -974,7 +982,7 @@ onAuthStateChanged(auth, async u=>{
     return; }
   me = {email, name:u.displayName||email, role:m.role, dept:m.dept||""};
   paintMe(); $("melvl").textContent = (ROLE_LABEL[me.role]||me.role) + (me.role==="head"&&me.dept?" · "+me.dept:"");
-  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("umaccess").hidden = !isAdmin();
+  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("umaccess").hidden = !isAdmin(); applyStructView();
   $("t-overview").hidden = !seeOverview(); $("b-overview").hidden = !seeOverview(); $("t-sponsors").hidden = !seeSpons();
   $("bnav").hidden = false; document.body.classList.add("authed");
   me.photo=u.photoURL||""; syncProfile(u);
@@ -1025,7 +1033,7 @@ const setStatus = (id,status)=>{ const t=tasks.find(x=>x.id===id), old=t?.status
   return updateDoc(doc(db,"tasks",id),{status,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{ if(t&&old!==status) logIt(t,"status",`${ST[old]||old||"?"} → ${ST[status]}`); }).catch(fail); };
 
 document.addEventListener("click", e=>{
-  const b=e.target.closest("[data-tick],[data-del],[data-go],.lvl1 .dept[data-dept],[data-rm],[data-edit]"); if(!b) return;
+  const b=e.target.closest("[data-tick],[data-del],[data-go],.tree .dept[data-dept],[data-rm],[data-edit]"); if(!b) return;
   if(b.dataset.edit){ openEdit(b.dataset.edit); return; }
   if(b.dataset.tick){ const t=tasks.find(x=>x.id===b.dataset.tick); if(t) setStatus(t.id, t.status==="dn"?"todo":"dn"); }
   else if(b.dataset.del){ if(b.dataset.armed){ const dt=tasks.find(x=>x.id===b.dataset.del); deleteDoc(doc(db,"tasks",b.dataset.del)).then(()=>logIt(dt,"delete","Deleted the task")).catch(fail); } else { b.dataset.armed=1; b.textContent="Delete?"; b.style.fontSize="13px"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="×"; b.style.fontSize=""; } },3000); } }
@@ -1299,8 +1307,12 @@ function renderMine(){ if(!$("mlist")||!me) return;
   renderFeed(); }
 
 // ---------- structure ----------
+// Members see a flat list (PVP -> every department); PVP and heads see who in the PVP owns what.
+$("dgrid").innerHTML=Object.keys(SLOTS).sort((a,b)=>a.localeCompare(b)).map(d=>`<li><button type="button" class="dept" data-dept="${esc(d)}" style="--dc:${col(d)}">${esc(d)}<b>${SLOTS[d]} head${SLOTS[d]>1?"s":""}</b><span class="hn"></span></button></li>`).join("");
+function applyStructView(){ const full=seeOverview(); $("tpvp").hidden=!full; $("tflat").hidden=full; $("stleg").hidden=!full;
+  $("stsub").textContent = full ? "Who in the PVP looks after which department, and how many heads each has. Tap a department to add its heads or see its tasks." : "Every department and its heads. Tap a department to see who to contact and its tasks."; }
 function renderHeads(){
-  document.querySelectorAll(".lvl1 .dept[data-dept]").forEach(b=>{
+  document.querySelectorAll(".tree .dept[data-dept]").forEach(b=>{
     const hs=(heads[b.dataset.dept]||[]).filter(x=>x.name), s=b.querySelector(".hn");
     s.textContent = hs.length ? hs.map(x=>x.name).join(", ") : "TBC"; s.classList.toggle("tbc",!hs.length);
   });
@@ -1308,7 +1320,7 @@ function renderHeads(){
 let cur=null;
 function openDept(d){
   cur=d; const n=SLOTS[d]||1, hs=heads[d]||[], ed=canHeads(d);
-  $("ddt").textContent=d; $("ddr").textContent=n+(n>1?" heads":" head")+" · under "+OWNERS[d];
+  $("ddt").textContent=d; $("ddr").textContent=n+(n>1?" heads":" head")+(seeOverview()?" · under "+OWNERS[d]:"");
   $("ddh").innerHTML=Array.from({length:n},(_,i)=>`<div class="hr"><input id="hn${i}" placeholder="Head ${n>1?i+1:""} name" aria-label="Head ${i+1} name" value="${esc(hs[i]?.name)}"${ed?"":" readonly"}><input id="hl${i}" placeholder="Line ID or phone" aria-label="Head ${i+1} Line ID" value="${esc(hs[i]?.line)}"${ed?"":" readonly"}></div>`).join("");
   const ts=tasks.filter(t=>t.status!=="dn"&&toks(t.owner).includes(d)).sort((a,b)=>(a.due||"").localeCompare(b.due||""));
   $("ddtk").innerHTML = ts.length ? ts.slice(0,6).map(t=>`<div class="tk"><span>${fmt(t.due)}</span>${esc(t.title)}</div>`).join("")+(ts.length>6?`<div class="tk">+${ts.length-6} more</div>`:"") : `<p class="empty">No open tasks for ${esc(d)} yet.</p>`;
@@ -1544,7 +1556,7 @@ document.querySelector(".subtabs")&&document.addEventListener("click",e=>{ const
 
 // ---------- stagger-in cards + count-up numbers ----------
 function staggerIn(v){ if(!motion()) return; const root=$("v-"+v); if(!root) return;
-  const els=[...root.querySelectorAll(".kpi,.oc,.col,.pc,.lvl1 .dept,.cdi,.mg li,.pfs,.olist li")].slice(0,40);
+  const els=[...root.querySelectorAll(".kpi,.oc,.col,.pc,.lvl1 .dept,.dgrid li,.cdi,.mg li,.pfs,.olist li")].slice(0,40);
   els.forEach((el,i)=>el.animate([{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:380,delay:Math.min(i*35,500),easing:"cubic-bezier(.2,.8,.2,1)",fill:"backwards"}));
   if(v==="overview") animRings(root,true);
   if(v==="overview"||v==="sponsors"){ Object.keys(numFrom).filter(k=>k.startsWith(v==="overview"?"ov-":"sp-")).forEach(k=>numFrom[k]=0); countUp(root); } }
