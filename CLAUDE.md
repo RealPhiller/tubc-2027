@@ -20,6 +20,7 @@ Owner: Puripat (President, GitHub `RealPhiller`). Reply to Puripat in Thai unles
 | `sw.js` | Service worker: shows tag notifications and opens the task when one is tapped |
 | `manifest.json`, `icon.svg` | Web app manifest + icon (needed for iPhone Add to Home Screen notifications) |
 | `firestore.rules` | Firestore security rules. **Source of truth is this file**; deploy with `firebase deploy --only firestore:rules` |
+| `line-bot/` | LINE bot on Google Apps Script (`Code.gs`, `appsscript.json`, setup steps in `README.md`). Answers `/tasks`, `/overdue`, `/today` in registered LINE groups (one per department) using reply messages only. Not part of the site build |
 | `firebase.json`, `.firebaserc` | Firebase CLI config (rules only; hosting is GitHub Pages, not Firebase) |
 
 First time in a fresh clone: if `src/` does not exist yet, run `node tools/build.mjs --split` and commit `src/`.
