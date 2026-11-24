@@ -445,6 +445,11 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .ofin a{display:block;border:1px solid var(--line);border-radius:10px;padding:14px;color:var(--ink);text-decoration:none}
 .ofin a b{display:block;font:800 22px "Red Hat Display",sans-serif}.ofin a span{font-size:13px;color:var(--mute)}
 @media(max-width:760px){.kpis{grid-template-columns:1fr 1fr}.ocols,.ofin{grid-template-columns:1fr}}
+@media(max-width:600px){#okpi{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:14px}#okpi .kpi{padding:8px 8px 7px;border-radius:10px}#okpi .kpi b{font-size:20px}#okpi .kpi span{font-size:11px;line-height:1.2;display:block}
+#v-overview .band.top .sub{font-size:14px}
+.ogrid{grid-template-columns:1fr 1fr;gap:8px}.oc{padding:10px 10px 9px;border-top-width:3px}.oc h3{font-size:15px}.oc .hn2{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.otop{gap:6px;margin-bottom:2px}.otop>div{min-width:0}.orw{width:40px;height:40px}.orw b{font-size:10.5px}.orw.full b{font-size:9.5px}.orw circle{stroke-width:5.5}
+.ost{font-size:11.5px;gap:4px 8px;margin-top:6px}.onext{display:none}}
 /* ---- sponsors ---- */
 .board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity}
 .col{background:var(--panel);border-radius:10px;padding:10px;min-height:200px;scroll-snap-align:start;display:flex;flex-direction:column;gap:8px}
@@ -911,7 +916,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124p";
+const BUILD="b20261124q";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
