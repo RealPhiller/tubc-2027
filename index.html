@@ -495,6 +495,8 @@ body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
 .pcdl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0 0;font-size:14px}
 .pcdl dt{color:var(--mute);font-weight:600}.pcdl dd{margin:0;overflow-wrap:anywhere}
 @media(max-width:760px){.pfgrid{grid-template-columns:1fr}.pfav{width:64px;height:64px;font-size:24px}}
+.mgrid{grid-template-areas:"list mens" "list feed";row-gap:24px}.mgrid #mlist{grid-area:list}.mgrid .mens{grid-area:mens;margin:0}.mgrid .mfeed{grid-area:feed}
+@media (max-width:900px){.mgrid{grid-template-areas:"mens" "list" "feed"}.mgrid .mens{border:1px solid var(--gold);border-left:4px solid var(--gold);border-radius:10px;padding:14px 16px;background:var(--goldsoft)}.mgrid .mens li button{background:var(--bg)}}
 </style>
 </head>
 <body>
@@ -553,8 +555,9 @@ body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
   <div class="mbar" aria-hidden="true"><i id="mbarf"></i></div>
 </div></header>
 <main class="band"><div class="wrap mgrid">
+  <div class="mens feed" id="mens" hidden><h2>Mentions <span class="badge" id="mencnt" hidden></span></h2><p class="fsub">Comments that tag you.</p><ul id="menl"></ul></div>
   <div id="mlist"></div>
-  <aside class="feed"><div class="mens" id="mens" hidden><h2>Mentions</h2><p class="fsub">Comments that tag you.</p><ul id="menl"></ul></div><h2>Recent activity</h2><p class="fsub">Latest changes by everyone on the team.</p><ul id="feed"></ul></aside>
+  <aside class="feed mfeed"><h2>Recent activity</h2><p class="fsub">Latest changes by everyone on the team.</p><ul id="feed"></ul></aside>
 </div></main>
 </div>
 <div class="view" id="v-access" hidden>
@@ -823,7 +826,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124f";
+const BUILD="b20261124g";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -1310,11 +1313,11 @@ const SEEN_KEY = () => "tubc-seen-"+(me?.email||"");
 function mentionsForMe(){ return comments.filter(c=>(c.mentions||[]).includes(me?.email)&&c.email!==me?.email); }
 function renderMentions(){ if(!me) return; const L=mentionsForMe(), seen=+(localStorage.getItem(SEEN_KEY())||0);
   const fresh=L.filter(c=>(c.at?.seconds||0)*1000>seen).length;
-  [$("mbadge"),$("bbadge")].forEach(b=>{ b.hidden=!fresh; b.textContent=fresh>9?"9+":String(fresh); });
+  [$("mbadge"),$("bbadge"),$("mencnt")].forEach(b=>{ b.hidden=!fresh; b.textContent=fresh>9?"9+":String(fresh); });
   $("mens").hidden=!L.length;
   $("menl").innerHTML=L.slice(0,8).map(c=>{ const t=tasks.find(x=>x.id===c.task); return `<li class="${(c.at?.seconds||0)*1000>seen?"new":""}"><button type="button" ${t?`data-task="${esc(c.task)}"`:""}><b>${esc(c.by)}</b> on ${esc(t?.title||"a deleted task")}<small>${esc(String(c.text).slice(0,120))} · ${rel(c.at)}</small></button></li>`; }).join(""); }
 function markMentionsSeen(){ if(!me) return; const L=mentionsForMe(); if(!L.length) return; const latest=Math.max(...L.map(c=>(c.at?.seconds||0)*1000));
-  setTimeout(()=>{ try{ localStorage.setItem(SEEN_KEY(),String(latest)); }catch{} [$("mbadge"),$("bbadge")].forEach(b=>b.hidden=true); },4000); }
+  setTimeout(()=>{ try{ localStorage.setItem(SEEN_KEY(),String(latest)); }catch{} [$("mbadge"),$("bbadge"),$("mencnt")].forEach(b=>b.hidden=true); },4000); }
 VERB.comment="commented on";
 
 // ---------- PVP overview ----------
