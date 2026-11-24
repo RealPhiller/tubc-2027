@@ -911,11 +911,14 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124o";
+const BUILD="b20261124p";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
 const isHeadUp = () => me?.role==="admin" || me?.role==="head";
+const seeKickoff = () => isAdmin() || me?.dept==="PVP";
+const phVis = i => i!==0 || seeKickoff();
+const phOpts = sel => PH.map((p,i)=>phVis(i)?`<option value="${i}"${i===sel?" selected":""}>${p[0]}</option>`:"").join("");
 const seeOverview = () => isHeadUp() || me?.dept==="PVP";
 const canSpons = () => isAdmin() || (!!me?.dept && (sponsAccess.edit||[]).includes(me.dept));
 const seeSpons = () => isAdmin() || (!!me?.dept && ((sponsAccess.see||[]).includes(me.dept) || (sponsAccess.edit||[]).includes(me.dept)));
@@ -982,7 +985,7 @@ onAuthStateChanged(auth, async u=>{
     return; }
   me = {email, name:u.displayName||email, role:m.role, dept:m.dept||""};
   paintMe(); $("melvl").textContent = (ROLE_LABEL[me.role]||me.role) + (me.role==="head"&&me.dept?" · "+me.dept:"");
-  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("umaccess").hidden = !isAdmin(); applyStructView();
+  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("umaccess").hidden = !isAdmin(); applyStructView(); $("np").innerHTML=phOpts(-1); $("nwp").innerHTML=phOpts(-1);
   $("t-overview").hidden = !seeOverview(); $("b-overview").hidden = !seeOverview(); $("t-sponsors").hidden = !seeSpons();
   $("bnav").hidden = false; document.body.classList.add("authed");
   me.photo=u.photoURL||""; syncProfile(u);
@@ -991,7 +994,7 @@ onAuthStateChanged(auth, async u=>{
 });
 
 function start(){
-  unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
+  unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})).filter(t=>phVis(t.phase)); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
   unsub.push(onSnapshot(doc(db,"settings","event"), s=>{ if(s.exists()) ev={...ev,...s.data()}; renderCd(); if($("kd1")){ $("kd1").value=ev.challenger||""; $("kd2").value=ev.tubc||""; } }, ()=>{}));
   unsub.push(onSnapshot(query(collection(db,"log"),orderBy("at","desc"),limit(200)), s=>{ logs=s.docs.map(d=>({id:d.id,...d.data()})); renderFeed(); if($("td").open&&curTask) renderHist(curTask); }, e=>console.warn("log",e)));
   unsub.push(onSnapshot(doc(db,"settings","permissions"), s=>{ const d=s.exists()?s.data():{}; perms={head:{...DEF_PERMS.head,...(d.head||{})},viewer:{...DEF_PERMS.viewer,...(d.viewer||{})}}; render(); renderHeads(); renderPerms(); }, fail));
@@ -1008,15 +1011,16 @@ function render(){
   const T = tasks, done = T.filter(t=>t.status==="dn").length;
   animNum("pct",$("pct").firstChild,T.length?Math.round(done/T.length*100):0,(n,v)=>{ n.nodeValue=v+"%"; });
   $("cnt").textContent = done+" of "+T.length+" tasks done";
-  const t0=Date.parse(PH[0][2]), t1=Date.parse(PH[5][3]), now=Date.now();
-  $("line").innerHTML = PH.map((p,i)=>{const ts=T.filter(t=>t.phase===i),d=ts.filter(t=>t.status==="dn").length;return `<button class="seg" data-go="${i}"><b>${p[0]}</b><span>${p[1]} · ${d}/${ts.length}</span><div class="bar"><i data-k="ph${i}" data-w="${ts.length?d/ts.length*100:0}"></i></div></button>`}).join("") + (now>=t0&&now<=t1?`<div class="now" style="left:${(now-t0)/(t1-t0)*100}%"></div>`:"");
+  const p0=seeKickoff()?0:1, t0=Date.parse(PH[p0][2]), t1=Date.parse(PH[5][3]), now=Date.now();
+  $("line").style.gridTemplateColumns = innerWidth>760 ? `repeat(${PH.length-p0},minmax(0,1fr))` : "";
+  $("line").innerHTML = PH.map((p,i)=>{ if(!phVis(i)) return ""; const ts=T.filter(t=>t.phase===i),d=ts.filter(t=>t.status==="dn").length;return `<button class="seg" data-go="${i}"><b>${p[0]}</b><span>${p[1]} · ${d}/${ts.length}</span><div class="bar"><i data-k="ph${i}" data-w="${ts.length?d/ts.length*100:0}"></i></div></button>`}).join("") + (now>=t0&&now<=t1?`<div class="now" style="left:${(now-t0)/(t1-t0)*100}%"></div>`:"");
   const owners=[...new Set(T.flatMap(t=>toks(t.owner)))].sort();
   if(f.own && !owners.includes(f.own)) owners.push(f.own);
   $("own").innerHTML = '<option value="">Everyone</option>'+owners.map(o=>`<option${o===f.own?" selected":""}>${esc(o)}</option>`).join("");
   $("seed").hidden = !(isAdmin() && T.length===0);
   $("addf").hidden = !can("add");
   const before=new Map(); if(motion()) document.querySelectorAll("#list .row").forEach(r=>before.set(r.dataset.id,r.getBoundingClientRect().top));
-  $("list").innerHTML = PH.map((p,i)=>{
+  $("list").innerHTML = PH.map((p,i)=>{ if(!phVis(i)) return "";
     const rows=T.filter(t=>t.phase===i && (!f.own||toks(t.owner).includes(f.own)) && (!f.hide||t.status!=="dn") && (!f.late||(t.due<today&&t.status!=="dn"))).sort((a,b)=>ordKey(a)-ordKey(b));
     const d=T.filter(t=>t.phase===i&&t.status==="dn").length, n=T.filter(t=>t.phase===i).length;
     return `<section class="phase" id="ph${i}" data-phase="${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2><div class="rows" data-phase="${i}">${rows.length?rows.map(t=>{const ok=canTask(t),ed=canEdit(t),mv=canMove(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}${jd(t.id)}" style="--dc:${tcol(t)}" data-id="${t.id}"${mv?' draggable="true"':""}><span class="grip${mv?"":" off"}" title="${mv?"Drag to move":""}" aria-hidden="true">⋮⋮</span><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta m1"><span class="d">${fmt(t.due)}</span></div><div class="tcell"><button type="button" class="t tlink" data-task="${t.id}">${esc(t.title)}</button>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${extras(t)}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta m2"><span class="o">${ownHtml(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div><div class="acts">${ed?`<button class="ico" data-edit="${t.id}" aria-label="Edit task" title="Edit">✎</button>`:""}${can("del")?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:""}</div></div>`}).join(""):`<p class="empty drop-empty">${T.length?(f.own||f.hide||f.late?"Nothing here with these filters.":"No tasks in this topic yet."):"No tasks yet."}</p>`}</div></section>`;
@@ -1050,7 +1054,7 @@ document.addEventListener("change", e=>{
 });
 $("hide").onclick=()=>{f.hide=!f.hide;$("hide").setAttribute("aria-pressed",f.hide);render();};
 $("late").onclick=()=>{f.late=!f.late;$("late").setAttribute("aria-pressed",f.late);render();};
-$("np").innerHTML = PH.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join("");
+$("np").innerHTML = phOpts(-1);
 function addTask(title,due,owner,phase){ return addDoc(collection(db,"tasks"),{title,due,owner,depts:toks(owner),status:"todo",phase,note:"",order:due?Date.parse(due)/86400000:99999,updatedBy:me.name,updatedAt:serverTimestamp()}).then(r=>{ logIt({id:r.id,title},"add","Added for "+owner); toast("Task added."); return r; }); }
 $("addf").addEventListener("submit", e=>{ e.preventDefault(); const title=$("nt").value.trim(); if(!title) return; const owner=$("no").value.trim()||"PVP";
   addTask(title,$("nd").value,owner,+$("np").value).then(()=>{ $("nt").value=""; setPick("no","PVP");}).catch(fail); });
@@ -1105,7 +1109,7 @@ document.addEventListener("click",e=>{ const c=e.target.closest("[data-task]"); 
 let editId=null;
 function openEdit(id){ const t=tasks.find(x=>x.id===id); if(!t||!canEdit(t)) return; editId=id;
   $("et").value=t.title||""; $("edue").value=t.due||""; setPick("eown",t.owner||""); $("enote").value=t.note||"";
-  $("eph").innerHTML=PH.map((p,i)=>`<option value="${i}"${i===t.phase?" selected":""}>${p[0]}</option>`).join("");
+  $("eph").innerHTML=phOpts(t.phase);
   try{ $("td").close(); }catch(e){}
   try{$("ed").showModal();}catch(e){$("ed").setAttribute("open","");} setTimeout(()=>$("et").focus(),50); }
 const closeE=()=>{ try{$("ed").close();}catch(e){$("ed").removeAttribute("open");} };
@@ -1479,9 +1483,9 @@ $("bmore").onclick=openMenu;
 function updateFab(){ const v=curView; let show=false, label="Add task";
   if(me&&!["login","noaccess"].includes(v)){ if(v==="sponsors"){ show=canSpons(); label="Add sponsor"; } else if(["mine","tracker","calendar","overview"].includes(v)){ show=can("add"); } }
   $("fab").hidden=!show; $("fab").setAttribute("aria-label",label); $("fab").title=label; }
-$("nwp").innerHTML=PH.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join("");
+$("nwp").innerHTML=phOpts(-1);
 function openNew(){ $("nwtt").value=""; $("nwd2").value=""; const own=me?.dept&&me.role==="head"?me.dept:"PVP"; setPick("nwo",own);
-  const td=iso(new Date()); const ph=PH.findIndex(p=>td>=p[2]&&td<p[3]); $("nwp").value=String(ph<0?0:ph);
+  const td=iso(new Date()); const ph=PH.findIndex(p=>td>=p[2]&&td<p[3]); $("nwp").value=String(Math.max(ph<0?0:ph, phVis(0)?0:1));
   try{$("nwd").showModal();}catch(e){$("nwd").setAttribute("open","");} setTimeout(()=>$("nwtt").focus(),50); }
 const closeN=()=>{ try{$("nwd").close();}catch(e){$("nwd").removeAttribute("open");} };
 $("nwx").onclick=closeN; $("nwc").onclick=closeN;
