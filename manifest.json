@@ -1,0 +1,13 @@
+{
+  "name": "TUBC 2027 Tracker",
+  "short_name": "TUBC 2027",
+  "start_url": "/tubc-2027/#mine",
+  "scope": "/tubc-2027/",
+  "display": "standalone",
+  "background_color": "#71191a",
+  "theme_color": "#71191a",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
