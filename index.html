@@ -470,7 +470,31 @@ body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
 .pri.sm{min-height:36px;padding:0 16px;font-size:14px}
 .hist:empty{display:none}
 @media(min-width:1241px){.nav .wrap{flex-wrap:nowrap;gap:16px}.tabs{flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tabs a{white-space:nowrap;flex:none}.me{flex:none}}
-@media(min-width:1241px) and (max-width:1400px){#mename{display:none}.tabs a{padding:0 9px;font-size:15px}}
+@media(min-width:1241px) and (max-width:1400px){#menm{display:none}.tabs a{padding:0 9px;font-size:15px}}
+
+/* ---- profile ---- */
+.mename{display:inline-flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;border-radius:999px;padding:2px 10px 2px 2px}
+.mename:hover{background:var(--panel)}
+.meav{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--dc,#868e96);color:#fff;font:700 12px "Red Hat Text",sans-serif;object-fit:cover;flex:none}
+.pfhead{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.pfhead h1{margin:0}
+.pfhead .sub{margin:4px 0 0}
+.pfav{width:88px;height:88px;border-radius:50%;display:grid;place-items:center;background:var(--dc,#868e96);color:#fff;font:800 32px "Red Hat Display",sans-serif;border:3px solid rgba(255,255,255,.6);object-fit:cover;flex:none}
+.pfav.sm{width:48px;height:48px;font-size:18px;border:0}
+.pfnick{font-weight:500;opacity:.8;font-size:.6em}
+.pfrole{display:flex;gap:10px;align-items:center;margin:10px 0 0;flex-wrap:wrap}
+.pfrole .lvl{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff}
+.pfrole .dt{background:rgba(255,255,255,.15);border-radius:999px;padding:2px 10px;font-size:13px}
+.pfgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:32px}
+.pfstats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pfs{border:1px solid var(--line);border-radius:10px;padding:14px}
+.pfs b{display:block;font:800 26px "Red Hat Display",sans-serif}
+.pfs span{font-size:13px;color:var(--mute)}
+.avb{border:0;cursor:pointer;padding:0}
+.pch{display:flex;gap:12px;align-items:center}.pch h3{margin:0}.pch .role{margin:2px 0 0}
+.pcdl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0 0;font-size:14px}
+.pcdl dt{color:var(--mute);font-weight:600}.pcdl dd{margin:0;overflow-wrap:anywhere}
+@media(max-width:760px){.pfgrid{grid-template-columns:1fr}.pfav{width:64px;height:64px;font-size:24px}}
 </style>
 </head>
 <body>
@@ -480,7 +504,7 @@ body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
   <div class="drawer" id="drawer">
   <div class="dhead"><span class="brand"><i class="tlogo bmark" aria-hidden="true"></i>TUBC 2027</span><button type="button" class="x" id="dclose" aria-label="Close menu">×</button></div>
   <div class="tabs" hidden><a href="#mine" id="t-mine">My tasks<span class="badge" id="mbadge" hidden></span></a><a href="#overview" id="t-overview" hidden>Overview</a><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#sponsors" id="t-sponsors" hidden>Sponsors</a><a href="#structure" id="t-structure">Committee</a><a href="#who" id="t-who" hidden>Who to ask</a><a href="#access" id="t-access" hidden>Access</a></div>
-  <div class="me" id="me" hidden><span id="mename"></span><span class="lvl" id="melvl"></span><button type="button" class="ghost sm" id="out">Sign out</button></div>
+  <div class="me" id="me" hidden><a href="#profile" id="mename" class="mename" title="My profile"><span class="meav" id="meav"></span><span id="menm"></span></a><span class="lvl" id="melvl"></span><button type="button" class="ghost sm" id="out">Sign out</button></div>
   </div>
 </div></nav>
 <div class="cdbar" id="cdbar" hidden><div class="wrap" id="cdin" role="status"></div></div>
@@ -501,6 +525,25 @@ body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
   <div class="rqdone" id="rqdone" hidden><b>Request sent.</b> You'll get in automatically once a PVP approves it. You can keep this page open or come back later.</div>
   <button type="button" class="ghost lite" id="out2">Use another account</button>
 </div></div>
+<div class="view" id="v-profile" hidden>
+<header class="band top"><div class="wrap"><div class="pfhead" id="pfhead"></div></div></header>
+<main class="band"><div class="wrap pfgrid">
+  <form class="pff" id="pff">
+    <h2 class="ptitle" style="margin-top:0">Edit profile</h2>
+    <p class="plede">Your name is how you show up in comments, @mentions and "Updated by". Your contact details are visible to the team.</p>
+    <div class="ef">
+      <div class="two"><label>Name<input id="pfname" maxlength="80" required></label><label>Nickname<input id="pfnick" maxlength="60" placeholder="e.g. Philler"></label></div>
+      <div class="two"><label>LINE ID<input id="pfline" maxlength="60"></label><label>Phone<input id="pfphone" type="tel" maxlength="60" inputmode="tel"></label></div>
+      <label>Batch / year<input id="pfbatch" maxlength="60" placeholder="e.g. BBA 33, year 3"></label>
+      <label>About you<textarea id="pfbio" maxlength="300" placeholder="What you work on, best time to reach you…"></textarea></label>
+    </div>
+    <div class="da" style="justify-content:flex-start"><button type="submit" class="pri">Save profile</button><button type="button" class="ghost" id="pfcancel">Undo changes</button></div>
+    <p class="foot">Level and department are set by a PVP on the Access page.</p>
+  </form>
+  <aside><h2 class="ptitle" style="margin-top:0">At a glance</h2><div class="pfstats" id="pfst"></div></aside>
+</div></main>
+</div>
+<dialog id="pcd" aria-label="Profile"><div id="pcard"></div></dialog>
 <div class="view" id="v-mine" hidden>
 <header class="band top"><div class="wrap">
   <h1>My tasks</h1>
@@ -780,7 +823,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124d";
+const BUILD="b20261124e";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -804,8 +847,8 @@ document.querySelector(".tabs").addEventListener("click", e=>{ if(e.target.close
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeMenu(); });
 
 // ---------- views ----------
-const VIEWS = ["login","noaccess","mine","overview","tracker","calendar","sponsors","structure","who","access"];
-const PNAMES={mine:"My tasks",overview:"Overview",tracker:"Tracker",calendar:"Calendar",sponsors:"Sponsors",structure:"Committee",who:"Who to ask",access:"Access"};
+const VIEWS = ["login","noaccess","profile","mine","overview","tracker","calendar","sponsors","structure","who","access"];
+const PNAMES={profile:"My profile",mine:"My tasks",overview:"Overview",tracker:"Tracker",calendar:"Calendar",sponsors:"Sponsors",structure:"Committee",who:"Who to ask",access:"Access"};
 let curView=null;
 function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") : "";
   for(const n of VIEWS){ const el=$("v-"+n); if(el) el.hidden = n!==v; }
@@ -816,8 +859,8 @@ function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") :
   tc.content = gate ? "#71191a" : getComputedStyle(document.querySelector(".nav")).backgroundColor;
   for(const n of ["mine","overview","tracker","calendar","sponsors","structure","who","access"]){ const a=$("t-"+n); if(n===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); }
   document.querySelectorAll("#bnav [data-v]").forEach(a=>{ if(a.dataset.v===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
-  updateFab(); if(v==="mine") markMentionsSeen(); }
-function route(){ if(!me) return; const h=location.hash.slice(1); const ok={tracker:1,calendar:1,structure:1,who:isHeadUp(),access:isAdmin(),overview:seeOverview(),sponsors:seeSpons()}; show(ok[h]?h:"mine"); }
+  updateFab(); if(v==="mine") markMentionsSeen(); if(v==="profile") renderProfile(); }
+function route(){ if(!me) return; const h=location.hash.slice(1); const ok={profile:1,tracker:1,calendar:1,structure:1,who:isHeadUp(),access:isAdmin(),overview:seeOverview(),sponsors:seeSpons()}; show(ok[h]?h:"mine"); }
 window.addEventListener("hashchange", ()=>{ route(); window.scrollTo(0,0); });
 
 // ---------- auth ----------
@@ -843,11 +886,11 @@ onAuthStateChanged(auth, async u=>{
     unsub.push(onSnapshot(doc(db,"members",email), s=>{ if(s.exists()) location.reload(); }, ()=>{}));
     return; }
   me = {email, name:u.displayName||email, role:m.role, dept:m.dept||""};
-  $("mename").textContent = me.name; $("melvl").textContent = (ROLE_LABEL[me.role]||me.role) + (me.role==="head"&&me.dept?" · "+me.dept:"");
+  paintMe(); $("melvl").textContent = (ROLE_LABEL[me.role]||me.role) + (me.role==="head"&&me.dept?" · "+me.dept:"");
   $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("t-access").hidden = !isAdmin(); $("t-who").hidden = !isHeadUp();
   $("t-overview").hidden = !seeOverview(); $("b-overview").hidden = !seeOverview(); $("t-sponsors").hidden = !seeSpons();
   $("bnav").hidden = false; document.body.classList.add("authed");
-  setDoc(doc(db,"people",email),{name:me.name,dept:me.dept},{merge:true}).catch(e=>console.warn("people",e));
+  me.photo=u.photoURL||""; syncProfile(u);
   if(me.role==="head" && me.dept) f.own = me.dept;
   start(); route(); renderCd();
 });
@@ -859,7 +902,7 @@ function start(){
   unsub.push(onSnapshot(doc(db,"settings","permissions"), s=>{ const d=s.exists()?s.data():{}; perms={head:{...DEF_PERMS.head,...(d.head||{})},viewer:{...DEF_PERMS.viewer,...(d.viewer||{})}}; render(); renderHeads(); renderPerms(); }, fail));
   unsub.push(onSnapshot(collection(db,"heads"), s=>{ heads={}; s.docs.forEach(d=>heads[d.id]=d.data().list||[]); renderHeads(); }, fail));
   unsub.push(onSnapshot(query(collection(db,"comments"),orderBy("at","desc"),limit(500)), s=>{ comments=s.docs.map(d=>({id:d.id,...d.data()})); renderMentions(); if($("td").open&&curTask) renderComments(curTask); render(); }, e=>console.warn("comments",e)));
-  unsub.push(onSnapshot(collection(db,"people"), s=>{ people={}; s.docs.forEach(d=>people[d.id]=d.data()); if($("td").open&&curTask) renderComments(curTask); }, e=>console.warn("people",e)));
+  unsub.push(onSnapshot(collection(db,"people"), s=>{ people={}; s.docs.forEach(d=>people[d.id]=d.data()); const p=people[me.email]; if(p?.name&&p.name!==me.name){ me.name=p.name; } paintMe(); if(curView==="profile") renderProfile(); if($("td").open&&curTask) renderComments(curTask); }, e=>console.warn("people",e)));
   unsub.push(onSnapshot(doc(db,"settings","sponsors"), s=>{ const d=s.exists()?s.data():{}; sponsAccess={see:d.see||["ER","PVP","Treasurer"],edit:d.edit||["ER","PVP","Treasurer"]}; applySponsAccess(); renderSponsAccess(); }, e=>console.warn("sponsAccess",e)));
   if(isAdmin()) unsub.push(onSnapshot(collection(db,"requests"), s=>{ requests = s.docs.map(d=>({email:d.id,...d.data()})).sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0)); renderRequests(); }, fail));
   if(isAdmin()) unsub.push(onSnapshot(collection(db,"members"), s=>{ members = s.docs.map(d=>({email:d.id,...d.data()})).sort((a,b)=>a.email.localeCompare(b.email)); renderMembers(); }, fail));
@@ -1237,7 +1280,7 @@ function fmtComment(txt){ let h=esc(txt); const names=Object.values(people).map(
   names.forEach(n=>{ const e=esc("@"+n); h=h.split(e).join(`<span class="at">${e}</span>`); }); return h.replace(/\n/g,"<br>"); }
 function renderComments(id){ const L=comments.filter(c=>c.task===id).sort((a,b)=>(a.at?.seconds||9e12)-(b.at?.seconds||9e12));
   $("tcmc").textContent=L.length?String(L.length):"";
-  $("tcml").innerHTML=L.map(c=>`<li><span class="av" style="--dc:${pcol(c.email)}">${esc(initials(c.by))}</span><div class="cmb"><header><b>${esc(c.by)}</b><time>${rel(c.at)}</time>${c.email===me.email||isAdmin()?`<button type="button" class="cdel" data-cmrm="${c.id}">Delete</button>`:""}</header>${fmtComment(c.text)}</div></li>`).join("")||'<li style="display:block;color:var(--mute);font-size:14px">No comments yet.</li>';
+  $("tcml").innerHTML=L.map(c=>`<li><button type="button" class="av avb" data-person="${esc(c.email)}" aria-label="View ${esc(c.by)}'s profile" style="--dc:${pcol(c.email)}">${esc(initials(c.by))}</button><div class="cmb"><header><b>${esc(c.by)}</b><time>${rel(c.at)}</time>${c.email===me.email||isAdmin()?`<button type="button" class="cdel" data-cmrm="${c.id}">Delete</button>`:""}</header>${fmtComment(c.text)}</div></li>`).join("")||'<li style="display:block;color:var(--mute);font-size:14px">No comments yet.</li>';
   const box=$("tcml"); box.scrollTop=box.scrollHeight; }
 let mq=null, mSel=0;
 function mentionList(q){ q=q.toLowerCase(); return Object.entries(people).filter(([e,p])=>p.name&&e!==me.email&&(p.name.toLowerCase().includes(q)||(p.dept||"").toLowerCase().startsWith(q))).sort((a,b)=>a[1].name.localeCompare(b[1].name)).slice(0,8); }
@@ -1345,6 +1388,31 @@ document.addEventListener("change",e=>{ const k=e.target.dataset?.spa; if(!k||!i
 document.querySelectorAll(".brand").forEach(b=>{ b.setAttribute("role","link"); b.tabIndex=0; b.style.cursor="pointer";
   const go=()=>{ if(!me) return; closeMenu(); location.hash = seeOverview() ? "#overview" : "#mine"; };
   b.addEventListener("click",go); b.addEventListener("keydown",e=>{ if(e.key==="Enter") go(); }); });
+
+// ---------- profile ----------
+const PF=["name","nick","line","phone","batch","bio"];
+async function syncProfile(u){ try{ const s=await getDoc(doc(db,"people",me.email)); const d=s.exists()?s.data():{};
+  if(d.name) me.name=d.name; paintMe();
+  if(!s.exists()||d.dept!==me.dept||!d.name) await setDoc(doc(db,"people",me.email),{name:d.name||u.displayName||me.email,dept:me.dept},{merge:true}); }catch(e){ console.warn("people",e); } }
+function avatarHtml(email,name,photo,cls){ const p=people[email]||{}; return photo?`<img class="${cls}" src="${esc(photo)}" alt="" referrerpolicy="no-referrer">`:`<span class="${cls}" style="--dc:${col(p.dept||"")}">${esc(initials(name))}</span>`; }
+function paintMe(){ if(!me) return; $("menm").textContent=me.name; $("meav").outerHTML=avatarHtml(me.email,me.name,me.photo,"meav\" id=\"meav"); }
+function renderProfile(){ if(!me||!$("pff")) return; const p=people[me.email]||{};
+  $("pfhead").innerHTML=`${avatarHtml(me.email,me.name,me.photo,"pfav")}<div><h1>${esc(p.name||me.name)}${p.nick?` <span class="pfnick">(${esc(p.nick)})</span>`:""}</h1><p class="sub">${esc(me.email)}</p><p class="pfrole"><span class="lvl">${esc(ROLE_LABEL[me.role]||me.role)}</span>${me.dept?`<span class="dt" style="--dc:${col(me.dept)}">${esc(me.dept)}</span>`:'<span class="sub">No department yet</span>'}</p></div>`;
+  if(!$("pff").contains(document.activeElement)) PF.forEach(k=>{ $("pf"+k).value = k==="name" ? (p.name||me.name) : (p[k]||""); });
+  const own=t=>t.depts&&t.depts.length?t.depts:toks(t.owner);
+  const T=me.dept?tasks.filter(t=>own(t).includes(me.dept)||(me.dept==="PVP"&&own(t).includes("President"))):[]; const dn=T.filter(t=>t.status==="dn").length;
+  const mc=comments.filter(c=>c.email===me.email).length, mm=mentionsForMe().length, td=iso(new Date()), late=T.filter(t=>t.status!=="dn"&&t.due&&t.due<td).length;
+  $("pfst").innerHTML=[[me.dept?`${dn}/${T.length}`:"—",me.dept?`${esc(me.dept)} tasks done`:"department tasks"],[late,"overdue in your department"],[mc,"comments written"],[mm,"times you were tagged"]].map(([b,s])=>`<div class="pfs"><b>${b}</b><span>${s}</span></div>`).join(""); }
+$("pff").addEventListener("submit",e=>{ e.preventDefault(); if(!me) return; const d={dept:me.dept};
+  PF.forEach(k=>{ d[k]=$("pf"+k).value.trim().slice(0,k==="bio"?300:k==="name"?80:60); }); if(!d.name){ toast("Your name can't be empty."); return; }
+  setDoc(doc(db,"people",me.email),d,{merge:true}).then(()=>{ me.name=d.name; paintMe(); toast("Profile saved."); }).catch(fail); });
+$("pfcancel").onclick=()=>{ document.activeElement?.blur(); renderProfile(); };
+// someone else's profile card
+function openPerson(email){ const p=people[email]; if(!p) return;
+  $("pcard").innerHTML=`<div class="dh"><div class="pch">${avatarHtml(email,p.name,"","pfav sm")}<div><h3>${esc(p.name)}${p.nick?` <span class="pfnick">(${esc(p.nick)})</span>`:""}</h3><p class="role">${p.dept?`<span class="dt" style="--dc:${col(p.dept)}">${esc(p.dept)}</span>`:""}${p.batch?` · ${esc(p.batch)}`:""}</p></div></div><button type="button" class="x" id="pcx" aria-label="Close">×</button></div>${p.bio?`<p>${esc(p.bio)}</p>`:""}<dl class="pcdl">${p.line?`<dt>LINE</dt><dd>${esc(p.line)}</dd>`:""}${p.phone?`<dt>Phone</dt><dd><a href="tel:${esc(p.phone.replace(/[^\d+]/g,""))}">${esc(p.phone)}</a></dd>`:""}<dt>Email</dt><dd><a href="mailto:${esc(email)}">${esc(email)}</a></dd></dl>`;
+  $("pcx").onclick=()=>{ try{$("pcd").close();}catch(e){$("pcd").removeAttribute("open");} };
+  try{$("pcd").showModal();}catch(e){$("pcd").setAttribute("open","");} }
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-person]"); if(b){ e.preventDefault(); openPerson(b.dataset.person); } });
 </script>
 </body>
 </html>
