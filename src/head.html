@@ -303,9 +303,13 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .mempty{opacity:.75;padding:12px 0}
 .mdone summary{cursor:pointer;font-weight:600;padding:6px 0}
 .feed{border-left:3px solid var(--red);padding-left:18px}
+.mfeed{border-left:0;padding-left:0}
 .feed h2{font:700 18px "Red Hat Display",sans-serif;margin:0}.fsub{font-size:13px;opacity:.7;margin:2px 0 12px}
 .feed ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-.feed li{font-size:14px;line-height:1.4}.feed li time{display:block;font-size:12px;opacity:.6}
+.mfeed ul{margin-top:12px;gap:8px}
+.feed li{font-size:14px;line-height:1.4}
+.mfeed li{position:relative;padding:10px 12px 10px 20px;background:var(--panel);border-radius:10px}
+.mfeed li::before{content:"";position:absolute;left:8px;top:11px;bottom:11px;width:3px;border-radius:2px;background:var(--red)}.feed li time{display:block;font-size:12px;opacity:.6}
 .feed .ft{background:none;border:0;padding:0;color:inherit;font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer;text-align:left}
 .feed .fd{opacity:.75}
 .hist{margin-top:14px;border-top:1px solid var(--line,rgba(0,0,0,.12));padding-top:10px}
