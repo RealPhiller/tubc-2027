@@ -59,9 +59,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Optional start date: a task with start < due is shown as a multi-day bar on the calendar.
+    function validStart() { return !('start' in request.resource.data) || (request.resource.data.start is string && request.resource.data.start.size() == 10); }
     match /tasks/{taskId} {
       allow read: if canRead();
-      allow create: if isAdmin() || p('add');
+      allow create: if (isAdmin() || p('add')) && validStart();
       allow delete: if isAdmin() || p('del');
       allow update: if isAdmin() || (isMember() && (
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedBy', 'updatedAt'])
@@ -70,9 +72,23 @@ service cloud.firestore {
           && (p('move') || p('editAny') || (p('editOwn') && mine())))
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['checks', 'updatedBy', 'updatedAt'])
           && (p('statusAny') || (p('statusOwn') && mine()) || p('editAny') || (p('editOwn') && mine())))
-        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'due', 'owner', 'depts', 'note', 'phase', 'order', 'checks', 'links', 'updatedBy', 'updatedAt'])
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'start', 'due', 'owner', 'depts', 'note', 'phase', 'order', 'checks', 'links', 'updatedBy', 'updatedAt'])
           && (p('editAny') || (p('editOwn') && mine())))
-      )) && request.resource.data.get('checks', []).size() <= 40 && request.resource.data.get('links', []).size() <= 20;
+      )) && request.resource.data.get('checks', []).size() <= 40 && request.resource.data.get('links', []).size() <= 20 && validStart();
+    }
+
+    // Calendar events: date ranges shown as bands (exam weeks, holidays, event days). Everyone reads; admins write.
+    match /events/{eventId} {
+      allow read: if canRead();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['title', 'start', 'end', 'color', 'note', 'updatedBy', 'updatedAt'])
+        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 80
+        && request.resource.data.start is string && request.resource.data.start.size() == 10
+        && request.resource.data.end is string && request.resource.data.end.size() == 10
+        && request.resource.data.start <= request.resource.data.end
+        && request.resource.data.get('color', '') is string && request.resource.data.get('color', '').size() <= 20
+        && request.resource.data.get('note', '') is string && request.resource.data.get('note', '').size() <= 300;
+      allow delete: if isAdmin();
     }
 
     // Names for @mentions: each member keeps their own entry.

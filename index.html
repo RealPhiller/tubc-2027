@@ -623,6 +623,50 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
 #td::backdrop{transition:opacity .22s}
 #td.closing::backdrop{opacity:0}
 }
+/* calendar editing */
+.chip2.cand{cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.chip2.cddrag{opacity:.35}
+.cdghost{position:fixed;left:0;top:0;z-index:60;margin:0;pointer-events:none;box-shadow:0 10px 26px rgba(0,0,0,.28);opacity:.96}
+body.cdragging,body.cdragging *{cursor:grabbing!important;user-select:none;-webkit-user-select:none}
+.cal .day.cdover{background:var(--goldsoft);outline:2px dashed var(--gold);outline-offset:-3px}
+.chip2.cdmoved{animation:cdpop .5s ease-out}
+@keyframes cdpop{0%{transform:scale(1.08);box-shadow:0 0 0 3px var(--gold)}100%{transform:none}}
+.cal.can-add .day{position:relative;cursor:copy}
+.cal.can-add .day:hover::after{content:"+";position:absolute;top:5px;right:8px;font:600 17px/1 "Red Hat Text",sans-serif;color:var(--mute)}
+.cal.can-add .day button{cursor:pointer}.cal.can-add .day .chip2.cand{cursor:grab}
+@media(max-width:700px){.cal-hint{display:none}}
+/* calendar: week rows with multi-day bars and event bands */
+.cal{display:block}
+@media(max-width:700px){.cal{display:none}}
+.cal .dows{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal .wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));min-height:112px}
+.cal .wk .day{min-height:0;padding:0;display:block}
+.cal .wk .dn2{z-index:1;pointer-events:none;justify-self:start;align-self:start;margin:6px 0 0 6px;line-height:20px}
+.cal .wk .dn2.out{opacity:.4}
+.cal .wk .dn2.today{background:var(--red);color:#fff;border-radius:999px;padding:0 7px}
+.cal .wk .dch{z-index:1;pointer-events:none;display:flex;flex-direction:column;gap:4px;padding:2px 6px 6px;min-width:0}
+.cal .wk .dch>*{pointer-events:auto}
+.cal .wk .tbar{position:relative;z-index:2;width:auto;margin:1px 4px;align-self:center;min-width:0}
+.evb{position:relative;z-index:2;margin:1px 4px;align-self:center;min-width:0;padding:0 7px;border-radius:4px;background:color-mix(in srgb,var(--ec) 20%,var(--bg));box-shadow:inset 3px 0 0 var(--ec);color:var(--ink);font:700 11.5px/21px "Red Hat Text",sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default}
+.evb.cane{cursor:grab}
+.cal .wk .cl{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:0}
+.cal .wk .cr{border-top-right-radius:0;border-bottom-right-radius:0;margin-right:0}
+.evb.cl{box-shadow:none}
+.rsz{position:absolute;top:0;right:0;bottom:0;width:9px;cursor:ew-resize;border-radius:0 4px 4px 0}
+.rsz:hover,body.cdresize .cddrag .rsz{background:color-mix(in srgb,var(--ink) 18%,transparent)}
+body.cdresize,body.cdresize *{cursor:ew-resize!important}
+.cdghost.evb{width:auto}
+.chip2 small,.agev small{font-weight:500;color:var(--mute);margin-left:4px}
+.agev{display:block;width:100%;text-align:left;margin-bottom:6px;padding:8px 10px;border:0;border-radius:6px;background:color-mix(in srgb,var(--ec) 20%,var(--bg));box-shadow:inset 3px 0 0 var(--ec);font:600 14px/1.3 "Red Hat Text",sans-serif;color:var(--ink);cursor:pointer}
+.cadd{font-weight:700}
+small.opt{font-weight:400;color:var(--mute)}
+.evcs{display:flex;gap:10px;margin-top:8px}
+.evc{position:relative}
+.evc input{position:absolute;opacity:0;width:1px;height:1px}
+.evc span{display:block;width:26px;height:26px;border-radius:50%;background:var(--ec);cursor:pointer;box-shadow:0 0 0 2px var(--bg)}
+.evc input:checked+span{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ec)}
+.evc input:focus-visible+span{outline:2px solid var(--gold);outline-offset:4px}
+.evdel{margin-right:auto;border:0;background:none;color:#c8302d;font:600 14px "Red Hat Text",sans-serif;cursor:pointer;padding:8px 4px}
 </style>
 </head>
 <body>
@@ -796,7 +840,7 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
 <div class="view" id="v-calendar" hidden>
 <header class="band top"><div class="wrap">
   <div class="head"><div><h1 id="cmon">Calendar</h1><p class="sub" id="csub"></p></div>
-  <div class="cnav"><button type="button" class="cbtn" id="cprev" aria-label="Previous month">‹</button><button type="button" class="cbtn" id="ctoday">Today</button><button type="button" class="cbtn" id="cnext" aria-label="Next month">›</button></div></div>
+  <div class="cnav"><button type="button" class="cbtn cadd" id="cadd" hidden>+ Event</button><button type="button" class="cbtn" id="cprev" aria-label="Previous month">‹</button><button type="button" class="cbtn" id="ctoday">Today</button><button type="button" class="cbtn" id="cnext" aria-label="Next month">›</button></div></div>
   <div class="gbar">
     <div class="ghead"><svg class="gic big" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3" fill="#fff"/><rect x="3" y="4.5" width="18" height="5" rx="2" fill="#d2e3fc"/><rect x="7" y="2.5" width="2" height="4" rx="1" fill="#fff"/><rect x="15" y="2.5" width="2" height="4" rx="1" fill="#fff"/><path d="M8 13.5h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2zM8 16.8h2v2H8zm3 0h2v2h-2z" fill="#1a73e8"/></svg><div><b>Add tasks to your Google Calendar</b><span>Pick a department. Each department gets its own calendar in your Google Calendar, like <b class="gname">TUBC2027 - ER</b>, so you can tick it on or off. Clicking again after dates change updates the events instead of adding duplicates.</span></div></div>
     <div class="grow">
@@ -828,7 +872,8 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
   <div class="dh"><h3 id="edt">Edit task</h3><button type="button" class="x" id="edx" aria-label="Close">×</button></div>
   <div class="ef">
     <label>Task<input id="et" required></label>
-    <div class="two"><label>Due date<input id="edue" type="date"></label><label>Topic<select id="eph"></select></label></div>
+    <div class="two"><label>Start date <small class="opt">optional, for multi-day</small><input id="estart" type="date"></label><label>Due date<input id="edue" type="date"></label></div>
+    <label>Topic<select id="eph"></select></label>
     <div class="flab">Owner <small style="font-weight:400;color:var(--mute)">Tick one or more</small><input type="hidden" id="eown" value=""><details class="opick" data-for="eown"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details></div>
     <label>Notes<textarea id="enote"></textarea></label>
   </div>
@@ -864,11 +909,22 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
   </div>
   <div class="da"><button type="button" class="ghost" id="sdel" hidden>Delete</button><button type="button" class="ghost" id="sdc">Cancel</button><button type="submit" class="pri" id="sds">Save</button></div>
 </form></dialog>
+<dialog id="evd" aria-labelledby="evt"><form id="evf">
+  <div class="dh"><h3 id="evt">New event</h3><button type="button" class="x" id="evx" aria-label="Close">×</button></div>
+  <div class="ef">
+    <label>Name<input id="evn" required maxlength="80" placeholder="e.g. Midterm exams, Songkran break"></label>
+    <div class="two"><label>Starts<input id="evs" type="date" required></label><label>Ends<input id="eve" type="date" required></label></div>
+    <div class="flab">Colour<div class="evcs" id="evcs" role="radiogroup" aria-label="Colour"></div></div>
+    <label>Note <small class="opt">optional</small><textarea id="evno" maxlength="300"></textarea></label>
+  </div>
+  <div class="da"><button type="button" class="evdel" id="evdel" hidden>Delete</button><button type="button" class="ghost" id="evc">Cancel</button><button type="submit" class="pri">Save</button></div>
+</form></dialog>
 <dialog id="nwd" aria-labelledby="nwt"><form id="nwf">
   <div class="dh"><h3 id="nwt">New task</h3><button type="button" class="x" id="nwx" aria-label="Close">×</button></div>
   <div class="ef">
     <label>Task<input id="nwtt" required maxlength="200"></label>
-    <div class="two"><label>Due date<input id="nwd2" type="date" required></label><label>Topic<select id="nwp"></select></label></div>
+    <div class="two"><label>Start date <small class="opt">optional, for multi-day</small><input id="nwst" type="date"></label><label>Due date<input id="nwd2" type="date" required></label></div>
+    <label>Topic<select id="nwp"></select></label>
     <div class="flab">Owner <small style="font-weight:400;color:var(--mute)">Tick one or more</small><input type="hidden" id="nwo" value="PVP"><details class="opick" data-for="nwo"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details></div>
   </div>
   <div class="da"><button type="button" class="ghost" id="nwc">Cancel</button><button type="submit" class="pri">Add task</button></div>
@@ -944,6 +1000,13 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const today = new Date().toISOString().slice(0,10);
 const fmt = d => d ? new Date(d+"T00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}) + (d.slice(0,4)==="2026"?" ’26":"") : "";
 const DEPTS = ["PVP", ...Object.keys(SLOTS)];
+// Multi-day tasks: an optional start date before the due date.
+const spans = t => !!(t.start && t.due && t.start < t.due);
+const addDays = (d,n) => { const x=new Date(d+"T00:00"); x.setDate(x.getDate()+n); return iso(x); };
+const dayDiff = (a,b) => Math.round((Date.parse(b+"T00:00")-Date.parse(a+"T00:00"))/86400000);
+function rng(a,b){ if(!b||a===b) return fmt(a); const A=new Date(a+"T00:00"), B=new Date(b+"T00:00"), o={day:"numeric",month:"short"}, y=b.slice(0,4)==="2026"?" ’26":"";
+  return A.getMonth()===B.getMonth()&&A.getFullYear()===B.getFullYear() ? `${A.getDate()}–${B.toLocaleDateString("en-GB",o)}${y}` : `${A.toLocaleDateString("en-GB",o)} – ${B.toLocaleDateString("en-GB",o)}${y}`; }
+const when = t => spans(t) ? rng(t.start,t.due) : fmt(t.due);
 const RM = matchMedia("(prefers-reduced-motion: reduce)"); const motion = () => !RM.matches;
 const justDone = new Map(); // task id -> time it was ticked, for the done animation
 const jd = id => { const t0=justDone.get(id); return t0==null ? "" : ` justdone" style="--ad:-${Math.min(1200,Date.now()-t0)}ms`; };
@@ -965,7 +1028,7 @@ const tcol = t => { const o=(t.depts&&t.depts.length?t.depts:toks(t.owner)); con
 const ownHtml = s => toks(s).map(o=>`<span class="dt" style="--dc:${col(o)}">${esc(o)}</span>`).join(" ");
 const thb = n => (Math.round(+n||0)).toLocaleString("en-US");
 let seenComments = null, swReg = null;
-let comments = [], people = {}, sponsors = [], sponsAccess = {see:["ER","PVP","Treasurer"],edit:["ER","PVP","Treasurer"]};
+let events = [], comments = [], people = {}, sponsors = [], sponsAccess = {see:["ER","PVP","Treasurer"],edit:["ER","PVP","Treasurer"]};
 
 let logs = [], ev = {challenger:"2027-08-22", tubc:"2027-10-04"};
 let me = null, tasks = [], heads = {}, members = [], requests = [], unsub = [];
@@ -979,7 +1042,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124u";
+const BUILD="b20261124w";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -1037,7 +1100,7 @@ $("login").onclick = async ()=>{ $("lerr").textContent=""; try{ const pv=new Goo
 $("out").onclick = $("out2").onclick = ()=>{ closeMenu(); closeUM(); signOut(auth); };
 
 onAuthStateChanged(auth, async u=>{
-  unsub.forEach(fn=>fn()); unsub=[]; me=null; $("cdbar").hidden=true; logs=[]; mdPicked=false;
+  unsub.forEach(fn=>fn()); unsub=[]; me=null; events=[]; $("cdbar").hidden=true; logs=[]; mdPicked=false;
   document.querySelector(".tabs").hidden = true; $("me").hidden = true; $("menu").hidden = true; $("pname").textContent = ""; closeMenu();
   $("bnav").hidden = true; $("fab").hidden = true; document.body.classList.remove("authed"); comments=[]; seenComments=null; sponsors=[]; if(sponsUnsub){ sponsUnsub(); sponsUnsub=null; }
   if(!u){ show("login"); return; }
@@ -1063,6 +1126,7 @@ onAuthStateChanged(auth, async u=>{
 
 function start(){
   unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})).filter(t=>phVis(t.phase)); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
+  unsub.push(onSnapshot(collection(db,"events"), s=>{ events=s.docs.map(d=>({id:d.id,...d.data()})); renderCal(); }, e=>console.warn("events",e)));
   unsub.push(onSnapshot(doc(db,"settings","event"), s=>{ if(s.exists()) ev={...ev,...s.data()}; renderCd(); if($("kd1")){ $("kd1").value=ev.challenger||""; $("kd2").value=ev.tubc||""; } }, ()=>{}));
   unsub.push(onSnapshot(query(collection(db,"log"),orderBy("at","desc"),limit(200)), s=>{ logs=s.docs.map(d=>({id:d.id,...d.data()})); renderFeed(); if($("td").open&&curTask) renderHist(curTask); }, e=>console.warn("log",e)));
   unsub.push(onSnapshot(doc(db,"settings","permissions"), s=>{ const d=s.exists()?s.data():{}; perms={head:{...DEF_PERMS.head,...(d.head||{})},viewer:{...DEF_PERMS.viewer,...(d.viewer||{})}}; render(); renderHeads(); renderPerms(); }, fail));
@@ -1091,7 +1155,7 @@ function render(){
   $("list").innerHTML = PH.map((p,i)=>{ if(!phVis(i)) return "";
     const rows=T.filter(t=>t.phase===i && (!f.own||toks(t.owner).includes(f.own)) && (!f.hide||t.status!=="dn") && (!f.late||(t.due<today&&t.status!=="dn"))).sort((a,b)=>ordKey(a)-ordKey(b));
     const d=T.filter(t=>t.phase===i&&t.status==="dn").length, n=T.filter(t=>t.phase===i).length;
-    return `<section class="phase" id="ph${i}" data-phase="${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2><div class="rows" data-phase="${i}">${rows.length?rows.map(t=>{const ok=canTask(t),ed=canEdit(t),mv=canMove(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}${jd(t.id)}" style="--dc:${tcol(t)}" data-id="${t.id}"${mv?' draggable="true"':""}><span class="grip${mv?"":" off"}" title="${mv?"Drag to move":""}" aria-hidden="true">⋮⋮</span><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta m1"><span class="d">${fmt(t.due)}</span></div><div class="tcell"><button type="button" class="t tlink" data-task="${t.id}">${esc(t.title)}</button>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${extras(t)}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta m2"><span class="o">${ownHtml(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div><div class="acts">${ed?`<button class="ico" data-edit="${t.id}" aria-label="Edit task" title="Edit">✎</button>`:""}${can("del")?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:""}</div></div>`}).join(""):`<p class="empty drop-empty">${T.length?(f.own||f.hide||f.late?"Nothing here with these filters.":"No tasks in this topic yet."):"No tasks yet."}</p>`}</div></section>`;
+    return `<section class="phase" id="ph${i}" data-phase="${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2><div class="rows" data-phase="${i}">${rows.length?rows.map(t=>{const ok=canTask(t),ed=canEdit(t),mv=canMove(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}${jd(t.id)}" style="--dc:${tcol(t)}" data-id="${t.id}"${mv?' draggable="true"':""}><span class="grip${mv?"":" off"}" title="${mv?"Drag to move":""}" aria-hidden="true">⋮⋮</span><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta m1"><span class="d">${when(t)}</span></div><div class="tcell"><button type="button" class="t tlink" data-task="${t.id}">${esc(t.title)}</button>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${extras(t)}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta m2"><span class="o">${ownHtml(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div><div class="acts">${ed?`<button class="ico" data-edit="${t.id}" aria-label="Edit task" title="Edit">✎</button>`:""}${can("del")?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:""}</div></div>`}).join(""):`<p class="empty drop-empty">${T.length?(f.own||f.hide||f.late?"Nothing here with these filters.":"No tasks in this topic yet."):"No tasks yet."}</p>`}</div></section>`;
   }).join("");
   animBars($("line"));
   if(before.size) document.querySelectorAll("#list .row").forEach(r=>{ const o=before.get(r.dataset.id); if(o==null) return; const dy=o-r.getBoundingClientRect().top;
@@ -1123,7 +1187,7 @@ document.addEventListener("change", e=>{
 $("hide").onclick=()=>{f.hide=!f.hide;$("hide").setAttribute("aria-pressed",f.hide);render();};
 $("late").onclick=()=>{f.late=!f.late;$("late").setAttribute("aria-pressed",f.late);render();};
 $("np").innerHTML = phOpts(-1);
-function addTask(title,due,owner,phase){ return addDoc(collection(db,"tasks"),{title,due,owner,depts:toks(owner),status:"todo",phase,note:"",order:due?Date.parse(due)/86400000:99999,updatedBy:me.name,updatedAt:serverTimestamp()}).then(r=>{ logIt({id:r.id,title},"add","Added for "+owner); toast("Task added."); return r; }); }
+function addTask(title,due,owner,phase,start){ return addDoc(collection(db,"tasks"),{title,due,...(start&&due&&start<due?{start}:{}),owner,depts:toks(owner),status:"todo",phase,note:"",order:due?Date.parse(due)/86400000:99999,updatedBy:me.name,updatedAt:serverTimestamp()}).then(r=>{ logIt({id:r.id,title},"add","Added for "+owner); toast("Task added."); return r; }); }
 $("addf").addEventListener("submit", e=>{ e.preventDefault(); const title=$("nt").value.trim(); if(!title) return; const owner=$("no").value.trim()||"PVP";
   addTask(title,$("nd").value,owner,+$("np").value).then(()=>{ $("nt").value=""; setPick("no","PVP");}).catch(fail); });
 $("seed").onclick = async ()=>{ const b=writeBatch(db); SEED.forEach(t=>b.set(doc(collection(db,"tasks")),{title:t[0],due:t[1],owner:t[2],depts:toks(t[2]),status:"todo",phase:t[4],note:t[5]||"",order:Date.parse(t[1])/86400000,updatedBy:"",updatedAt:serverTimestamp()})); try{ await b.commit(); toast("Starter tasks loaded."); }catch(e){ fail(e); } };
@@ -1133,34 +1197,120 @@ $("seed").onclick = async ()=>{ const b=writeBatch(db); SEED.forEach(t=>b.set(do
 const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
 let cm=(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1);})();
 const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-const chip=t=>`<button type="button" style="--dc:${tcol(t)}" class="chip2 ${t.status}${t.due<today&&t.status!=="dn"?" late":""}" data-task="${t.id}" title="${esc(t.title)} · ${esc(t.owner)}">${esc(t.title)}</button>`;
+const chip=(t,withRange)=>`<button type="button" style="--dc:${tcol(t)}" class="chip2 ${t.status}${t.due<today&&t.status!=="dn"?" late":""}${canEdit(t)?" cand":""}" data-task="${t.id}" title="${esc(t.title)} · ${esc(t.owner)}">${esc(t.title)}${withRange&&spans(t)?` <small>${rng(t.start,t.due)}</small>`:""}</button>`;
 function renderCal(){
   if(!$("cal")) return; fillGDept();
   const owners=[...new Set(tasks.flatMap(t=>toks(t.owner)))].sort(); if(f.own&&!owners.includes(f.own)) owners.push(f.own);
   $("cown").innerHTML='<option value="">Everyone</option>'+owners.map(o=>`<option${o===f.own?" selected":""}>${esc(o)}</option>`).join("");
   const T=tasks.filter(t=>t.due&&(!f.own||toks(t.owner).includes(f.own)));
-  const by={}; T.forEach(t=>(by[t.due]=by[t.due]||[]).push(t));
-  const y=cm.getFullYear(), m=cm.getMonth();
+  const singles=T.filter(t=>!spans(t)), multi=T.filter(spans), by={}; singles.forEach(t=>(by[t.due]=by[t.due]||[]).push(t));
+  const y=cm.getFullYear(), m=cm.getMonth(), mk=`${y}-${String(m+1).padStart(2,"0")}`, m0=mk+"-01", m1=iso(new Date(y,m+1,0));
   $("cmon").textContent=MON[m]+" "+y;
-  const inMonth=T.filter(t=>t.due.startsWith(`${y}-${String(m+1).padStart(2,"0")}`));
-  const open=inMonth.filter(t=>t.status!=="dn").length;
-  $("csub").textContent=inMonth.length?`${inMonth.length} task${inMonth.length>1?"s":""} due this month · ${open} still open`:"No tasks due this month";
-  const start=new Date(y,m,1); const lead=(start.getDay()+6)%7; const first=new Date(y,m,1-lead);
-  const weeks=Math.ceil((lead+new Date(y,m+1,0).getDate())/7);
-  let html=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>`<div class="dow">${d}</div>`).join("");
-  for(let i=0;i<weeks*7;i++){ const d=new Date(first.getFullYear(),first.getMonth(),first.getDate()+i), k=iso(d), ts=(by[k]||[]);
-    html+=`<div class="day${d.getMonth()!==m?" out":""}${k===today?" today":""}"><span class="dn2">${d.getDate()}</span>${ts.slice(0,3).map(chip).join("")}${ts.length>3?`<button type="button" class="more" data-day="${k}">+${ts.length-3} more</button>`:""}</div>`; }
+  const inMonth=T.filter(t=>(spans(t)?t.start:t.due)<=m1&&t.due>=m0), open=inMonth.filter(t=>t.status!=="dn").length;
+  const hint=[tasks.some(canEdit)?"drag a task to change its date":"",can("add")?"click a day to add a task":""].filter(Boolean).join(" · ");
+  $("csub").innerHTML=esc(inMonth.length?`${inMonth.length} task${inMonth.length>1?"s":""} this month · ${open} still open`:"No tasks this month")+(hint?`<span class="cal-hint"> · ${esc(hint[0].toUpperCase()+hint.slice(1))}</span>`:"");
+  $("cal").classList.toggle("can-add",can("add")); $("cadd").hidden=!isAdmin();
+  const lead=(new Date(y,m,1).getDay()+6)%7, first=iso(new Date(y,m,1-lead)), weeks=Math.ceil((lead+new Date(y,m+1,0).getDate())/7);
+  let html='<div class="dows">'+["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>`<div class="dow">${d}</div>`).join("")+"</div>";
+  // Each week is its own grid: row 1 = day numbers, then one row ("lane") per overlapping bar, then the single-day chips.
+  for(let w=0;w<weeks;w++){ const ws=addDays(first,w*7), we=addDays(ws,6);
+    const items=[...events.filter(e=>e.start<=we&&e.end>=ws).map(e=>({ev:e,s:e.start,e:e.end})), ...multi.filter(t=>t.start<=we&&t.due>=ws).map(t=>({t,s:t.start,e:t.due}))]
+      .sort((p,q)=>(!!p.t-!!q.t)||p.s.localeCompare(q.s)||q.e.localeCompare(p.e));
+    const lanes=[]; items.forEach(it=>{ it.a=it.s<ws?ws:it.s; it.b=it.e>we?we:it.e; let l=lanes.findIndex(end=>end<it.a); if(l<0){ l=lanes.length; lanes.push(""); } lanes[l]=it.b; it.lane=l; });
+    const L=lanes.length; let cells="", nums="", bars="", chips="";
+    for(let i=0;i<7;i++){ const k=addDays(ws,i), out=!k.startsWith(mk), ts=by[k]||[];
+      cells+=`<div class="day${out?" out":""}" data-date="${k}" data-col="${i}" style="grid-column:${i+1};grid-row:1/-1"></div>`;
+      nums+=`<span class="dn2${out?" out":""}${k===today?" today":""}" style="grid-column:${i+1};grid-row:1">${+k.slice(8)}</span>`;
+      chips+=`<div class="dch" style="grid-column:${i+1};grid-row:${L+2}">${ts.slice(0,3).map(t=>chip(t)).join("")}${ts.length>3?`<button type="button" class="more" data-day="${k}">+${ts.length-3} more</button>`:""}</div>`; }
+    items.forEach(it=>{ const pos=`grid-column:${dayDiff(ws,it.a)+1}/span ${dayDiff(it.a,it.b)+1};grid-row:${it.lane+2}`, cls=(it.s<ws?" cl":"")+(it.e>we?" cr":"");
+      if(it.ev){ const e=it.ev, adm=isAdmin();
+        bars+=`<div class="evb${cls}${adm?" cane":""}" data-ev="${esc(e.id)}" style="${pos};--ec:${EVC[e.color]||EVC.grey}" title="${esc(e.title)} · ${rng(e.start,e.end)}${e.note?" · "+esc(e.note):""}">${esc(e.title)}${adm&&it.e<=we?'<span class="rsz" aria-hidden="true"></span>':""}</div>`; }
+      else { const t=it.t, ed=canEdit(t);
+        bars+=`<button type="button" class="chip2 tbar ${t.status}${t.due<today&&t.status!=="dn"?" late":""}${ed?" cand":""}${cls}" data-task="${t.id}" style="${pos};--dc:${tcol(t)}" title="${esc(t.title)} · ${rng(t.start,t.due)} · ${esc(t.owner)}">${esc(t.title)}${ed&&it.e<=we?'<span class="rsz" aria-hidden="true"></span>':""}</button>`; } });
+    html+=`<div class="wk" style="grid-template-rows:28px${L?` repeat(${L},24px)`:""} minmax(56px,1fr)">${cells}${nums}${bars}${chips}</div>`; }
   $("cal").innerHTML=html;
-  const days=Object.keys(by).filter(k=>k.startsWith(`${y}-${String(m+1).padStart(2,"0")}`)).sort();
-  $("agenda").innerHTML=days.length?days.map(k=>`<div class="ag"><h3>${new Date(k+"T00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</h3>${by[k].map(chip).join("")}</div>`).join(""):`<p class="empty">No tasks due this month.</p>`;
+  // Agenda (phones): events first, then each day; a multi-day task is listed once, on its first day in this month.
+  const evM=events.filter(e=>e.start<=m1&&e.end>=m0).sort((p,q)=>p.start.localeCompare(q.start)), ag={};
+  singles.filter(t=>t.due.startsWith(mk)).forEach(t=>(ag[t.due]=ag[t.due]||[]).push(t));
+  multi.filter(t=>t.start<=m1&&t.due>=m0).forEach(t=>{ const k=t.start<m0?m0:t.start; (ag[k]=ag[k]||[]).push(t); });
+  const days=Object.keys(ag).sort();
+  $("agenda").innerHTML=(evM.length?`<div class="ag"><h3>Events</h3>${evM.map(e=>`<button type="button" class="agev" data-ev="${esc(e.id)}" style="--ec:${EVC[e.color]||EVC.grey}">${esc(e.title)} <small>${rng(e.start,e.end)}</small></button>`).join("")}</div>`:"")
+    +(days.length?days.map(k=>`<div class="ag"><h3>${new Date(k+"T00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}</h3>${ag[k].map(t=>chip(t,true)).join("")}</div>`).join(""):`<p class="empty">No tasks this month.</p>`);
 }
 $("cprev").onclick=()=>{cm=new Date(cm.getFullYear(),cm.getMonth()-1,1);renderCal();};
 $("cnext").onclick=()=>{cm=new Date(cm.getFullYear(),cm.getMonth()+1,1);renderCal();};
 $("ctoday").onclick=()=>{const d=new Date();cm=new Date(d.getFullYear(),d.getMonth(),1);renderCal();};
 $("cown").addEventListener("change",e=>{f.own=e.target.value;render();});
+// ---------- calendar editing ----------
+// Drag a task (admins: also an event) to move it, drag the right edge of a bar to change its length, click an empty spot to add a task.
+// Follows canEdit / can("add") / isAdmin(), which firestore.rules also enforce. Grid only (≥700px); touch needs a 350 ms press first so scrolling still works.
+let cd=null, cdSkip=false;
+function cdDay(x,y){ const wk=document.elementFromPoint(x,y)?.closest?.("#cal .wk"); if(!wk) return null; const r=wk.getBoundingClientRect(); return wk.querySelector(`.day[data-col="${Math.min(6,Math.max(0,Math.floor((x-r.left)/r.width*7)))}"]`); }
+function cdHi(a,b){ document.querySelectorAll("#cal .day.cdover").forEach(d=>d.classList.remove("cdover")); if(a) document.querySelectorAll("#cal .day[data-date]").forEach(d=>{ const k=d.dataset.date; if(k>=a&&k<=b) d.classList.add("cdover"); }); }
+function cdRange(c){ const it=c.ev?events.find(e=>e.id===c.id):tasks.find(t=>t.id===c.id); if(!it||!c.over) return null; const k=c.over.dataset.date;
+  const s=c.ev?it.start:(spans(it)?it.start:it.due), e=c.ev?it.end:it.due;
+  if(c.mode==="resize") return {s,e:k<s?s:k}; const off=dayDiff(c.grab,k); return {s:addDays(s,off),e:addDays(e,off)}; }
+function cdBegin(){ const c=cd.el; cd.on=true; c.classList.add("cddrag"); document.body.classList.add("cdragging"); if(cd.mode==="resize") document.body.classList.add("cdresize");
+  if(cd.mode==="move"){ const r=c.getBoundingClientRect(), g=c.cloneNode(true); g.classList.add("cdghost"); g.classList.remove("cand","cane","cl","cr","cddrag"); g.removeAttribute("data-task"); g.removeAttribute("data-ev"); g.querySelector(".rsz")?.remove();
+    g.style.width=r.width+"px"; document.body.appendChild(g); Object.assign(cd,{ghost:g,dx:cd.x0-r.left,dy:cd.y0-r.top}); }
+  cdMove(cd.x0,cd.y0); try{navigator.vibrate?.(10);}catch(_){} }
+function cdMove(x,y){ if(cd.ghost) cd.ghost.style.transform=`translate(${x-cd.dx}px,${y-cd.dy}px) rotate(2deg)`; cd.over=cdDay(x,y); const r=cdRange(cd); cdHi(r?.s,r?.e); }
+function cdEnd(drop){ const c=cd; cd=null; if(!c) return; clearTimeout(c.timer); if(!c.on) return;
+  cdSkip=true; setTimeout(()=>{cdSkip=false;},400);
+  const r=drop?cdRange(c):null; c.ghost?.remove(); c.el.classList.remove("cddrag"); document.body.classList.remove("cdragging","cdresize"); cdHi(null);
+  if(r) (c.ev?cdSaveEvent:cdSaveTask)(c.id,r); }
+function cdSaveTask(id,r){ const t=tasks.find(x=>x.id===id); if(!t) return; const multi=r.s<r.e, was={start:t.start,due:t.due};
+  if(r.e===t.due&&(multi?(spans(t)&&r.s===t.start):!spans(t))) return;
+  const upd={due:r.e,updatedBy:me.name,updatedAt:serverTimestamp()}; if(multi) upd.start=r.s; else if(t.start) upd.start=deleteField();
+  if(typeof t.order!=="number") upd.order=Date.parse(r.e)/86400000;
+  const before=spans(t)?rng(t.start,t.due):(fmt(t.due)||"none"), label=multi?rng(r.s,r.e):fmt(r.e);
+  t.due=r.e; if(multi) t.start=r.s; else delete t.start; render(); $("cal").querySelectorAll(`[data-task="${CSS.escape(id)}"]`).forEach(x=>x.classList.add("cdmoved"));
+  updateDoc(doc(db,"tasks",id),upd).then(()=>{ logIt({id,title:t.title},"edit",`dates ${before} → ${label}`); toast(`Moved to ${label}.`); })
+    .catch(e=>{ t.due=was.due; if(was.start) t.start=was.start; else delete t.start; render(); fail(e); }); }
+function cdSaveEvent(id,r){ const e=events.find(x=>x.id===id); if(!e||(r.s===e.start&&r.e===e.end)) return; const was={start:e.start,end:e.end};
+  e.start=r.s; e.end=r.e; renderCal(); $("cal").querySelectorAll(`[data-ev="${CSS.escape(id)}"]`).forEach(x=>x.classList.add("cdmoved"));
+  updateDoc(doc(db,"events",id),{start:r.s,end:r.e,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>toast(`${e.title}: ${rng(r.s,r.e)}.`)).catch(err=>{ Object.assign(e,was); renderCal(); fail(err); }); }
+$("cal").addEventListener("pointerdown",e=>{ if(e.button>0||cd) return; const el=e.target.closest(".chip2.cand,.evb.cane"); if(!el) return;
+  const ev=!!el.dataset.ev, id=ev?el.dataset.ev:el.dataset.task, it=ev?events.find(x=>x.id===id):tasks.find(x=>x.id===id);
+  if(!it||(ev?!isAdmin():!canEdit(it))) return; const grab=cdDay(e.clientX,e.clientY)?.dataset.date; if(!grab) return;
+  cd={id,ev,el,grab,mode:e.target.closest(".rsz")?"resize":"move",x0:e.clientX,y0:e.clientY,pid:e.pointerId,touch:e.pointerType!=="mouse",on:false};
+  if(cd.touch) cd.timer=setTimeout(()=>{ if(cd&&!cd.on) cdBegin(); },350); });
+document.addEventListener("pointermove",e=>{ if(!cd||e.pointerId!==cd.pid) return; const far=Math.hypot(e.clientX-cd.x0,e.clientY-cd.y0);
+  if(!cd.on){ if(cd.touch){ if(far>8){ clearTimeout(cd.timer); cd=null; } return; } if(far<5) return; cdBegin(); }
+  cdMove(e.clientX,e.clientY); });
+document.addEventListener("pointerup",e=>{ if(cd&&e.pointerId===cd.pid) cdEnd(true); });
+document.addEventListener("pointercancel",e=>{ if(cd&&e.pointerId===cd.pid) cdEnd(false); });
+document.addEventListener("touchmove",e=>{ if(cd?.on) e.preventDefault(); },{passive:false});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&cd?.on) cdEnd(false); });
+document.addEventListener("click",e=>{ if(cdSkip){ cdSkip=false; e.stopPropagation(); e.preventDefault(); } },true);
+$("cal").addEventListener("click",e=>{ if(!can("add")||e.target.closest("button,[data-ev]")) return; const d=e.target.closest(".day[data-date]"); if(d) openNewOn(d.dataset.date); });
+function openNewOn(date){ openNew(); $("nwd2").value=date;
+  let ph=PH.findIndex(p=>date>=p[2]&&date<p[3]); if(ph<0) ph=date<PH[0][2]?0:PH.length-1; if(!phVis(ph)) ph=1; $("nwp").value=String(ph); }
+
+// ---------- calendar events (bands such as exam weeks or holidays; admins add and edit, everyone sees them) ----------
+const EVC={blue:"#1c7ed6",green:"#2b8a3e",gold:"#e8a817",red:"#c8302d",purple:"#7048e8",grey:"#868e96"};
+let evEdit=null;
+$("evcs").innerHTML=Object.entries(EVC).map(([k,c])=>`<label class="evc" title="${k}"><input type="radio" name="evc" value="${k}" aria-label="${k}"><span style="--ec:${c}"></span></label>`).join("");
+function openEvent(id){ if(!isAdmin()) return; const e=id?events.find(x=>x.id===id):null, td=iso(new Date()); evEdit=e?.id||null;
+  $("evt").textContent=e?"Edit event":"New event"; $("evn").value=e?.title||""; $("evs").value=e?.start||td; $("eve").value=e?.end||td; $("evno").value=e?.note||"";
+  const c=e?.color||"blue"; document.querySelectorAll("#evcs input").forEach(i=>{ i.checked=i.value===c; });
+  const del=$("evdel"); del.hidden=!e; delete del.dataset.armed; del.textContent="Delete";
+  try{$("evd").showModal();}catch(_){ $("evd").setAttribute("open",""); } setTimeout(()=>$("evn").focus(),50); }
+const closeEv=()=>{ try{$("evd").close();}catch(_){ $("evd").removeAttribute("open"); } };
+$("evx").onclick=closeEv; $("evc").onclick=closeEv; $("cadd").onclick=()=>openEvent(null);
+$("evs").addEventListener("change",()=>{ if($("eve").value<$("evs").value) $("eve").value=$("evs").value; });
+$("evf").addEventListener("submit",e=>{ e.preventDefault(); const title=$("evn").value.trim(), start=$("evs").value, end=$("eve").value; if(!title||!start||!end) return;
+  if(end<start){ toast("The end date must be on or after the start date."); return; }
+  const data={title,start,end,color:document.querySelector("#evcs input:checked")?.value||"blue",note:$("evno").value.trim(),updatedBy:me.name,updatedAt:serverTimestamp()}, editing=evEdit;
+  (editing?updateDoc(doc(db,"events",editing),data):addDoc(collection(db,"events"),data)).then(()=>{ closeEv(); toast(editing?"Event saved.":"Event added."); }).catch(fail); });
+$("evdel").onclick=()=>{ const b=$("evdel"); if(!evEdit) return;
+  if(b.dataset.armed){ deleteDoc(doc(db,"events",evEdit)).then(()=>{ closeEv(); toast("Event deleted."); }).catch(fail); }
+  else { b.dataset.armed=1; b.textContent="Delete?"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="Delete"; } },3000); } };
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-ev]"); if(!b) return; const ev=events.find(x=>x.id===b.dataset.ev); if(!ev) return;
+  if(isAdmin()) openEvent(ev.id); else toast(`${ev.title} · ${rng(ev.start,ev.end)}${ev.note?" · "+ev.note:""}`); });
 let curTask=null;
 function openTask(id){ const t=tasks.find(x=>x.id===id); if(!t) return; curTask=id;
-  $("tdt").textContent=t.title; $("tdm").textContent=`Due ${fmt(t.due)} · ${t.owner} · ${PH[t.phase]?.[0]||""}`;
+  $("tdt").textContent=t.title; $("tdm").textContent=`${spans(t)?rng(t.start,t.due):"Due "+fmt(t.due)} · ${t.owner} · ${PH[t.phase]?.[0]||""}`;
   $("tdn").textContent=t.note||""; $("tdn").hidden=!t.note;
   $("tds").innerHTML=Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("");
   $("tds").className="st "+t.status; $("tds").disabled=!canTask(t);
@@ -1184,13 +1334,13 @@ const shEnd=()=>{ if(shY==null) return; const d=$("td"); shY=null; if(shDy>90) c
 $("td").addEventListener("pointerup",shEnd); $("td").addEventListener("pointercancel",shEnd);
 $("td").addEventListener("cancel",e=>{ if(sheetMQ.matches&&motion()){ e.preventDefault(); closeTd(); } });
 $("td").addEventListener("click",e=>{ if(sheetMQ.matches&&e.target===$("td")&&e.clientY<$("td").getBoundingClientRect().top) closeTd(); });
-document.addEventListener("click",e=>{ const c=e.target.closest("[data-task]"); if(c){ openTask(c.dataset.task); return; } const mo=e.target.closest("[data-day]"); if(mo){ const ts=tasks.filter(t=>t.due===mo.dataset.day&&(!f.own||toks(t.owner).includes(f.own))); mo.outerHTML=ts.slice(3).map(chip).join(""); } });
+document.addEventListener("click",e=>{ const c=e.target.closest("[data-task]"); if(c){ openTask(c.dataset.task); return; } const mo=e.target.closest("[data-day]"); if(mo){ const ts=tasks.filter(t=>t.due===mo.dataset.day&&!spans(t)&&(!f.own||toks(t.owner).includes(f.own))); mo.outerHTML=ts.slice(3).map(t=>chip(t)).join(""); } });
 
 
 // ---------- edit + drag ----------
 let editId=null;
 function openEdit(id){ const t=tasks.find(x=>x.id===id); if(!t||!canEdit(t)) return; editId=id;
-  $("et").value=t.title||""; $("edue").value=t.due||""; setPick("eown",t.owner||""); $("enote").value=t.note||"";
+  $("et").value=t.title||""; $("estart").value=spans(t)?t.start:""; $("edue").value=t.due||""; setPick("eown",t.owner||""); $("enote").value=t.note||"";
   $("eph").innerHTML=phOpts(t.phase);
   try{ $("td").close(); }catch(e){}
   try{$("ed").showModal();}catch(e){$("ed").setAttribute("open","");} setTimeout(()=>$("et").focus(),50); }
@@ -1198,10 +1348,13 @@ const closeE=()=>{ try{$("ed").close();}catch(e){$("ed").removeAttribute("open")
 $("edx").onclick=closeE; $("edc").onclick=closeE;
 $("edf").addEventListener("submit", e=>{ e.preventDefault(); const t=tasks.find(x=>x.id===editId); if(!t) return;
   const title=$("et").value.trim(); if(!title) return; const owner=$("eown").value.trim()||"PVP"; const due=$("edue").value; const phase=+$("eph").value;
+  const st=$("estart").value; if(st&&due&&st>due){ toast("The start date must be on or before the due date."); return; }
+  const ns=st&&due&&st<due?st:"", os=spans(t)?t.start:"";
   const upd={title,due,owner,depts:toks(owner),note:$("enote").value.trim(),phase,updatedBy:me.name,updatedAt:serverTimestamp()};
+  if(ns!==os) upd.start=ns||deleteField();
   if(due!==t.due && typeof t.order!=="number") upd.order=due?Date.parse(due)/86400000:99999;
   if(phase!==t.phase){ const inP=tasks.filter(x=>x.phase===phase&&x.id!==t.id); upd.order=inP.length?Math.max(...inP.map(ordKey))+1:ordKey(t); }
-  const ch=[]; if(title!==t.title) ch.push("renamed"); if(due!==(t.due||"")) ch.push(`due ${fmt(t.due)||"none"} → ${fmt(due)||"none"}`); if(owner!==t.owner) ch.push(`owner ${t.owner} → ${owner}`); if(phase!==t.phase) ch.push(`moved to ${PH[phase][0]}`); if(upd.note!==(t.note||"")) ch.push("note updated");
+  const ch=[]; if(title!==t.title) ch.push("renamed"); if(due!==(t.due||"")) ch.push(`due ${fmt(t.due)||"none"} → ${fmt(due)||"none"}`); if(owner!==t.owner) ch.push(`owner ${t.owner} → ${owner}`); if(phase!==t.phase) ch.push(`moved to ${PH[phase][0]}`); if(ns!==os) ch.push(ns?`dates ${rng(ns,due)}`:"start date removed"); if(upd.note!==(t.note||"")) ch.push("note updated");
   updateDoc(doc(db,"tasks",editId),upd).then(()=>{ if(ch.length) logIt({id:t.id,title},"edit",ch.join(", ")); closeE();toast("Task saved.");}).catch(fail); });
 $("tde").onclick=()=>{ if(curTask) openEdit(curTask); };
 
@@ -1249,13 +1402,13 @@ document.addEventListener("click", e=>{ const a=e.target.closest("[data-approve]
 // ---------- calendar export ----------
 const ymd = d => d.replace(/-/g,"");
 const nextDay = d => { const x=new Date(d+"T00:00"); x.setDate(x.getDate()+1); return iso(x).replace(/-/g,""); };
-function gcalUrl(t){ const p=new URLSearchParams({action:"TEMPLATE",text:"[TUBC] "+t.title,dates:ymd(t.due)+"/"+nextDay(t.due),details:[t.note,"Owner: "+t.owner,"Topic: "+(PH[t.phase]?.[0]||""),"Tracker: "+location.origin+location.pathname].filter(Boolean).join("\n")}); return "https://calendar.google.com/calendar/render?"+p.toString(); }
+function gcalUrl(t){ const p=new URLSearchParams({action:"TEMPLATE",text:"[TUBC] "+t.title,dates:ymd(spans(t)?t.start:t.due)+"/"+nextDay(t.due),details:[t.note,"Owner: "+t.owner,"Topic: "+(PH[t.phase]?.[0]||""),"Tracker: "+location.origin+location.pathname].filter(Boolean).join("\n")}); return "https://calendar.google.com/calendar/render?"+p.toString(); }
 const icsEsc = s => String(s||"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
 $("cics").onclick=()=>{ const T=gTasks(); const gd=$("gdept").value;
   if(!T.length){ toast("No tasks with dates to export."); return; }
   const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
   const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//TUBC 2027//Tracker//EN","CALSCALE:GREGORIAN","X-WR-CALNAME:TUBC 2027"+(gd?" · "+gd:"")];
-  T.forEach(t=>lines.push("BEGIN:VEVENT","UID:"+t.id+"@tubc-2027","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+ymd(t.due),"DTEND;VALUE=DATE:"+nextDay(t.due),"SUMMARY:"+icsEsc("[TUBC] "+t.title),"DESCRIPTION:"+icsEsc([t.note,"Owner: "+t.owner,"Status: "+ST[t.status]].filter(Boolean).join("\n")),"END:VEVENT"));
+  T.forEach(t=>lines.push("BEGIN:VEVENT","UID:"+t.id+"@tubc-2027","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+ymd(spans(t)?t.start:t.due),"DTEND;VALUE=DATE:"+nextDay(t.due),"SUMMARY:"+icsEsc("[TUBC] "+t.title),"DESCRIPTION:"+icsEsc([t.note,"Owner: "+t.owner,"Status: "+ST[t.status]].filter(Boolean).join("\n")),"END:VEVENT"));
   lines.push("END:VCALENDAR");
   const blob=new Blob([lines.join("\r\n")],{type:"text/calendar"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="tubc-2027"+(gd?"-"+gd.toLowerCase().replace(/\W+/g,"-"):"")+".ics"; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); };
 
@@ -1275,7 +1428,7 @@ const evId = id => "tubc"+[...new TextEncoder().encode(id)].map(b=>b.toString(16
 const nextIso = d => { const x=new Date(d+"T00:00"); x.setDate(x.getDate()+1); return iso(x); };
 function evBody(t){ return { summary:"[TUBC] "+t.title, status:"confirmed",
   description:[t.note,"Owner: "+t.owner,"Topic: "+(PH[t.phase]?.[0]||""),"Tracker: "+location.origin+location.pathname].filter(Boolean).join("\n"),
-  start:{date:t.due}, end:{date:nextIso(t.due)}, transparency:"transparent",
+  start:{date:spans(t)?t.start:t.due}, end:{date:nextIso(t.due)}, transparency:"transparent",
   source:{title:"TUBC 2027 Tracker", url:location.origin+location.pathname} }; }
 async function gapi(tok,method,url,body){
   const r=await fetch("https://www.googleapis.com/calendar/v3"+url,{method,headers:{Authorization:"Bearer "+tok,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
@@ -1384,7 +1537,7 @@ function renderMine(){ if(!$("mlist")||!me) return;
   const td=iso(new Date()), plus=n=>{ const x=new Date(); x.setDate(x.getDate()+n); return iso(x); }, w=plus(7), m=plus(30);
   const open=T.filter(t=>t.status!=="dn").sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")), done=T.filter(t=>t.status==="dn");
   const G=[["over","Overdue",open.filter(t=>t.due&&t.due<td)],["week","Due in the next 7 days",open.filter(t=>t.due&&t.due>=td&&t.due<=w)],["month","Next 30 days",open.filter(t=>t.due>w&&t.due<=m)],["later","Later",open.filter(t=>t.due>m)],["nod","No date",open.filter(t=>!t.due)]];
-  const item=t=>`<li class="mi ${t.status}${jd(t.id)}" style="--dc:${tcol(t)}"><button type="button" class="mt" data-task="${t.id}"><span class="md">${t.due?fmt(t.due):"—"}</span><span class="mtt">${esc(t.title)}</span><span class="mo">${esc(t.owner)} · ${PH[t.phase]?.[0]||""}</span></button><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${canTask(t)?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></li>`;
+  const item=t=>`<li class="mi ${t.status}${jd(t.id)}" style="--dc:${tcol(t)}"><button type="button" class="mt" data-task="${t.id}"><span class="md">${t.due?when(t):"—"}</span><span class="mtt">${esc(t.title)}</span><span class="mo">${esc(t.owner)} · ${PH[t.phase]?.[0]||""}</span></button><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${canTask(t)?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></li>`;
   const over=G[0][2].length;
   $("msum").textContent=`${cur}: ${open.length} open${over?` · ${over} overdue`:""} · ${done.length} of ${T.length} done`;
   $("mbarf").dataset.k="mine-"+cur; $("mbarf").dataset.w=T.length?done.length/T.length*100:0; animBars($("mbarf").parentNode);
@@ -1566,12 +1719,14 @@ function updateFab(){ const v=curView; let show=false, label="Add task";
   if(me&&!["login","noaccess"].includes(v)){ if(v==="sponsors"){ show=canSpons(); label="Add sponsor"; } else if(["mine","tracker","calendar","overview"].includes(v)){ show=can("add"); } }
   $("fab").hidden=!show; $("fab").setAttribute("aria-label",label); $("fab").title=label; updateBot(); }
 $("nwp").innerHTML=phOpts(-1);
-function openNew(){ $("nwtt").value=""; $("nwd2").value=""; const own=me?.dept&&me.role==="head"?me.dept:"PVP"; setPick("nwo",own);
+function openNew(){ $("nwtt").value=""; $("nwst").value=""; $("nwd2").value=""; const own=me?.dept&&me.role==="head"?me.dept:"PVP"; setPick("nwo",own);
   const td=iso(new Date()); const ph=PH.findIndex(p=>td>=p[2]&&td<p[3]); $("nwp").value=String(Math.max(ph<0?0:ph, phVis(0)?0:1));
   try{$("nwd").showModal();}catch(e){$("nwd").setAttribute("open","");} setTimeout(()=>$("nwtt").focus(),50); }
 const closeN=()=>{ try{$("nwd").close();}catch(e){$("nwd").removeAttribute("open");} };
 $("nwx").onclick=closeN; $("nwc").onclick=closeN;
-$("nwf").addEventListener("submit",e=>{ e.preventDefault(); const title=$("nwtt").value.trim(); if(!title) return; addTask(title,$("nwd2").value,$("nwo").value.trim()||"PVP",+$("nwp").value).then(closeN).catch(fail); });
+$("nwf").addEventListener("submit",e=>{ e.preventDefault(); const title=$("nwtt").value.trim(); if(!title) return; const st=$("nwst").value, due=$("nwd2").value;
+  if(st&&due&&st>due){ toast("The start date must be on or before the due date."); return; }
+  addTask(title,due,$("nwo").value.trim()||"PVP",+$("nwp").value,st).then(closeN).catch(fail); });
 $("fab").onclick=()=>{ if(curView==="sponsors") openSponsor(null); else openNew(); };
 
 // ---------- who can see sponsors (set on the Access page) ----------
