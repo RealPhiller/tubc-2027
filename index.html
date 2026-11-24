@@ -423,6 +423,14 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .oc h3{margin:0;font:700 17px "Red Hat Display",sans-serif;display:flex;justify-content:space-between;gap:8px}
 .oc h3 em{font-style:normal;font-size:13px;color:var(--mute);font-weight:600}
 .oc .hn2{font-size:13px;color:var(--mute);margin:2px 0 10px}
+.otop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}.otop .hn2{margin-bottom:0}
+.orw{position:relative;flex:none;width:52px;height:52px;display:grid;place-items:center}
+.orw svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.orw circle{fill:none;stroke-width:5}.orw .otr{stroke:var(--line)}
+.orw .orc{stroke:var(--dc);stroke-linecap:round;stroke-dasharray:100 100;stroke-dashoffset:100;transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)}
+.orw b{position:relative;font:700 12px "Red Hat Display",sans-serif;color:var(--ink);font-variant-numeric:tabular-nums}
+.orw.full b{color:var(--dc);font-size:11px}
+.oc:hover .orc{stroke-width:6}
 .obar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.obar i{display:block;height:100%;background:var(--dc);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
 .ost{display:flex;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:8px;color:var(--mute)}
 .ost .bad{color:var(--red);font-weight:700}
@@ -866,6 +874,10 @@ const jd = id => { const t0=justDone.get(id); return t0==null ? "" : ` justdone"
 const prevW = {};
 function animBars(root){ (root||document).querySelectorAll("[data-w]").forEach(el=>{ const k=el.dataset.k, w=+el.dataset.w, from=k in prevW?prevW[k]:0; prevW[k]=w;
   if(!motion()||from===w){ el.style.width=w+"%"; return; } el.style.width=from+"%"; el.getBoundingClientRect(); requestAnimationFrame(()=>{ el.style.width=w+"%"; }); }); }
+const prevRing = {};
+function animRings(root,fresh){ root.querySelectorAll("[data-ring]").forEach(el=>{ const k=el.dataset.rk, p=+el.dataset.ring, from=fresh?0:(k in prevRing?prevRing[k]:0); prevRing[k]=p;
+  if(!motion()||from===p){ el.style.transition="none"; el.style.strokeDashoffset=100-p; return; }
+  el.style.transition="none"; el.style.strokeDashoffset=100-from; el.getBoundingClientRect(); requestAnimationFrame(()=>{ el.style.transition=""; el.style.strokeDashoffset=100-p; }); }); }
 const numFrom = {};
 function animNum(key,el,to,fmtFn){ const from=numFrom[key]??0; numFrom[key]=to; if(!motion()||from===to){ fmtFn(el,to); return; }
   const t0=performance.now(), d=700; const step=t=>{ const p=Math.min(1,(t-t0)/d), e=1-Math.pow(1-p,3); fmtFn(el,Math.round(from+(to-from)*e)); if(p<1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
@@ -891,7 +903,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124i";
+const BUILD="b20261124j";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -918,9 +930,11 @@ document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeMenu(); });
 const VIEWS = ["login","noaccess","profile","mine","overview","tracker","calendar","sponsors","structure","who","access"];
 const PNAMES={profile:"My profile",mine:"My tasks",overview:"Overview",tracker:"Tracker",calendar:"Calendar",sponsors:"Sponsors",structure:"Team",who:"Team · Who to ask",access:"Access"};
 let curView=null, prevView=null;
+const VORDER=["mine","overview","tracker","calendar","sponsors","structure","who","profile","access"];
 function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") : "";
   for(const n of VIEWS){ const el=$("v-"+n); if(el) el.hidden = n!==v; }
-  if(v!==curView && curView && motion()) $("v-"+v)?.animate([{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:260,easing:"cubic-bezier(.2,.8,.2,1)"});
+  if(v!==curView && curView && motion()){ const a=VORDER.indexOf(curView), b=VORDER.indexOf(v), dx=(a<0||b<0)?0:(b>a?1:-1);
+    $("v-"+v)?.animate(dx?[{opacity:0,transform:`translateX(${dx*32}px)`},{opacity:1,transform:"none"}]:[{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:dx?320:260,easing:"cubic-bezier(.2,.8,.2,1)"}); }
   curView=v;
   const gate=(v==="login"||v==="noaccess"); document.documentElement.toggleAttribute("data-gate",gate);
   let tc=document.querySelector('meta[name="theme-color"]'); if(!tc){ tc=document.createElement("meta"); tc.name="theme-color"; document.head.appendChild(tc); }
@@ -1408,8 +1422,9 @@ function renderOverview(){ if(!$("ogrid")||!me||!seeOverview()) return;
   $("ogrid").innerHTML=DEPTS.map(d=>{ const T=tasks.filter(t=>own(t).includes(d)||(d==="PVP"&&own(t).includes("President"))); const dn=T.filter(t=>t.status==="dn").length, op=T.filter(t=>t.status!=="dn");
     const lt=op.filter(t=>t.due&&t.due<td).length, bk=op.filter(t=>t.status==="blk").length, nx=op.filter(t=>t.due).sort((a,b)=>a.due.localeCompare(b.due))[0];
     const hs=(heads[d]||[]).filter(x=>x.name).map(x=>x.name).join(", ");
-    return `<button type="button" class="oc" style="--dc:${col(d)}" data-ogo="${esc(d)}"><h3>${esc(d)}<em>${T.length?Math.round(dn/T.length*100):0}%</em></h3><div class="hn2">${d==="PVP"?"Puripat, Sattam, Krang":esc(hs||"Heads TBC")}</div><div class="obar"><i data-k="o-${esc(d)}" data-w="${T.length?dn/T.length*100:0}"></i></div><div class="ost"><span>${dn}/${T.length} done</span>${lt?`<span class="bad">${lt} overdue</span>`:""}${bk?`<span class="bad">${bk} blocked</span>`:""}</div>${nx?`<div class="onext">Next: <b>${fmt(nx.due)}</b> ${esc(nx.title)}</div>`:`<div class="onext" style="color:var(--mute)">${T.length?"Nothing open 🎉":"No tasks yet"}</div>`}</button>`; }).join("");
-  animBars($("ogrid"));
+    const pc=T.length?Math.round(dn/T.length*100):0;
+    return `<button type="button" class="oc" style="--dc:${col(d)}" data-ogo="${esc(d)}"><div class="otop"><div><h3>${esc(d)}</h3><div class="hn2">${d==="PVP"?"Puripat, Sattam, Krang":esc(hs||"Heads TBC")}</div></div><span class="orw${pc===100?" full":""}" role="img" aria-label="${pc}% done"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="otr" cx="22" cy="22" r="18" pathLength="100"/><circle class="orc" cx="22" cy="22" r="18" pathLength="100" data-ring="${pc}" data-rk="r-${esc(d)}"/></svg><b data-n="${pc}" data-k="ov-r-${esc(d)}" data-suf="%">${pc}%</b></span></div><div class="ost"><span>${dn}/${T.length} done</span>${lt?`<span class="bad">${lt} overdue</span>`:""}${bk?`<span class="bad">${bk} blocked</span>`:""}</div>${nx?`<div class="onext">Next: <b>${fmt(nx.due)}</b> ${esc(nx.title)}</div>`:`<div class="onext" style="color:var(--mute)">${T.length?"Nothing open 🎉":"No tasks yet"}</div>`}</button>`; }).join("");
+  animBars($("ogrid")); animRings($("ogrid")); countUp($("ogrid"));
   const li=(t,cls)=>`<li class="${cls}"><button type="button" data-task="${t.id}"><span class="d">${fmt(t.due)}</span><span>${esc(t.title)}</span><span>${ownHtml(t.owner)}</span></button></li>`;
   $("olate").innerHTML=late.slice(0,12).map(t=>li(t,"late")).join("")||'<li style="color:var(--mute);font-size:14px">Nothing overdue. 🎉</li>';
   $("oweek").innerHTML=week.slice(0,12).map(t=>li(t,"")).join("")||'<li style="color:var(--mute);font-size:14px">Nothing due this week.</li>';
@@ -1529,6 +1544,7 @@ document.querySelector(".subtabs")&&document.addEventListener("click",e=>{ const
 function staggerIn(v){ if(!motion()) return; const root=$("v-"+v); if(!root) return;
   const els=[...root.querySelectorAll(".kpi,.oc,.col,.pc,.lvl1 .dept,.cdi,.mg li,.pfs,.olist li")].slice(0,40);
   els.forEach((el,i)=>el.animate([{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:380,delay:Math.min(i*35,500),easing:"cubic-bezier(.2,.8,.2,1)",fill:"backwards"}));
+  if(v==="overview") animRings(root,true);
   if(v==="overview"||v==="sponsors"){ Object.keys(numFrom).filter(k=>k.startsWith(v==="overview"?"ov-":"sp-")).forEach(k=>numFrom[k]=0); countUp(root); } }
 function countUp(root){ root.querySelectorAll("[data-n][data-k]").forEach(el=>{ const n=+el.dataset.n, suf=el.dataset.suf||""; animNum(el.dataset.k,el,n,(e,x)=>{ e.textContent=thb(x)+suf; }); }); }
 
