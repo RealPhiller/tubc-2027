@@ -91,6 +91,16 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Who's online: each member updates only their own "last seen" time while the tracker is open; the team can read them.
+    match /presence/{personEmail} {
+      allow read: if canRead();
+      allow write: if canRead() && personEmail == email()
+        && request.resource.data.keys().hasOnly(['name', 'dept', 'at'])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 120
+        && request.resource.data.dept is string && request.resource.data.dept.size() <= 40
+        && request.resource.data.at == request.time;
+    }
+
     // Names for @mentions: each member keeps their own entry.
     match /people/{personEmail} {
       allow read: if canRead();

@@ -70,7 +70,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125b";
+const BUILD="b20261125d";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -128,7 +128,7 @@ $("login").onclick = async ()=>{ $("lerr").textContent=""; try{ const pv=new Goo
 $("out").onclick = $("out2").onclick = ()=>{ closeMenu(); closeUM(); signOut(auth); };
 
 onAuthStateChanged(auth, async u=>{
-  unsub.forEach(fn=>fn()); unsub=[]; me=null; events=[]; ann=null; $("annbar").hidden=true; $("cdbar").hidden=true; logs=[]; mdPicked=false;
+  unsub.forEach(fn=>fn()); unsub=[]; me=null; events=[]; ann=null; $("annbar").hidden=true; stopPresence(); $("cdbar").hidden=true; logs=[]; mdPicked=false;
   document.querySelector(".tabs").hidden = true; $("me").hidden = true; $("menu").hidden = true; $("pname").textContent = ""; closeMenu();
   $("bnav").hidden = true; $("fab").hidden = true; document.body.classList.remove("authed"); comments=[]; seenComments=null; sponsors=[]; if(sponsUnsub){ sponsUnsub(); sponsUnsub=null; }
   if(!u){ show("login"); return; }
@@ -154,9 +154,11 @@ onAuthStateChanged(auth, async u=>{
 
 function start(){
   unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})).filter(t=>phVis(t.phase)); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
+  unsub.push(onSnapshot(collection(db,"presence"), s=>{ presence=s.docs.map(d=>({email:d.id,...d.data()})); renderOnline(); }, e=>console.warn("presence",e)));
+  startPresence(); renderOnline();
   unsub.push(onSnapshot(doc(db,"settings","announce"), s=>{ ann=s.exists()?s.data():null; renderAnn(); }, e=>console.warn("announce",e)));
   unsub.push(onSnapshot(collection(db,"events"), s=>{ events=s.docs.map(d=>({id:d.id,...d.data()})); renderCal(); }, e=>console.warn("events",e)));
-  unsub.push(onSnapshot(doc(db,"settings","event"), s=>{ if(s.exists()) ev={...ev,...s.data()}; renderCd(); if($("kd1")){ $("kd1").value=ev.challenger||""; $("kd2").value=ev.tubc||""; } }, ()=>{}));
+  unsub.push(onSnapshot(doc(db,"settings","event"), s=>{ if(s.exists()) ev={...ev,...s.data()}; renderCd(); renderKd(); }, ()=>{}));
   unsub.push(onSnapshot(query(collection(db,"log"),orderBy("at","desc"),limit(200)), s=>{ logs=s.docs.map(d=>({id:d.id,...d.data()})); renderFeed(); if($("td").open&&curTask) renderHist(curTask); }, e=>console.warn("log",e)));
   unsub.push(onSnapshot(doc(db,"settings","permissions"), s=>{ const d=s.exists()?s.data():{}; perms={head:{...DEF_PERMS.head,...(d.head||{})},viewer:{...DEF_PERMS.viewer,...(d.viewer||{})}}; render(); renderHeads(); renderPerms(); }, fail));
   unsub.push(onSnapshot(collection(db,"heads"), s=>{ heads={}; s.docs.forEach(d=>heads[d.id]=d.data().list||[]); renderHeads(); }, fail));
@@ -546,12 +548,13 @@ function renderHist(id){ if(!$("tdh")) return; const L=logs.filter(l=>l.task===i
 
 // ---------- countdown ----------
 function renderCd(){ const el=$("cdbar"); if(!el) return; if(!me){ el.hidden=true; return; }
-  const d0=new Date(iso(new Date())+"T00:00");
-  const item=(lbl,d)=>{ if(!d) return ""; const n=Math.round((new Date(d+"T00:00")-d0)/864e5);
+  const td=iso(new Date()), d0=new Date(td+"T00:00");
+  const item=k=>{ const n=Math.round((new Date(k.date+"T00:00")-d0)/864e5);
     const txt = n>1?`<b>${n}</b> days`: n===1?`<b>Tomorrow</b>`: n===0?`<b>Today</b>`:`Done ✓`;
-    return `<div class="cdi${n<0?" past":""}${n>=0&&n<=14?" soon":""}"><em>${lbl}</em><span>${txt}</span><small>${fmt(d)}${d.slice(0,4)!=="2026"?" "+d.slice(0,4):""}</small></div>`; };
-  $("cdin").innerHTML=item("The Challenger",ev.challenger)+item("TUBC",ev.tubc); el.hidden=false; }
-$("kdf").addEventListener("submit",e=>{ e.preventDefault(); setDoc(doc(db,"settings","event"),{challenger:$("kd1").value,tubc:$("kd2").value},{merge:true}).then(()=>toast("Key dates saved.")).catch(fail); });
+    return `<div class="cdi${n<0?" past":""}${n>=0&&n<=14?" soon":""}"><em>${esc(k.name)}</em><span>${txt}</span><small>${fmt(k.date)}${k.date.slice(0,4)!=="2026"?" "+k.date.slice(0,4):""}</small></div>`; };
+  const vis=kdList().filter(k=>k.date&&canSee(k)).sort((a,b)=>a.date.localeCompare(b.date)), up=vis.filter(k=>k.date>=td);
+  const show=(up.length?up:vis.slice(-2)).slice(0,4);
+  el.hidden=!show.length; $("cdin").innerHTML=show.map(item).join(""); }
 
 // ---------- my tasks ----------
 let mdPicked=false;
@@ -913,24 +916,95 @@ const ANN_KEY = id => "tubc-ann-closed:" + id;
 function renderAnn(){
   const b = $("annbar"), a = ann && ann.text ? ann : null;
   let closed = false; try { closed = !!(a && localStorage.getItem(ANN_KEY(a.id))); } catch {}
-  b.hidden = !me || !a || closed;
+  const show = !!me && !!a && !closed && canSee(a);
+  b.hidden = !show; if (show) b.classList.remove("out");
   if (a) {
+    $("annlab").textContent = a.level === "urgent" ? "Urgent" : "Announcement";
     $("anntext").textContent = a.text; b.classList.toggle("urgent", a.level === "urgent");
-    $("annmeta").textContent = (a.by ? a.by + " · " : "") + rel(a.at);
+    const aud = ((a.depts || []).length || a.heads) && isAdmin() ? " · for " + audLabel(a) : "";
+    $("annmeta").textContent = (a.by ? a.by + " · " : "") + rel(a.at) + aud;
     const L = $("annlink"); L.hidden = !a.link; if (a.link) L.href = a.link;
   }
   if (isAdmin()) {
     $("annrm").hidden = !a;
-    if (a && !annDirty) { $("annt").value = a.text; $("annl").value = a.level || "info"; $("annu").value = a.link || ""; }
+    if (!annDirty) { if (a) { $("annt").value = a.text; $("annl").value = a.level || "info"; $("annu").value = a.link || ""; } $("annaudw").innerHTML = audHtml("annaud", a || {}); }
   }
 }
-$("annx").onclick = () => { if (!ann) return; try { localStorage.setItem(ANN_KEY(ann.id), "1"); } catch {} $("annbar").hidden = true; };
+$("annx").onclick = () => { if (!ann) return; try { localStorage.setItem(ANN_KEY(ann.id), "1"); } catch {}
+  const b = $("annbar"); if (!motion()) { b.hidden = true; return; } b.classList.add("out"); setTimeout(() => { b.hidden = true; b.classList.remove("out"); }, 280); };
 ["annt", "annl", "annu"].forEach(id => $(id).addEventListener("input", () => { annDirty = true; }));
+$("annf").addEventListener("change", () => { annDirty = true; });
 $("annf").addEventListener("submit", e => { e.preventDefault(); const text = $("annt").value.trim(), link = $("annu").value.trim(); if (!text) return;
   if (link && !/^https?:\/\//i.test(link)) { toast("The link must start with https://"); return; }
-  setDoc(doc(db,"settings","announce"), { text, level: $("annl").value, link, by: me.name, at: serverTimestamp(), id: String(Date.now()) })
+  const aud = $("annaud") ? audRead($("annaud")) : { depts: [], heads: false };
+  setDoc(doc(db,"settings","announce"), { text, level: $("annl").value, link, depts: aud.depts, heads: aud.heads, by: me.name, at: serverTimestamp(), id: String(Date.now()) })
     .then(() => { annDirty = false; toast("Announcement posted. Everyone sees it now."); }).catch(fail); });
 $("annrm").onclick = () => { deleteDoc(doc(db,"settings","announce")).then(() => { annDirty = false; $("annt").value = ""; $("annu").value = ""; $("annl").value = "info"; toast("Announcement removed."); }).catch(fail); };
+
+// ---------- audience picker ("who can see this") for key dates and the announcement ----------
+// Display filter only: every member can still read these documents in Firestore, so don't put secrets in them.
+const canSee = a => !a || isAdmin() || ((!(a.depts || []).length || a.depts.includes(me?.dept) || (a.depts.includes("PVP") && me?.dept === "President")) && (!a.heads || isHeadUp()));
+function audLabel(a){ const d = (a && a.depts) || []; return (d.length ? (d.length > 3 ? d.slice(0, 3).join(", ") + " +" + (d.length - 3) : d.join(", ")) : "Everyone") + (a && a.heads ? " · heads only" : ""); }
+function audHtml(id, a){ a = a || {}; const sel = new Set(a.depts || []);
+  return `<details class="aud" id="${esc(id)}"><summary>${esc(audLabel(a))}</summary><div class="audpop">`
+    + `<label class="audall"><input type="checkbox" data-aud-all${sel.size ? "" : " checked"}> Everyone</label>`
+    + `<div class="audgrid">${DEPTS.map(d => `<label><input type="checkbox" value="${esc(d)}"${sel.has(d) ? " checked" : ""}> ${esc(d)}</label>`).join("")}</div>`
+    + `<label class="audheads"><input type="checkbox" data-aud-heads${a.heads ? " checked" : ""}> Heads and admins only</label></div></details>`; }
+function audRead(el){ return { depts: [...el.querySelectorAll(".audgrid input:checked")].map(i => i.value), heads: !!el.querySelector("[data-aud-heads]")?.checked }; }
+document.addEventListener("change", e => { const box = e.target.closest(".aud"); if (!box) return;
+  if (e.target.matches("[data-aud-all]") && e.target.checked) box.querySelectorAll(".audgrid input").forEach(i => { i.checked = false; });
+  if (e.target.closest(".audgrid")) box.querySelector("[data-aud-all]").checked = !box.querySelector(".audgrid input:checked");
+  box.querySelector("summary").textContent = audLabel(audRead(box)); });
+document.addEventListener("click", e => { document.querySelectorAll("details.aud[open]").forEach(d => { if (!d.contains(e.target)) d.open = false; }); });
+
+// ---------- key dates (settings/event.dates; the countdown shows the next 4 each person can see) ----------
+let kdDirty = false;
+const kdList = () => (ev.dates && ev.dates.length) ? ev.dates : [{ id: "clg", name: "The Challenger", date: ev.challenger || "" }, { id: "tubc", name: "TUBC", date: ev.tubc || "" }];
+function kdRow(k){ return `<div class="kdrow" data-id="${esc(k.id)}"><input class="kdn" maxlength="40" placeholder="Name, e.g. Recruitment opens" value="${esc(k.name || "")}" aria-label="Key date name"><input class="kdd" type="date" value="${esc(k.date || "")}" aria-label="Date"><div class="kda"><span>Who sees it</span>${audHtml("kaud-" + k.id, k)}</div><button type="button" class="kdx" aria-label="Remove this key date">×</button></div>`; }
+function renderKd(){ if (!$("kdlist") || kdDirty) return; $("kdlist").innerHTML = kdList().map(kdRow).join(""); }
+$("kdadd").onclick = () => { kdDirty = true; $("kdlist").insertAdjacentHTML("beforeend", kdRow({ id: "k" + Date.now().toString(36), name: "", date: "" })); $("kdlist").lastElementChild.querySelector(".kdn").focus(); };
+$("kdlist").addEventListener("click", e => { const x = e.target.closest(".kdx"); if (x) { kdDirty = true; x.closest(".kdrow").remove(); } });
+$("kdlist").addEventListener("input", () => { kdDirty = true; });
+$("kdlist").addEventListener("change", () => { kdDirty = true; });
+$("kdf").addEventListener("submit", e => { e.preventDefault(); const dates = [];
+  for (const r of $("kdlist").querySelectorAll(".kdrow")) {
+    const name = r.querySelector(".kdn").value.trim(), date = r.querySelector(".kdd").value;
+    if (!name && !date) continue;
+    if (!name || !date) { toast("Each key date needs a name and a date."); return; }
+    const a = audRead(r.querySelector(".aud")); dates.push({ id: r.dataset.id, name, date, depts: a.depts, heads: a.heads });
+  }
+  dates.sort((x, y) => x.date.localeCompare(y.date));
+  setDoc(doc(db,"settings","event"), { dates }, { merge: true }).then(() => { kdDirty = false; toast("Key dates saved."); }).catch(fail); });
+
+// ---------- who's online (presence/{email}: last seen while the tracker is open on screen) ----------
+let presence = [], beatT = null;
+const ONLINE_MS = 6 * 60e3, BEAT_MS = 3 * 60e3;
+function beat(){ if (!me || document.visibilityState !== "visible") return; setDoc(doc(db,"presence",me.email), { name: me.name || "", dept: me.dept || "", at: serverTimestamp() }).catch(e => console.warn("presence", e)); }
+function startPresence(){ clearInterval(beatT); beat(); beatT = setInterval(beat, BEAT_MS); }
+function stopPresence(){ clearInterval(beatT); beatT = null; presence = []; $("onl").hidden = $("onl2").hidden = true; $("onlpop").hidden = true; }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") beat(); });
+setInterval(() => { if (me) renderOnline(); }, 60e3);
+const ini = n => String(n || "?").trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+const pnm = p => people[p.email]?.nick || people[p.email]?.name || p.name || p.email;
+function onlineNow(){ const now = Date.now();
+  const L = presence.filter(p => p.email === me?.email || (p.at?.toMillis && now - p.at.toMillis() < ONLINE_MS));
+  if (me && !L.some(p => p.email === me.email)) L.push({ email: me.email, name: me.name, dept: me.dept });
+  return L.sort((a, b) => (a.email === me.email ? -1 : b.email === me.email ? 1 : 0) || String(pnm(a)).localeCompare(pnm(b))); }
+function renderOnline(){ const L = me ? onlineNow() : [];
+  const html = L.length ? `<span class="dot" aria-hidden="true"></span><span class="avs" aria-hidden="true">${L.slice(0, 3).map(p => `<span class="av" style="--dc:${col(p.dept)}">${esc(ini(pnm(p)))}</span>`).join("")}</span><span>${L.length}<span class="lbl"> online</span></span>` : "";
+  ["onl", "onl2"].forEach(id => { const b = $(id); b.hidden = !me; b.innerHTML = html; b.setAttribute("aria-label", L.length + " online now"); b.title = "Who's online"; });
+  if (!$("onlpop").hidden) paintOnl(); }
+function paintOnl(){ const L = onlineNow(), now = Date.now();
+  $("onlc").textContent = L.length + (L.length === 1 ? " person" : " people");
+  $("onll").innerHTML = L.map(p => { const m = p.at?.toMillis ? Math.round((now - p.at.toMillis()) / 60000) : 0;
+    return `<li><span class="av" style="--dc:${col(p.dept)}">${esc(ini(pnm(p)))}</span><span class="nm">${esc(pnm(p))}${p.email === me.email ? " (you)" : ""}<small>${esc(p.dept || "No department")}</small></span><span class="ago">${m < 2 ? "now" : m + " min ago"}</span></li>`; }).join(""); }
+function toggleOnl(btn){ const pop = $("onlpop"); if (!pop.hidden) { pop.hidden = true; return; }
+  paintOnl(); pop.hidden = false; const r = btn.getBoundingClientRect(), w = pop.offsetWidth;
+  pop.style.top = (r.bottom + 8) + "px"; pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.right - w)) + "px"; }
+$("onl").onclick = e => { e.stopPropagation(); toggleOnl(e.currentTarget); };
+$("onl2").onclick = e => { e.stopPropagation(); toggleOnl(e.currentTarget); };
+document.addEventListener("click", e => { if (!$("onlpop").hidden && !e.target.closest("#onlpop,.onl")) $("onlpop").hidden = true; });
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("onlpop").hidden = true; });
 
 // ---------- first-time tour (shown once per account; replay from the avatar menu) ----------
 const TOUR_KEY = () => "tubc-tour-v1:" + (me?.email || "");

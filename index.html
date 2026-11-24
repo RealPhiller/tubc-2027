@@ -686,33 +686,101 @@ small.opt{font-weight:400;color:var(--mute)}
 .tour-a span{flex:1}
 .tour-a button{min-height:40px}
 body.touring{overflow:hidden}
-/* announcement banner */
-.annbar{background:var(--goldsoft);color:var(--ink);border-bottom:1px solid color-mix(in srgb,var(--gold) 50%,transparent);padding:10px max(5vw,16px);animation:annin .35s cubic-bezier(.2,.8,.2,1)}
-.annbar.urgent{background:#c8302d;color:#fff;border-color:#a1221f}
-.annbar .wrap{display:flex;align-items:center;gap:12px}
-.annic{font-size:20px;line-height:1}
+/* announcement banner: a card floating on the red header */
+.annbar{background:var(--redd);padding:16px max(5vw,16px) 12px}
+.anncard{position:relative;display:flex;align-items:center;gap:12px;background:var(--bg);color:var(--ink);border-radius:16px;padding:12px 12px 12px 16px;box-shadow:0 12px 32px rgba(0,0,0,.25);overflow:hidden;animation:anndrop .55s cubic-bezier(.34,1.56,.64,1) both,annglow 2.8s ease-in-out .9s infinite}
+.anncard::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,light-dark(rgba(255,255,255,.75),rgba(255,255,255,.12)) 50%,transparent 65%);transform:translateX(-130%);animation:annsheen 7s ease-in-out 1.2s infinite}
+.anncard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(var(--gold),#f3c64e)}
+.annic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--goldsoft);color:light-dark(#a8740a,#e8a817);flex:none;animation:annring 6s ease .55s infinite}
+.annic svg,.annlink svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .annb{flex:1;min-width:0}
-.annb p{margin:0;font:600 15px/1.4 "Red Hat Text",sans-serif;overflow-wrap:anywhere;white-space:pre-line}
-.annmeta{display:block;font-size:12px;opacity:.7;margin-top:2px}
-.annlink{font:700 14px "Red Hat Text",sans-serif;color:inherit;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
-.annx{border:0;background:none;color:inherit;font-size:24px;line-height:1;cursor:pointer;padding:4px 8px;border-radius:6px;opacity:.7}
-.annx:hover{opacity:1;background:rgba(0,0,0,.08)}
-@keyframes annin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.annlab{display:flex;align-items:center;gap:6px;font:800 11px/1.2 "Red Hat Text",sans-serif;letter-spacing:.09em;text-transform:uppercase;color:light-dark(#a8740a,#e8a817)}
+.annlab::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;animation:annlive 1.4s ease-in-out infinite}
+.annb p{margin:3px 0 0;font:600 15.5px/1.4 "Red Hat Text",sans-serif;overflow-wrap:anywhere;white-space:pre-line}
+.annmeta{display:block;font-size:12px;color:var(--mute);margin-top:3px}
+.annlink{display:inline-flex;align-items:center;gap:4px;padding:8px 12px 8px 14px;border-radius:999px;background:var(--gold);color:#17120f;font:700 13px "Red Hat Text",sans-serif;text-decoration:none;white-space:nowrap;flex:none;transition:transform .15s}
+.annlink svg{width:15px;height:15px}
+.annlink:hover{transform:translateY(-1px)}
+.annx{width:32px;height:32px;border-radius:50%;border:0;background:var(--panel);color:var(--mute);font:400 20px/1 "Red Hat Text",sans-serif;display:grid;place-items:center;cursor:pointer;flex:none;transition:background .15s,color .15s}
+.annx:hover{background:var(--line);color:var(--ink)}
+.annbar.urgent .anncard::before{background:linear-gradient(#c8302d,#e8574f)}
+.annbar.urgent .anncard{animation:anndrop .55s cubic-bezier(.34,1.56,.64,1) both,annshake .55s ease .6s 1,annglowr 1.7s ease-in-out 1.2s infinite}
+.annbar.urgent .annic{background:light-dark(#fde0de,#47191b);color:#e0453f;animation:annring 3s ease .55s infinite,annpulse 1.7s ease-out 1.2s infinite}
+.annbar.urgent .annlab{color:#e0453f}
+.annbar.urgent .annlink{background:#c8302d;color:#fff}
+.annbar.out .anncard{animation:annout .28s ease-in forwards}
+@keyframes anndrop{from{opacity:0;transform:translateY(-16px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes annwig{0%,100%{transform:rotate(0)}20%{transform:rotate(-16deg)}40%{transform:rotate(12deg)}60%{transform:rotate(-7deg)}80%{transform:rotate(3deg)}}
+@keyframes annpulse{0%{box-shadow:0 0 0 0 rgba(224,69,63,.5)}100%{box-shadow:0 0 0 14px rgba(224,69,63,0)}}
+@keyframes annout{to{opacity:0;transform:translateY(-12px) scale(.96)}}
+@keyframes annring{0%,100%{transform:rotate(0)}3%{transform:rotate(-16deg)}6%{transform:rotate(13deg)}9%{transform:rotate(-9deg)}12%{transform:rotate(5deg)}15%{transform:rotate(0)}}
+@keyframes annsheen{0%{transform:translateX(-130%)}16%,100%{transform:translateX(130%)}}
+@keyframes annglow{0%,100%{box-shadow:0 12px 32px rgba(0,0,0,.25),0 0 0 0 rgba(232,168,23,0)}50%{box-shadow:0 12px 32px rgba(0,0,0,.25),0 0 0 5px rgba(232,168,23,.45)}}
+@keyframes annglowr{0%,100%{box-shadow:0 12px 32px rgba(0,0,0,.25),0 0 0 0 rgba(224,69,63,0)}50%{box-shadow:0 12px 32px rgba(0,0,0,.25),0 0 0 6px rgba(255,120,110,.6)}}
+@keyframes annshake{0%,100%{transform:none}15%{transform:translateX(-8px) rotate(-.6deg)}30%{transform:translateX(7px) rotate(.5deg)}45%{transform:translateX(-5px)}60%{transform:translateX(4px)}80%{transform:translateX(-2px)}}
+@keyframes annlive{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
 :root[data-gate] .annbar{display:none!important}
+@media(max-width:600px){.anncard{flex-wrap:wrap;align-items:flex-start;gap:10px 12px}.annb{flex:1 1 calc(100% - 100px)}.annlink{margin-left:52px}}
+/* who's online */
+.onl{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:3px 11px 3px 4px;font:600 13px "Red Hat Text",sans-serif;cursor:pointer;flex:none;white-space:nowrap;transition:border-color .15s}
+.onl:hover{border-color:var(--ink)}
+.onl[hidden]{display:none}
+.onl .avs{display:inline-flex}
+.onl .av,.onlpop .av{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--dc,#868e96);color:#fff;font:700 10px "Red Hat Text",sans-serif;border:2px solid var(--bg);flex:none}
+.onl .av+.av{margin-left:-9px}
+.onl .dot{width:8px;height:8px;border-radius:50%;background:#2fb344;animation:onlp 2.2s ease-out infinite;flex:none}
+@keyframes onlp{0%{box-shadow:0 0 0 0 rgba(47,179,68,.55)}100%{box-shadow:0 0 0 7px rgba(47,179,68,0)}}
+.onl-m{margin-left:8px}
+.onl-m .lbl{display:none}
+@media(max-width:760px){.nav .pname{display:none}.onl-m{margin-left:auto}}
+@media(min-width:1241px){.onl-m{display:none!important}}
+@media(max-width:1240px){.onl-d{display:none!important}}
+.onlpop{position:fixed;z-index:60;width:min(300px,calc(100vw - 24px));background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.22);padding:12px;animation:hpin .18s ease-out}
+.onlpop[hidden]{display:none}
+.onlh{display:flex;justify-content:space-between;align-items:baseline;margin:2px 4px 8px;font:700 15px "Red Hat Display",sans-serif}
+.onlh span{font:600 12px "Red Hat Text",sans-serif;color:var(--mute)}
+.onlpop ul{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:min(360px,55vh);overflow:auto}
+.onlpop li{display:flex;align-items:center;gap:10px;padding:7px 6px;border-radius:8px}
+.onlpop li:hover{background:var(--panel)}
+.onlpop .av{width:30px;height:30px;font-size:11px;border:0;position:relative}
+.onlpop .av::after{content:"";position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:#2fb344;border:2px solid var(--bg)}
+.onlpop .nm{flex:1;min-width:0;font:600 14px "Red Hat Text",sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.onlpop .nm small{display:block;font:500 12px "Red Hat Text",sans-serif;color:var(--mute)}
+.onlpop .ago{font-size:12px;color:var(--mute);white-space:nowrap}
+.onln{margin:8px 4px 2px;font-size:12px;color:var(--mute)}
 .annf{background:var(--panel);border-radius:8px;padding:16px;display:grid;gap:10px;margin-top:8px}
 .annf textarea{width:100%;box-sizing:border-box;font:15px/1.4 "Red Hat Text",sans-serif;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);resize:vertical}
 .annrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .annrow input{flex:1;min-width:200px}
+/* audience picker + key dates editor */
+.aud{position:relative}
+.aud summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font:600 13px "Red Hat Text",sans-serif;color:var(--ink);white-space:nowrap;max-width:240px;overflow:hidden;text-overflow:ellipsis}
+.aud summary::-webkit-details-marker{display:none}
+.aud summary::after{content:"\25BE";color:var(--mute)}
+.audpop{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:min(320px,calc(100vw - 40px));background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:12px;display:grid;gap:10px}
+.audpop label{display:flex;align-items:center;gap:6px;font:500 13.5px "Red Hat Text",sans-serif;cursor:pointer}
+.audall,.audheads{font-weight:700!important}
+.audgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.audl,.kda>span{font:600 13px "Red Hat Text",sans-serif;color:var(--mute)}
+.kdf{background:var(--panel);border-radius:8px;padding:16px;display:grid;gap:10px;margin-top:8px}
+.kdlist{display:grid;gap:8px}
+.kdrow{display:grid;grid-template-columns:minmax(0,1fr) 160px 290px 36px;gap:10px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px}
+.kdrow input{min-width:0}
+.kda{display:flex;align-items:center;gap:8px}
+.kdx{width:32px;height:32px;border-radius:50%;border:0;background:var(--panel);color:var(--mute);font-size:20px;cursor:pointer}
+.kdx:hover{color:#c8302d}
+.kdbtns{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
+@media(max-width:700px){.kdrow{grid-template-columns:minmax(0,1fr) 36px}.kdrow .kdd{grid-column:1}.kda{grid-column:1/-1;flex-wrap:wrap}.kdrow .kdx{grid-row:1;grid-column:2}}
 </style>
 </head>
 <body>
 <nav class="nav" aria-label="Pages"><div class="wrap">
   <button type="button" class="menu" id="menu" aria-label="Open menu" aria-controls="drawer" aria-expanded="false" hidden><span></span><span></span><span></span></button>
-  <span class="brand"><i class="tlogo bmark" aria-hidden="true"></i>TUBC 2027</span><span class="pname" id="pname"></span>
+  <span class="brand"><i class="tlogo bmark" aria-hidden="true"></i>TUBC 2027</span><span class="pname" id="pname"></span><button type="button" class="onl onl-m" id="onl" aria-haspopup="dialog" aria-controls="onlpop" hidden></button>
   <div class="drawer" id="drawer">
   <div class="dhead"><span class="brand"><i class="tlogo bmark" aria-hidden="true"></i>TUBC 2027</span><button type="button" class="x" id="dclose" aria-label="Close menu">×</button></div>
   <div class="tabs" hidden><a href="#mine" id="t-mine">My tasks<span class="badge" id="mbadge" hidden></span></a><a href="#overview" id="t-overview" hidden>Overview</a><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#sponsors" id="t-sponsors" hidden>Sponsors</a><a href="#team" id="t-team">Team</a><i class="tabbar" id="tabbar" aria-hidden="true"></i></div>
-  <div class="me" id="me" hidden><button type="button" class="ico2" id="srchbtn" aria-label="Search tasks" title="Search tasks (Ctrl+K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></button>
+  <div class="me" id="me" hidden><button type="button" class="onl onl-d" id="onl2" aria-haspopup="dialog" aria-controls="onlpop" hidden></button><button type="button" class="ico2" id="srchbtn" aria-label="Search tasks" title="Search tasks (Ctrl+K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></button>
   <div class="umw"><button type="button" id="mename" class="mename" aria-haspopup="true" aria-expanded="false" aria-controls="umenu" title="Account"><span class="meav" id="meav"></span><span id="menm"></span><span class="udot" id="udot" hidden></span></button>
   <div class="umenu" id="umenu" hidden>
     <div class="umh"><b id="umname"></b><span id="umemail"></span><span class="lvl" id="melvl"></span></div>
@@ -725,8 +793,9 @@ body.touring{overflow:hidden}
   </div></div></div>
   </div>
 </div></nav>
+<div class="onlpop" id="onlpop" role="dialog" aria-label="Online now" hidden><div class="onlh"><b>Online now</b><span id="onlc"></span></div><ul id="onll"></ul><p class="onln">People with the tracker open in the last few minutes.</p></div>
 <div class="cdbar" id="cdbar" hidden><div class="wrap" id="cdin" role="status"></div></div>
-<div class="annbar" id="annbar" role="status" hidden><div class="wrap"><span class="annic" aria-hidden="true">📣</span><div class="annb"><p id="anntext"></p><span class="annmeta" id="annmeta"></span></div><a class="annlink" id="annlink" target="_blank" rel="noopener noreferrer" hidden>Open link</a><button type="button" class="annx" id="annx" aria-label="Close announcement">×</button></div></div>
+<div class="annbar" id="annbar" role="status" hidden><div class="wrap"><div class="anncard"><span class="annic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10.5v3a1 1 0 0 0 1 1h2.5l5.5 4.5v-14L6.5 9.5H4a1 1 0 0 0-1 1z"/><path d="M16 9a4.5 4.5 0 0 1 0 6"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg></span><div class="annb"><span class="annlab" id="annlab">Announcement</span><p id="anntext"></p><span class="annmeta" id="annmeta"></span></div><a class="annlink" id="annlink" target="_blank" rel="noopener noreferrer" hidden>Open link<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a><button type="button" class="annx" id="annx" aria-label="Close announcement">×</button></div></div></div>
 <div class="scrim" id="scrim" hidden></div>
 <div class="view gate" id="v-login" hidden><div class="gsky" aria-hidden="true"></div><div class="gbox">
   <div class="gmarkw"><div class="tlogo gmark" role="img" aria-label="TUBC logo"></div></div><h1 class="glogo"><span>TUBC</span> <span>2027</span></h1><span class="gline" aria-hidden="true"></span><p>Sign in with your Google account. New here? You can ask to join after signing in.</p>
@@ -792,12 +861,13 @@ body.touring{overflow:hidden}
     <select id="md" aria-label="Department"></select><button type="submit">Add member</button></form>
   <div class="scroll"><table class="qt stack" id="mt"><thead><tr><th>Email</th><th>Level</th><th>Department</th><th></th></tr></thead><tbody></tbody></table></div>
   <h2 class="ptitle">Announcement</h2>
-  <p class="plede">Shows as a banner at the top of every page for everyone until you remove it. People can close it on their own device; a new announcement shows again for everyone.</p>
+  <p class="plede">Shows as a banner at the top of every page for everyone until you remove it. People can close it on their own device; a new announcement shows again. "Who sees it" hides it from view only, so don't post secrets.</p>
   <form class="annf" id="annf"><textarea id="annt" maxlength="280" rows="2" placeholder="e.g. All-heads meeting Fri 28 Nov, 6pm, room 301" aria-label="Announcement" required></textarea>
+  <div class="annrow"><span class="audl">Who sees it</span><div id="annaudw"></div></div>
   <div class="annrow"><select id="annl" aria-label="Type"><option value="info">Normal (gold)</option><option value="urgent">Urgent (red)</option></select><input id="annu" type="url" placeholder="Link (optional), e.g. a Google Meet link" aria-label="Link"><button type="submit" class="pri">Post</button><button type="button" class="ghost" id="annrm" hidden>Remove</button></div></form>
   <h2 class="ptitle">Key dates</h2>
-  <p class="plede">Used for the countdown at the top of every page.</p>
-  <form class="add" id="kdf"><label class="kdl">The Challenger <input type="date" id="kd1" required></label><label class="kdl">TUBC starts <input type="date" id="kd2" required></label><button type="submit">Save dates</button></form>
+  <p class="plede">Countdowns at the top of every page; each person sees the next 4 they're allowed to see. Choose who sees each one (nobody ticked = everyone). This hides it from view only, so don't put secrets here.</p>
+  <form class="kdf" id="kdf"><div class="kdlist" id="kdlist"></div><div class="kdbtns"><button type="button" class="ghost" id="kdadd">+ Add key date</button><button type="submit" class="pri">Save key dates</button></div></form>
   <h2 class="ptitle">What each level can do</h2>
   <p class="plede">Turn a switch on to let that level do it. "Their department" means the department set for that person above. Changes apply right away for everyone.</p>
   <div class="scroll"><table class="qt" id="pm"><thead><tr><th>Permission</th><th class="pc2">Admin</th><th class="pc2">Head</th><th class="pc2">Member</th></tr></thead><tbody></tbody></table></div>
@@ -1085,7 +1155,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125b";
+const BUILD="b20261125d";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -1143,7 +1213,7 @@ $("login").onclick = async ()=>{ $("lerr").textContent=""; try{ const pv=new Goo
 $("out").onclick = $("out2").onclick = ()=>{ closeMenu(); closeUM(); signOut(auth); };
 
 onAuthStateChanged(auth, async u=>{
-  unsub.forEach(fn=>fn()); unsub=[]; me=null; events=[]; ann=null; $("annbar").hidden=true; $("cdbar").hidden=true; logs=[]; mdPicked=false;
+  unsub.forEach(fn=>fn()); unsub=[]; me=null; events=[]; ann=null; $("annbar").hidden=true; stopPresence(); $("cdbar").hidden=true; logs=[]; mdPicked=false;
   document.querySelector(".tabs").hidden = true; $("me").hidden = true; $("menu").hidden = true; $("pname").textContent = ""; closeMenu();
   $("bnav").hidden = true; $("fab").hidden = true; document.body.classList.remove("authed"); comments=[]; seenComments=null; sponsors=[]; if(sponsUnsub){ sponsUnsub(); sponsUnsub=null; }
   if(!u){ show("login"); return; }
@@ -1169,9 +1239,11 @@ onAuthStateChanged(auth, async u=>{
 
 function start(){
   unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})).filter(t=>phVis(t.phase)); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
+  unsub.push(onSnapshot(collection(db,"presence"), s=>{ presence=s.docs.map(d=>({email:d.id,...d.data()})); renderOnline(); }, e=>console.warn("presence",e)));
+  startPresence(); renderOnline();
   unsub.push(onSnapshot(doc(db,"settings","announce"), s=>{ ann=s.exists()?s.data():null; renderAnn(); }, e=>console.warn("announce",e)));
   unsub.push(onSnapshot(collection(db,"events"), s=>{ events=s.docs.map(d=>({id:d.id,...d.data()})); renderCal(); }, e=>console.warn("events",e)));
-  unsub.push(onSnapshot(doc(db,"settings","event"), s=>{ if(s.exists()) ev={...ev,...s.data()}; renderCd(); if($("kd1")){ $("kd1").value=ev.challenger||""; $("kd2").value=ev.tubc||""; } }, ()=>{}));
+  unsub.push(onSnapshot(doc(db,"settings","event"), s=>{ if(s.exists()) ev={...ev,...s.data()}; renderCd(); renderKd(); }, ()=>{}));
   unsub.push(onSnapshot(query(collection(db,"log"),orderBy("at","desc"),limit(200)), s=>{ logs=s.docs.map(d=>({id:d.id,...d.data()})); renderFeed(); if($("td").open&&curTask) renderHist(curTask); }, e=>console.warn("log",e)));
   unsub.push(onSnapshot(doc(db,"settings","permissions"), s=>{ const d=s.exists()?s.data():{}; perms={head:{...DEF_PERMS.head,...(d.head||{})},viewer:{...DEF_PERMS.viewer,...(d.viewer||{})}}; render(); renderHeads(); renderPerms(); }, fail));
   unsub.push(onSnapshot(collection(db,"heads"), s=>{ heads={}; s.docs.forEach(d=>heads[d.id]=d.data().list||[]); renderHeads(); }, fail));
@@ -1561,12 +1633,13 @@ function renderHist(id){ if(!$("tdh")) return; const L=logs.filter(l=>l.task===i
 
 // ---------- countdown ----------
 function renderCd(){ const el=$("cdbar"); if(!el) return; if(!me){ el.hidden=true; return; }
-  const d0=new Date(iso(new Date())+"T00:00");
-  const item=(lbl,d)=>{ if(!d) return ""; const n=Math.round((new Date(d+"T00:00")-d0)/864e5);
+  const td=iso(new Date()), d0=new Date(td+"T00:00");
+  const item=k=>{ const n=Math.round((new Date(k.date+"T00:00")-d0)/864e5);
     const txt = n>1?`<b>${n}</b> days`: n===1?`<b>Tomorrow</b>`: n===0?`<b>Today</b>`:`Done ✓`;
-    return `<div class="cdi${n<0?" past":""}${n>=0&&n<=14?" soon":""}"><em>${lbl}</em><span>${txt}</span><small>${fmt(d)}${d.slice(0,4)!=="2026"?" "+d.slice(0,4):""}</small></div>`; };
-  $("cdin").innerHTML=item("The Challenger",ev.challenger)+item("TUBC",ev.tubc); el.hidden=false; }
-$("kdf").addEventListener("submit",e=>{ e.preventDefault(); setDoc(doc(db,"settings","event"),{challenger:$("kd1").value,tubc:$("kd2").value},{merge:true}).then(()=>toast("Key dates saved.")).catch(fail); });
+    return `<div class="cdi${n<0?" past":""}${n>=0&&n<=14?" soon":""}"><em>${esc(k.name)}</em><span>${txt}</span><small>${fmt(k.date)}${k.date.slice(0,4)!=="2026"?" "+k.date.slice(0,4):""}</small></div>`; };
+  const vis=kdList().filter(k=>k.date&&canSee(k)).sort((a,b)=>a.date.localeCompare(b.date)), up=vis.filter(k=>k.date>=td);
+  const show=(up.length?up:vis.slice(-2)).slice(0,4);
+  el.hidden=!show.length; $("cdin").innerHTML=show.map(item).join(""); }
 
 // ---------- my tasks ----------
 let mdPicked=false;
@@ -1928,24 +2001,95 @@ const ANN_KEY = id => "tubc-ann-closed:" + id;
 function renderAnn(){
   const b = $("annbar"), a = ann && ann.text ? ann : null;
   let closed = false; try { closed = !!(a && localStorage.getItem(ANN_KEY(a.id))); } catch {}
-  b.hidden = !me || !a || closed;
+  const show = !!me && !!a && !closed && canSee(a);
+  b.hidden = !show; if (show) b.classList.remove("out");
   if (a) {
+    $("annlab").textContent = a.level === "urgent" ? "Urgent" : "Announcement";
     $("anntext").textContent = a.text; b.classList.toggle("urgent", a.level === "urgent");
-    $("annmeta").textContent = (a.by ? a.by + " · " : "") + rel(a.at);
+    const aud = ((a.depts || []).length || a.heads) && isAdmin() ? " · for " + audLabel(a) : "";
+    $("annmeta").textContent = (a.by ? a.by + " · " : "") + rel(a.at) + aud;
     const L = $("annlink"); L.hidden = !a.link; if (a.link) L.href = a.link;
   }
   if (isAdmin()) {
     $("annrm").hidden = !a;
-    if (a && !annDirty) { $("annt").value = a.text; $("annl").value = a.level || "info"; $("annu").value = a.link || ""; }
+    if (!annDirty) { if (a) { $("annt").value = a.text; $("annl").value = a.level || "info"; $("annu").value = a.link || ""; } $("annaudw").innerHTML = audHtml("annaud", a || {}); }
   }
 }
-$("annx").onclick = () => { if (!ann) return; try { localStorage.setItem(ANN_KEY(ann.id), "1"); } catch {} $("annbar").hidden = true; };
+$("annx").onclick = () => { if (!ann) return; try { localStorage.setItem(ANN_KEY(ann.id), "1"); } catch {}
+  const b = $("annbar"); if (!motion()) { b.hidden = true; return; } b.classList.add("out"); setTimeout(() => { b.hidden = true; b.classList.remove("out"); }, 280); };
 ["annt", "annl", "annu"].forEach(id => $(id).addEventListener("input", () => { annDirty = true; }));
+$("annf").addEventListener("change", () => { annDirty = true; });
 $("annf").addEventListener("submit", e => { e.preventDefault(); const text = $("annt").value.trim(), link = $("annu").value.trim(); if (!text) return;
   if (link && !/^https?:\/\//i.test(link)) { toast("The link must start with https://"); return; }
-  setDoc(doc(db,"settings","announce"), { text, level: $("annl").value, link, by: me.name, at: serverTimestamp(), id: String(Date.now()) })
+  const aud = $("annaud") ? audRead($("annaud")) : { depts: [], heads: false };
+  setDoc(doc(db,"settings","announce"), { text, level: $("annl").value, link, depts: aud.depts, heads: aud.heads, by: me.name, at: serverTimestamp(), id: String(Date.now()) })
     .then(() => { annDirty = false; toast("Announcement posted. Everyone sees it now."); }).catch(fail); });
 $("annrm").onclick = () => { deleteDoc(doc(db,"settings","announce")).then(() => { annDirty = false; $("annt").value = ""; $("annu").value = ""; $("annl").value = "info"; toast("Announcement removed."); }).catch(fail); };
+
+// ---------- audience picker ("who can see this") for key dates and the announcement ----------
+// Display filter only: every member can still read these documents in Firestore, so don't put secrets in them.
+const canSee = a => !a || isAdmin() || ((!(a.depts || []).length || a.depts.includes(me?.dept) || (a.depts.includes("PVP") && me?.dept === "President")) && (!a.heads || isHeadUp()));
+function audLabel(a){ const d = (a && a.depts) || []; return (d.length ? (d.length > 3 ? d.slice(0, 3).join(", ") + " +" + (d.length - 3) : d.join(", ")) : "Everyone") + (a && a.heads ? " · heads only" : ""); }
+function audHtml(id, a){ a = a || {}; const sel = new Set(a.depts || []);
+  return `<details class="aud" id="${esc(id)}"><summary>${esc(audLabel(a))}</summary><div class="audpop">`
+    + `<label class="audall"><input type="checkbox" data-aud-all${sel.size ? "" : " checked"}> Everyone</label>`
+    + `<div class="audgrid">${DEPTS.map(d => `<label><input type="checkbox" value="${esc(d)}"${sel.has(d) ? " checked" : ""}> ${esc(d)}</label>`).join("")}</div>`
+    + `<label class="audheads"><input type="checkbox" data-aud-heads${a.heads ? " checked" : ""}> Heads and admins only</label></div></details>`; }
+function audRead(el){ return { depts: [...el.querySelectorAll(".audgrid input:checked")].map(i => i.value), heads: !!el.querySelector("[data-aud-heads]")?.checked }; }
+document.addEventListener("change", e => { const box = e.target.closest(".aud"); if (!box) return;
+  if (e.target.matches("[data-aud-all]") && e.target.checked) box.querySelectorAll(".audgrid input").forEach(i => { i.checked = false; });
+  if (e.target.closest(".audgrid")) box.querySelector("[data-aud-all]").checked = !box.querySelector(".audgrid input:checked");
+  box.querySelector("summary").textContent = audLabel(audRead(box)); });
+document.addEventListener("click", e => { document.querySelectorAll("details.aud[open]").forEach(d => { if (!d.contains(e.target)) d.open = false; }); });
+
+// ---------- key dates (settings/event.dates; the countdown shows the next 4 each person can see) ----------
+let kdDirty = false;
+const kdList = () => (ev.dates && ev.dates.length) ? ev.dates : [{ id: "clg", name: "The Challenger", date: ev.challenger || "" }, { id: "tubc", name: "TUBC", date: ev.tubc || "" }];
+function kdRow(k){ return `<div class="kdrow" data-id="${esc(k.id)}"><input class="kdn" maxlength="40" placeholder="Name, e.g. Recruitment opens" value="${esc(k.name || "")}" aria-label="Key date name"><input class="kdd" type="date" value="${esc(k.date || "")}" aria-label="Date"><div class="kda"><span>Who sees it</span>${audHtml("kaud-" + k.id, k)}</div><button type="button" class="kdx" aria-label="Remove this key date">×</button></div>`; }
+function renderKd(){ if (!$("kdlist") || kdDirty) return; $("kdlist").innerHTML = kdList().map(kdRow).join(""); }
+$("kdadd").onclick = () => { kdDirty = true; $("kdlist").insertAdjacentHTML("beforeend", kdRow({ id: "k" + Date.now().toString(36), name: "", date: "" })); $("kdlist").lastElementChild.querySelector(".kdn").focus(); };
+$("kdlist").addEventListener("click", e => { const x = e.target.closest(".kdx"); if (x) { kdDirty = true; x.closest(".kdrow").remove(); } });
+$("kdlist").addEventListener("input", () => { kdDirty = true; });
+$("kdlist").addEventListener("change", () => { kdDirty = true; });
+$("kdf").addEventListener("submit", e => { e.preventDefault(); const dates = [];
+  for (const r of $("kdlist").querySelectorAll(".kdrow")) {
+    const name = r.querySelector(".kdn").value.trim(), date = r.querySelector(".kdd").value;
+    if (!name && !date) continue;
+    if (!name || !date) { toast("Each key date needs a name and a date."); return; }
+    const a = audRead(r.querySelector(".aud")); dates.push({ id: r.dataset.id, name, date, depts: a.depts, heads: a.heads });
+  }
+  dates.sort((x, y) => x.date.localeCompare(y.date));
+  setDoc(doc(db,"settings","event"), { dates }, { merge: true }).then(() => { kdDirty = false; toast("Key dates saved."); }).catch(fail); });
+
+// ---------- who's online (presence/{email}: last seen while the tracker is open on screen) ----------
+let presence = [], beatT = null;
+const ONLINE_MS = 6 * 60e3, BEAT_MS = 3 * 60e3;
+function beat(){ if (!me || document.visibilityState !== "visible") return; setDoc(doc(db,"presence",me.email), { name: me.name || "", dept: me.dept || "", at: serverTimestamp() }).catch(e => console.warn("presence", e)); }
+function startPresence(){ clearInterval(beatT); beat(); beatT = setInterval(beat, BEAT_MS); }
+function stopPresence(){ clearInterval(beatT); beatT = null; presence = []; $("onl").hidden = $("onl2").hidden = true; $("onlpop").hidden = true; }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") beat(); });
+setInterval(() => { if (me) renderOnline(); }, 60e3);
+const ini = n => String(n || "?").trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+const pnm = p => people[p.email]?.nick || people[p.email]?.name || p.name || p.email;
+function onlineNow(){ const now = Date.now();
+  const L = presence.filter(p => p.email === me?.email || (p.at?.toMillis && now - p.at.toMillis() < ONLINE_MS));
+  if (me && !L.some(p => p.email === me.email)) L.push({ email: me.email, name: me.name, dept: me.dept });
+  return L.sort((a, b) => (a.email === me.email ? -1 : b.email === me.email ? 1 : 0) || String(pnm(a)).localeCompare(pnm(b))); }
+function renderOnline(){ const L = me ? onlineNow() : [];
+  const html = L.length ? `<span class="dot" aria-hidden="true"></span><span class="avs" aria-hidden="true">${L.slice(0, 3).map(p => `<span class="av" style="--dc:${col(p.dept)}">${esc(ini(pnm(p)))}</span>`).join("")}</span><span>${L.length}<span class="lbl"> online</span></span>` : "";
+  ["onl", "onl2"].forEach(id => { const b = $(id); b.hidden = !me; b.innerHTML = html; b.setAttribute("aria-label", L.length + " online now"); b.title = "Who's online"; });
+  if (!$("onlpop").hidden) paintOnl(); }
+function paintOnl(){ const L = onlineNow(), now = Date.now();
+  $("onlc").textContent = L.length + (L.length === 1 ? " person" : " people");
+  $("onll").innerHTML = L.map(p => { const m = p.at?.toMillis ? Math.round((now - p.at.toMillis()) / 60000) : 0;
+    return `<li><span class="av" style="--dc:${col(p.dept)}">${esc(ini(pnm(p)))}</span><span class="nm">${esc(pnm(p))}${p.email === me.email ? " (you)" : ""}<small>${esc(p.dept || "No department")}</small></span><span class="ago">${m < 2 ? "now" : m + " min ago"}</span></li>`; }).join(""); }
+function toggleOnl(btn){ const pop = $("onlpop"); if (!pop.hidden) { pop.hidden = true; return; }
+  paintOnl(); pop.hidden = false; const r = btn.getBoundingClientRect(), w = pop.offsetWidth;
+  pop.style.top = (r.bottom + 8) + "px"; pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.right - w)) + "px"; }
+$("onl").onclick = e => { e.stopPropagation(); toggleOnl(e.currentTarget); };
+$("onl2").onclick = e => { e.stopPropagation(); toggleOnl(e.currentTarget); };
+document.addEventListener("click", e => { if (!$("onlpop").hidden && !e.target.closest("#onlpop,.onl")) $("onlpop").hidden = true; });
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("onlpop").hidden = true; });
 
 // ---------- first-time tour (shown once per account; replay from the avatar menu) ----------
 const TOUR_KEY = () => "tubc-tour-v1:" + (me?.email || "");
