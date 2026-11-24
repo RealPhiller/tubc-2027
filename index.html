@@ -823,7 +823,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124e";
+const BUILD="b20261124f";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -1062,7 +1062,7 @@ function renderRequests(){ if(!$("rq")) return; $("rqbox").hidden=!requests.leng
 document.addEventListener("click", e=>{ const a=e.target.closest("[data-approve],[data-reject]"); if(!a) return;
   const email=a.dataset.approve||a.dataset.reject; const r=requests.find(x=>x.email===email);
   if(a.dataset.reject){ deleteDoc(doc(db,"requests",email)).then(()=>toast("Request rejected.")).catch(fail); return; }
-  const b=writeBatch(db); b.set(doc(db,"members",email),{role:document.getElementById("rql-"+email).value,dept:document.getElementById("rqd-"+email).value,name:r?.name||""}); b.delete(doc(db,"requests",email));
+  const b=writeBatch(db); b.set(doc(db,"members",email),{role:document.getElementById("rql-"+email).value,dept:document.getElementById("rqd-"+email).value,name:r?.name||""}); b.set(doc(db,"people",email),{name:r?.name||email.split("@")[0],dept:document.getElementById("rqd-"+email).value},{merge:true}); b.delete(doc(db,"requests",email));
   b.commit().then(()=>toast((r?.name||email)+" approved.")).catch(fail); });
 
 // ---------- calendar export ----------
@@ -1237,7 +1237,10 @@ $("ddgo").onclick=()=>{ f.own=cur; closeD(); location.hash="#tracker"; render();
 // ---------- access ----------
 const deptOpts = sel => '<option value="">No department</option>'+DEPTS.map(d=>`<option${d===sel?" selected":""}>${esc(d)}</option>`).join("");
 $("md").innerHTML = deptOpts("");
-function renderMembers(){ renderPerms();
+function backfillPeople(){ if(!isAdmin()) return; members.forEach(mb=>{ const p=people[mb.email]; const name=(mb.name||"").trim()||mb.email.split("@")[0];
+    if(!p) setDoc(doc(db,"people",mb.email),{name,dept:mb.dept||""}).catch(e=>console.warn("people",e));
+    else if((p.dept||"")!==(mb.dept||"")) setDoc(doc(db,"people",mb.email),{dept:mb.dept||""},{merge:true}).catch(e=>console.warn("people",e)); }); }
+function renderMembers(){ renderPerms(); backfillPeople();
   $("mt").tBodies[0].innerHTML = members.map(m=>{ const self=m.email===me.email; return `<tr><td>${m.name?`<b>${esc(m.name)}</b><br>`:""}${esc(m.email)}${self?" (you)":""}</td><td><select data-role="${esc(m.email)}" aria-label="Level"${self?" disabled":""}>${["viewer","head","admin"].map(r=>`<option value="${r}"${r===m.role?" selected":""}>${ROLE_LABEL[r]}</option>`).join("")}</select></td><td><select data-mdept="${esc(m.email)}" aria-label="Department">${deptOpts(m.dept||"")}</select></td><td>${self?"":`<button type="button" class="ghost sm" data-rm="${esc(m.email)}">Remove</button>`}</td></tr>`; }).join("");
 }
 $("mf").addEventListener("submit", e=>{ e.preventDefault(); const email=$("me1").value.trim().toLowerCase(); if(!email) return;
@@ -1283,7 +1286,10 @@ function renderComments(id){ const L=comments.filter(c=>c.task===id).sort((a,b)=
   $("tcml").innerHTML=L.map(c=>`<li><button type="button" class="av avb" data-person="${esc(c.email)}" aria-label="View ${esc(c.by)}'s profile" style="--dc:${pcol(c.email)}">${esc(initials(c.by))}</button><div class="cmb"><header><b>${esc(c.by)}</b><time>${rel(c.at)}</time>${c.email===me.email||isAdmin()?`<button type="button" class="cdel" data-cmrm="${c.id}">Delete</button>`:""}</header>${fmtComment(c.text)}</div></li>`).join("")||'<li style="display:block;color:var(--mute);font-size:14px">No comments yet.</li>';
   const box=$("tcml"); box.scrollTop=box.scrollHeight; }
 let mq=null, mSel=0;
-function mentionList(q){ q=q.toLowerCase(); return Object.entries(people).filter(([e,p])=>p.name&&e!==me.email&&(p.name.toLowerCase().includes(q)||(p.dept||"").toLowerCase().startsWith(q))).sort((a,b)=>a[1].name.localeCompare(b[1].name)).slice(0,8); }
+function mentionList(q){ q=q.toLowerCase(); const words=p=>[p.name,p.nick,p.dept].filter(Boolean).map(x=>String(x).toLowerCase());
+  const score=([e,p])=>{ if(!q) return 1; const w=words(p), parts=w.flatMap(x=>x.split(/\s+/)), loc=e.split("@")[0].toLowerCase();
+    if(parts.some(x=>x.startsWith(q))) return 3; if(loc.startsWith(q)) return 2; if(w.some(x=>x.includes(q))||loc.includes(q)) return 1; return 0; };
+  return Object.entries(people).filter(([e,p])=>p.name&&e!==me.email).map(x=>[x,score(x)]).filter(([,s])=>s>0).sort((a,b)=>b[1]-a[1]||a[0][1].name.localeCompare(b[0][1].name)).slice(0,8).map(([x])=>x); }
 function showMentions(){ const ta=$("tcmi"), pre=ta.value.slice(0,ta.selectionStart), m2=pre.match(/(^|\s)@([^\s@]{0,30})$/);
   if(!m2){ $("mpop").hidden=true; mq=null; return; } mq={start:pre.length-m2[2].length-1,q:m2[2]}; const L=mentionList(m2[2]);
   if(!L.length){ $("mpop").hidden=true; return; } mSel=Math.min(mSel,L.length-1);
