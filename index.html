@@ -751,14 +751,16 @@ body.touring{overflow:hidden}
 .annf{background:var(--panel);border-radius:8px;padding:16px;display:grid;gap:10px;margin-top:8px}
 .annf textarea{width:100%;box-sizing:border-box;font:15px/1.4 "Red Hat Text",sans-serif;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);resize:vertical}
 .annrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.annrow input{flex:1;min-width:200px}
+.annrow>input{flex:1;min-width:200px}
 /* audience picker + key dates editor */
 .aud{position:relative}
 .aud summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font:600 13px "Red Hat Text",sans-serif;color:var(--ink);white-space:nowrap;max-width:240px;overflow:hidden;text-overflow:ellipsis}
 .aud summary::-webkit-details-marker{display:none}
 .aud summary::after{content:"\25BE";color:var(--mute)}
 .audpop{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:min(320px,calc(100vw - 40px));background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:12px;display:grid;gap:10px}
-.audpop label{display:flex;align-items:center;gap:6px;font:500 13.5px "Red Hat Text",sans-serif;cursor:pointer}
+.audpop label{display:flex;align-items:center;gap:8px;min-width:0;font:500 13.5px "Red Hat Text",sans-serif;cursor:pointer;padding:4px 2px;border-radius:6px}
+.audpop label:hover{background:var(--panel)}
+.aud .audpop input[type=checkbox]{width:18px;min-width:0;max-width:18px;height:18px;min-height:0;padding:0;margin:0;border:0;border-radius:4px;accent-color:var(--red);flex:none}
 .audall,.audheads{font-weight:700!important}
 .audgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .audl,.kda>span{font:600 13px "Red Hat Text",sans-serif;color:var(--mute)}
@@ -1155,7 +1157,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125d";
+const BUILD="b20261125e";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
