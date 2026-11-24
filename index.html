@@ -395,7 +395,7 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .cmb header{display:flex;gap:8px;align-items:baseline;font-size:12px;color:var(--mute);margin-bottom:2px}
 .cmb header b{color:var(--ink);font-size:13px}
 .cmb .cdel{margin-left:auto;border:0;background:none;color:var(--mute);font-size:12px;cursor:pointer}
-.cmb .at{color:var(--red);font-weight:600}
+.cmb .at{color:var(--red);font-weight:600}.cmb .atd{color:var(--dc);background:color-mix(in srgb,var(--dc) 12%,transparent);padding:0 4px;border-radius:4px}.mpop .avd{font-weight:700;border-radius:6px}
 .cmw{position:relative;margin-top:10px}
 .cmw textarea{width:100%;min-height:64px;resize:vertical;font:15px "Red Hat Text",sans-serif;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
 .cmw .row2{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--mute)}
@@ -739,7 +739,7 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
   <label for="tds" class="o">Status</label> <select id="tds" class="st"></select><p class="by" id="tdb"></p><div class="hist" id="tdh"></div>
   <section class="tsec" id="tck"><h4>Steps <small id="tckc"></small></h4><div class="ckbar"><i id="tckb"></i></div><ul class="cks" id="tckl"></ul><form class="inl" id="tckf"><input id="tcki" maxlength="140" placeholder="Add a step" aria-label="New step"><button type="submit">Add</button></form></section>
   <section class="tsec" id="tlk"><h4>Links <small>Drive, Canva, Docs…</small></h4><ul class="lks" id="tlkl"></ul><form class="inl" id="tlkf"><input id="tlku" type="url" placeholder="https://…" aria-label="Link address" required><input id="tlkn" maxlength="60" placeholder="Name (optional)" aria-label="Link name"><button type="submit">Add</button></form></section>
-  <section class="tsec" id="tcm"><h4>Comments <small id="tcmc"></small></h4><ul class="cms" id="tcml"></ul><form class="cmw" id="tcmf"><div class="mpop" id="mpop" hidden></div><textarea id="tcmi" maxlength="1000" placeholder="Write a comment. Type @ to tag someone." aria-label="Comment"></textarea><div class="row2"><span>@ tags send a mention to that person.</span><button type="submit" class="pri sm">Post</button></div></form></section>
+  <section class="tsec" id="tcm"><h4>Comments <small id="tcmc"></small></h4><ul class="cms" id="tcml"></ul><form class="cmw" id="tcmf"><div class="mpop" id="mpop" hidden></div><textarea id="tcmi" maxlength="1000" placeholder="Write a comment. Type @ to tag someone." aria-label="Comment"></textarea><div class="row2"><span>Type @ to tag a person or a whole department (e.g. @Oper).</span><button type="submit" class="pri sm">Post</button></div></form></section>
   <div class="da"><button type="button" class="gbtn sm" id="tdg"><svg class="gic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3" fill="#fff"/><rect x="3" y="4.5" width="18" height="5" rx="2" fill="#d2e3fc"/><rect x="7" y="2.5" width="2" height="4" rx="1" fill="#fff"/><rect x="15" y="2.5" width="2" height="4" rx="1" fill="#fff"/><path d="M8 13.5h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2zM8 16.8h2v2H8zm3 0h2v2h-2z" fill="#1a73e8"/></svg><span>Add to Google Calendar</span></button><button type="button" class="ghost" id="tde">Edit task</button></div>
 </dialog>
 <dialog id="ed" aria-labelledby="edt"><form id="edf">
@@ -891,7 +891,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124h";
+const BUILD="b20261124i";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -1351,34 +1351,44 @@ $("tlkl").addEventListener("click",e=>{ const b=e.target.closest("[data-lkrm]");
 const initials = s => String(s||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
 const pcol = email => col(people[email]?.dept||"");
 function fmtComment(txt){ let h=esc(txt); const names=Object.values(people).map(p=>p.name).filter(Boolean).sort((a,b)=>b.length-a.length);
-  names.forEach(n=>{ const e=esc("@"+n); h=h.split(e).join(`<span class="at">${e}</span>`); }); return h.replace(/\n/g,"<br>"); }
+  names.forEach(n=>{ const e=esc("@"+n); h=h.split(e).join(`<span class="at">${e}</span>`); });
+  DEPTS.forEach(d=>{ h=h.replace(new RegExp("(^|[^\\w@>])(@"+reEsc(esc(d))+")(?![\\w-])","gi"),(m,a,b)=>`${a}<span class="at atd" style="--dc:${col(d)}">${b}</span>`); }); return h.replace(/\n/g,"<br>"); }
 function renderComments(id){ const L=comments.filter(c=>c.task===id).sort((a,b)=>(a.at?.seconds||9e12)-(b.at?.seconds||9e12));
   $("tcmc").textContent=L.length?String(L.length):"";
   $("tcml").innerHTML=L.map(c=>`<li><button type="button" class="av avb" data-person="${esc(c.email)}" aria-label="View ${esc(c.by)}'s profile" style="--dc:${pcol(c.email)}">${esc(initials(c.by))}</button><div class="cmb"><header><b>${esc(c.by)}</b><time>${rel(c.at)}</time>${c.email===me.email||isAdmin()?`<button type="button" class="cdel" data-cmrm="${c.id}">Delete</button>`:""}</header>${fmtComment(c.text)}</div></li>`).join("")||'<li style="display:block;color:var(--mute);font-size:14px">No comments yet.</li>';
   const box=$("tcml"); box.scrollTop=box.scrollHeight; }
 let mq=null, mSel=0;
+const reEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+const hasTag = (text,name) => new RegExp("(^|[^\\w@])@"+reEsc(name)+"(?![\\w-])","i").test(text);
+const deptCount = d => Object.values(people).filter(p=>p.name&&p.dept===d).length;
+function deptMatches(q){ q=q.toLowerCase(); return DEPTS.filter(d=>!q||d.toLowerCase().split(/[\s-]+/).some(w=>w.startsWith(q))||d.toLowerCase().startsWith(q)).sort((a,b)=>(b.toLowerCase().startsWith(q))-(a.toLowerCase().startsWith(q))); }
 function mentionList(q){ q=q.toLowerCase(); const words=p=>[p.name,p.nick,p.dept].filter(Boolean).map(x=>String(x).toLowerCase());
   const score=([e,p])=>{ if(!q) return 1; const w=words(p), parts=w.flatMap(x=>x.split(/\s+/)), loc=e.split("@")[0].toLowerCase();
     if(parts.some(x=>x.startsWith(q))) return 3; if(loc.startsWith(q)) return 2; if(w.some(x=>x.includes(q))||loc.includes(q)) return 1; return 0; };
   return Object.entries(people).filter(([e,p])=>p.name&&e!==me.email).map(x=>[x,score(x)]).filter(([,s])=>s>0).sort((a,b)=>b[1]-a[1]||a[0][1].name.localeCompare(b[0][1].name)).slice(0,8).map(([x])=>x); }
 function showMentions(){ const ta=$("tcmi"), pre=ta.value.slice(0,ta.selectionStart), m2=pre.match(/(^|\s)@([^\s@]{0,30})$/);
-  if(!m2){ $("mpop").hidden=true; mq=null; return; } mq={start:pre.length-m2[2].length-1,q:m2[2]}; const L=mentionList(m2[2]);
-  if(!L.length){ $("mpop").hidden=true; return; } mSel=Math.min(mSel,L.length-1);
-  $("mpop").innerHTML=L.map(([e,p],i)=>`<button type="button" data-men="${esc(e)}" class="${i===mSel?"on":""}"><span class="av" style="--dc:${col(p.dept)}">${esc(initials(p.name))}</span>${esc(p.name)} <small>${esc(p.dept||"")}</small></button>`).join(""); $("mpop").hidden=false; }
-function pickMention(email){ const p=people[email]; if(!p||!mq) return; const ta=$("tcmi"), v=ta.value, end=ta.selectionStart;
-  ta.value=v.slice(0,mq.start)+"@"+p.name+" "+v.slice(end); const pos=mq.start+p.name.length+2; ta.setSelectionRange(pos,pos); ta.focus(); $("mpop").hidden=true; mq=null; }
+  if(!m2){ $("mpop").hidden=true; mq=null; return; } mq={start:pre.length-m2[2].length-1,q:m2[2]};
+  const P=mentionList(m2[2]), D=deptMatches(m2[2]).slice(0,m2[2]?4:3);
+  const items=m2[2]&&D.some(d=>d.toLowerCase().startsWith(m2[2].toLowerCase())) ? [...D.map(d=>["d",d]),...P.map(x=>["p",x])] : [...P.map(x=>["p",x]),...D.map(d=>["d",d])];
+  if(!items.length){ $("mpop").hidden=true; return; } mSel=Math.min(mSel,items.length-1);
+  $("mpop").innerHTML=items.map((it,i)=>{ const on=i===mSel?"on":""; if(it[0]==="d"){ const d=it[1], n=deptCount(d); return `<button type="button" data-mend="${esc(d)}" class="${on}"><span class="av avd" style="--dc:${col(d)}">#</span>@${esc(d)} <small>Whole department${n?` · ${n} ${n===1?"person":"people"}`:""}</small></button>`; }
+    const [e,p]=it[1]; return `<button type="button" data-men="${esc(e)}" class="${on}"><span class="av" style="--dc:${col(p.dept)}">${esc(initials(p.name))}</span>${esc(p.name)} <small>${esc(p.dept||"")}</small></button>`; }).join(""); $("mpop").hidden=false; }
+function pickMention(email,dept){ const name=dept||people[email]?.name; if(!name||!mq) return; const ta=$("tcmi"), v=ta.value, end=ta.selectionStart;
+  ta.value=v.slice(0,mq.start)+"@"+name+" "+v.slice(end); const pos=mq.start+name.length+2; ta.setSelectionRange(pos,pos); ta.focus(); $("mpop").hidden=true; mq=null; }
 $("tcmi").addEventListener("input",()=>{ mSel=0; showMentions(); });
 $("tcmi").addEventListener("keydown",e=>{ if($("mpop").hidden){ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); $("tcmf").requestSubmit(); } return; }
   const n=$("mpop").children.length; if(e.key==="ArrowDown"){ e.preventDefault(); mSel=(mSel+1)%n; showMentions(); } else if(e.key==="ArrowUp"){ e.preventDefault(); mSel=(mSel-1+n)%n; showMentions(); }
-  else if(e.key==="Enter"||e.key==="Tab"){ e.preventDefault(); const b=$("mpop").children[mSel]; if(b) pickMention(b.dataset.men); } else if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); $("mpop").hidden=true; } });
-$("mpop").addEventListener("mousedown",e=>{ const b=e.target.closest("[data-men]"); if(b){ e.preventDefault(); pickMention(b.dataset.men); } });
+  else if(e.key==="Enter"||e.key==="Tab"){ e.preventDefault(); const b=$("mpop").children[mSel]; if(b) pickMention(b.dataset.men,b.dataset.mend); } else if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); $("mpop").hidden=true; } });
+$("mpop").addEventListener("mousedown",e=>{ const b=e.target.closest("[data-men],[data-mend]"); if(b){ e.preventDefault(); pickMention(b.dataset.men,b.dataset.mend); } });
 $("tcmf").addEventListener("submit",e=>{ e.preventDefault(); const t=tasks.find(x=>x.id===curTask), text=$("tcmi").value.trim(); if(!t||!text) return;
-  const mentions=Object.entries(people).filter(([em,p])=>p.name&&em!==me.email&&text.includes("@"+p.name)).map(([em])=>em).slice(0,20);
+  const dm=DEPTS.filter(d=>hasTag(text,d)).map(d=>"dept:"+d);
+  const mentions=[...dm,...Object.entries(people).filter(([em,p])=>p.name&&em!==me.email&&text.includes("@"+p.name)).map(([em])=>em)].slice(0,20);
   $("tcmi").value=""; $("mpop").hidden=true;
   addDoc(collection(db,"comments"),{task:t.id,text:text.slice(0,1000),by:me.name,email:me.email,at:serverTimestamp(),mentions}).then(()=>logIt(t,"comment",text.slice(0,120))).catch(e2=>{ $("tcmi").value=text; fail(e2); }); });
 $("tcml").addEventListener("click",e=>{ const b=e.target.closest("[data-cmrm]"); if(!b) return; if(b.dataset.armed){ deleteDoc(doc(db,"comments",b.dataset.cmrm)).catch(fail); } else { b.dataset.armed=1; b.textContent="Delete?"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="Delete"; } },3000); } });
 const SEEN_KEY = () => "tubc-seen-"+(me?.email||"");
-function mentionsForMe(){ return comments.filter(c=>(c.mentions||[]).includes(me?.email)&&c.email!==me?.email); }
+const tagsMe = c => { const m=c.mentions||[]; return m.includes(me?.email) || (!!me?.dept && m.includes("dept:"+me.dept)); };
+function mentionsForMe(){ return comments.filter(c=>tagsMe(c)&&c.email!==me?.email); }
 function renderMentions(){ if(!me) return; const L=mentionsForMe(), seen=+(localStorage.getItem(SEEN_KEY())||0);
   const fresh=L.filter(c=>(c.at?.seconds||0)*1000>seen).length;
   [$("mbadge"),$("bbadge"),$("mencnt")].forEach(b=>{ b.hidden=!fresh; b.textContent=fresh>9?"9+":String(fresh); });
@@ -1561,9 +1571,9 @@ async function showNote(title,body,taskId,tag){ if(!notifOn()) return; const url
   const opt={body,tag:tag||"tubc",icon:"icon.svg",badge:"icon.svg",data:{url,task:taskId||""}};
   try{ const r=swReg||await navigator.serviceWorker.ready; await r.showNotification(title,opt); }catch(e){ try{ const n=new Notification(title,opt); n.onclick=()=>{ focus(); if(taskId) openTask(taskId); n.close(); }; }catch(_){} } }
 function notifyMentions(){ if(!me) return; const ids=new Set(comments.map(c=>c.id)); if(seenComments===null){ seenComments=ids; return; }
-  comments.forEach(c=>{ if(seenComments.has(c.id)) return; if(!(c.mentions||[]).includes(me.email)||c.email===me.email) return;
+  comments.forEach(c=>{ if(seenComments.has(c.id)) return; if(!tagsMe(c)||c.email===me.email) return; const viaDept=!(c.mentions||[]).includes(me.email);
     const t=tasks.find(x=>x.id===c.task); if(document.visibilityState==="visible"&&document.hasFocus()&&$("td").open&&curTask===c.task) return;
-    showNote(`${c.by} tagged you`, `${t?t.title+": ":""}${String(c.text).slice(0,140)}`, c.task, "c"+c.id); });
+    showNote(viaDept?`${c.by} tagged @${me.dept}`:`${c.by} tagged you`, `${t?t.title+": ":""}${String(c.text).slice(0,140)}`, c.task, "c"+c.id); });
   seenComments=ids; }
 navigator.serviceWorker?.addEventListener("message",e=>{ if(e.data?.task){ const go=()=>tasks.length?openTask(e.data.task):setTimeout(go,300); go(); } });
 (()=>{ const q=new URLSearchParams(location.search).get("task"); if(!q) return; const go=()=>{ if(me&&tasks.some(t=>t.id===q)){ openTask(q); history.replaceState(null,"",location.pathname+location.hash); } else setTimeout(go,400); }; setTimeout(go,600); })();
