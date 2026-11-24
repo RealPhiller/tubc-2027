@@ -903,7 +903,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124j";
+const BUILD="b20261124k";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -934,7 +934,7 @@ const VORDER=["mine","overview","tracker","calendar","sponsors","structure","who
 function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") : "";
   for(const n of VIEWS){ const el=$("v-"+n); if(el) el.hidden = n!==v; }
   if(v!==curView && curView && motion()){ const a=VORDER.indexOf(curView), b=VORDER.indexOf(v), dx=(a<0||b<0)?0:(b>a?1:-1);
-    $("v-"+v)?.animate(dx?[{opacity:0,transform:`translateX(${dx*32}px)`},{opacity:1,transform:"none"}]:[{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:dx?320:260,easing:"cubic-bezier(.2,.8,.2,1)"}); }
+    $("v-"+v)?.animate(dx?[{opacity:0,transform:`translateX(${dx*56}px)`},{opacity:1,transform:"none"}]:[{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:dx?560:300,easing:"cubic-bezier(.25,.75,.3,1)"}); }
   curView=v;
   const gate=(v==="login"||v==="noaccess"); document.documentElement.toggleAttribute("data-gate",gate);
   let tc=document.querySelector('meta[name="theme-color"]'); if(!tc){ tc=document.createElement("meta"); tc.name="theme-color"; document.head.appendChild(tc); }
