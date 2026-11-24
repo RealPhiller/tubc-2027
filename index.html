@@ -780,7 +780,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124c";
+const BUILD="b20261124d";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -1015,7 +1015,7 @@ $("rqf").addEventListener("submit", e=>{ e.preventDefault(); const u=auth.curren
   setDoc(doc(db,"requests",email),{name,dept:$("rqd").value,note:$("rqnote").value.trim(),createdAt:serverTimestamp()}).catch(e=>{ console.error(e); toast("Couldn't send the request. Try again."); }); });
 function renderRequests(){ if(!$("rq")) return; $("rqbox").hidden=!requests.length; $("rqcnt").textContent=requests.length||"";
   if(isAdmin()) $("t-access").textContent = requests.length ? `Access (${requests.length})` : "Access";
-  $("rq").tBodies[0].innerHTML=requests.map(r=>`<tr><td><b>${esc(r.name)}</b><br>${esc(r.email)}</td><td>${esc(r.note||"")}</td><td><select id="rql-${esc(r.email)}" aria-label="Level"><option value="viewer"${r.dept?"":" selected"}>Member</option><option value="head"${r.dept?" selected":""}>Head</option><option value="admin">Admin</option></select></td><td><select id="rqd-${esc(r.email)}" aria-label="Department">${deptOpts(r.dept||"")}</select></td><td style="white-space:nowrap"><button type="button" class="pri sm" data-approve="${esc(r.email)}">Approve</button> <button type="button" class="ghost sm" data-reject="${esc(r.email)}">Reject</button></td></tr>`).join(""); }
+  $("rq").tBodies[0].innerHTML=requests.map(r=>`<tr><td><b>${esc(r.name)}</b><br>${esc(r.email)}</td><td>${esc(r.note||"")}</td><td><select id="rql-${esc(r.email)}" aria-label="Level"><option value="viewer" selected>Member</option><option value="head">Head</option><option value="admin">Admin</option></select></td><td><select id="rqd-${esc(r.email)}" aria-label="Department">${deptOpts(r.dept||"")}</select></td><td style="white-space:nowrap"><button type="button" class="pri sm" data-approve="${esc(r.email)}">Approve</button> <button type="button" class="ghost sm" data-reject="${esc(r.email)}">Reject</button></td></tr>`).join(""); }
 document.addEventListener("click", e=>{ const a=e.target.closest("[data-approve],[data-reject]"); if(!a) return;
   const email=a.dataset.approve||a.dataset.reject; const r=requests.find(x=>x.email===email);
   if(a.dataset.reject){ deleteDoc(doc(db,"requests",email)).then(()=>toast("Request rejected.")).catch(fail); return; }
