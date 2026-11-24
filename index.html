@@ -450,21 +450,6 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .ssum .kpi{min-width:150px}
 .addb{border:1px dashed var(--line);background:none;border-radius:8px;padding:8px;color:var(--mute);font:600 14px "Red Hat Text",sans-serif;cursor:pointer}
 .addb:hover{color:var(--red);border-color:var(--red)}
-/* ---- budget ---- */
-.btab .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.btab td:nth-child(2){font-weight:400}
-.btab tr[data-bd]{cursor:pointer}.btab tr[data-bd]:hover td{background:var(--panel)}
-.bbar{display:flex;height:8px;border-radius:99px;background:var(--line);overflow:hidden;min-width:120px}
-.bbar i{display:block;height:100%}.bbar .sp{background:var(--dc)}.bbar .cm{background:var(--dc);opacity:.4}
-.btab .over{color:var(--red);font-weight:700}
-.bit{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
-.bit td,.bit th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
-.bit th{font-size:12px;color:var(--mute);font-weight:600}
-.bit input,.bit select{width:100%;font:14px "Red Hat Text",sans-serif;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
-.bit .num{text-align:right}
-#bd{width:min(720px,calc(100% - 24px))}
-.bsum{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin:6px 0}
-.bsum b{font-variant-numeric:tabular-nums}
 /* ---- bottom bar + FAB ---- */
 .bnav{display:none}
 .fab{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:20;width:56px;height:56px;border-radius:50%;border:0;background:var(--red);color:#fff;font:400 32px/1 "Red Hat Text",sans-serif;box-shadow:0 6px 20px rgba(155,27,30,.45);cursor:pointer;display:grid;place-items:center;transition:transform .15s}
@@ -494,7 +479,7 @@ body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
   <span class="brand"><i class="tlogo bmark" aria-hidden="true"></i>TUBC 2027</span><span class="pname" id="pname"></span>
   <div class="drawer" id="drawer">
   <div class="dhead"><span class="brand"><i class="tlogo bmark" aria-hidden="true"></i>TUBC 2027</span><button type="button" class="x" id="dclose" aria-label="Close menu">×</button></div>
-  <div class="tabs" hidden><a href="#mine" id="t-mine">My tasks<span class="badge" id="mbadge" hidden></span></a><a href="#overview" id="t-overview" hidden>Overview</a><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#sponsors" id="t-sponsors" hidden>Sponsors</a><a href="#budget" id="t-budget" hidden>Budget</a><a href="#structure" id="t-structure">Committee</a><a href="#who" id="t-who" hidden>Who to ask</a><a href="#access" id="t-access" hidden>Access</a></div>
+  <div class="tabs" hidden><a href="#mine" id="t-mine">My tasks<span class="badge" id="mbadge" hidden></span></a><a href="#overview" id="t-overview" hidden>Overview</a><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#sponsors" id="t-sponsors" hidden>Sponsors</a><a href="#structure" id="t-structure">Committee</a><a href="#who" id="t-who" hidden>Who to ask</a><a href="#access" id="t-access" hidden>Access</a></div>
   <div class="me" id="me" hidden><span id="mename"></span><span class="lvl" id="melvl"></span><button type="button" class="ghost sm" id="out">Sign out</button></div>
   </div>
 </div></nav>
@@ -549,6 +534,9 @@ body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
   <h2 class="ptitle">What each level can do</h2>
   <p class="plede">Turn a switch on to let that level do it. "Their department" means the department set for that person above. Changes apply right away for everyone.</p>
   <div class="scroll"><table class="qt" id="pm"><thead><tr><th>Permission</th><th class="pc2">Admin</th><th class="pc2">Head</th><th class="pc2">Member</th></tr></thead><tbody></tbody></table></div>
+  <h2 class="ptitle">Who can see Sponsors</h2>
+  <p class="plede">Sponsor names and amounts are only shown to the departments you tick. "Edit" lets them add, move and delete sponsors. Admins always have full access.</p>
+  <div class="scroll"><table class="qt" id="spa"><thead><tr><th>Department</th><th class="pc2">See</th><th class="pc2">Edit</th></tr></thead><tbody></tbody></table></div>
 </div></main>
 </div>
 <div class="view" id="v-structure" hidden>
@@ -670,20 +658,10 @@ body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
 </div>
 <div class="view" id="v-sponsors" hidden>
 <header class="band top"><div class="wrap">
-  <h1>Sponsors</h1><p class="sub">From first contact to signed documents. Drag a card to move it, or tap it to edit.</p>
+  <h1>Sponsors</h1><p class="sub">From first contact to signed documents. Drag a card to move it, or tap it to edit. Only departments chosen on the Access page can see this.</p>
   <div class="ssum" id="ssum"></div>
 </div></header>
 <main class="band"><div class="wrap"><div class="board" id="board"></div><p class="foot">Money from sponsors goes to the faculty first, then the sponsor fills the donation form (P'Om).</p></div></main>
-</div>
-<div class="view" id="v-budget" hidden>
-<header class="band top"><div class="wrap">
-  <h1>Budget</h1><p class="sub">Each department's budget, what is spent and what is still waiting. Tap a department to see its items.</p>
-  <div class="kpis" id="bkpi"></div>
-</div></header>
-<main class="band"><div class="wrap">
-  <div class="scroll"><table class="qt btab" id="btab"><thead><tr><th>Department</th><th class="num">Budget</th><th class="num">Spent</th><th class="num">Waiting</th><th class="num">Left</th><th style="width:28%"></th></tr></thead><tbody></tbody></table></div>
-  <p class="foot"><b>Spent</b> = paid + receipt filed. <b>Waiting</b> = requested from P'Tik but not paid yet. Over 10,000 THB needs a TOR, a quote and 2 comparison quotes first.</p>
-</div></main>
 </div>
 <dialog id="sd" aria-labelledby="sdt"><form id="sdf">
   <div class="dh"><h3 id="sdt">Sponsor</h3><button type="button" class="x" id="sdx" aria-label="Close">×</button></div>
@@ -696,14 +674,6 @@ body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
   </div>
   <div class="da"><button type="button" class="ghost" id="sdel" hidden>Delete</button><button type="button" class="ghost" id="sdc">Cancel</button><button type="submit" class="pri" id="sds">Save</button></div>
 </form></dialog>
-<dialog id="bd" aria-labelledby="bdt"><div>
-  <div class="dh"><h3 id="bdt">Budget</h3><button type="button" class="x" id="bdx" aria-label="Close">×</button></div>
-  <form class="inl" id="baf" style="align-items:center"><label style="font-weight:600;font-size:14px;white-space:nowrap">Budget (THB)</label><input id="bal" type="number" min="0" step="500" inputmode="numeric"><button type="submit">Save</button></form>
-  <div class="bsum" id="bsum"></div>
-  <div class="scroll"><table class="bit"><thead><tr><th>Item</th><th class="num" style="width:110px">THB</th><th style="width:130px">Status</th><th style="width:36px"></th></tr></thead><tbody id="bil"></tbody></table></div>
-  <form class="inl" id="bif"><input id="bin" maxlength="120" placeholder="New item, e.g. Name badges" aria-label="Item" required><input id="bia" type="number" min="0" step="1" inputmode="numeric" placeholder="THB" aria-label="Amount" style="max-width:110px" required><button type="submit">Add</button></form>
-  <p class="by" id="bdb"></p>
-</div></dialog>
 <dialog id="nwd" aria-labelledby="nwt"><form id="nwf">
   <div class="dh"><h3 id="nwt">New task</h3><button type="button" class="x" id="nwx" aria-label="Close">×</button></div>
   <div class="ef">
@@ -796,7 +766,7 @@ const col = o => DCOL[o] || "#868e96";
 const tcol = t => { const o=(t.depts&&t.depts.length?t.depts:toks(t.owner)); const d=o.find(x=>DCOL[x]&&!["All","All heads"].includes(x))||o[0]; return col(d); };
 const ownHtml = s => toks(s).map(o=>`<span class="dt" style="--dc:${col(o)}">${esc(o)}</span>`).join(" ");
 const thb = n => (Math.round(+n||0)).toLocaleString("en-US");
-let comments = [], people = {}, sponsors = [], budget = {};
+let comments = [], people = {}, sponsors = [], sponsAccess = {see:["ER","PVP","Treasurer"],edit:["ER","PVP","Treasurer"]};
 
 let logs = [], ev = {challenger:"2027-08-22", tubc:"2027-10-04"};
 let me = null, tasks = [], heads = {}, members = [], requests = [], unsub = [];
@@ -810,17 +780,14 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124b";
+const BUILD="b20261124c";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
 const isHeadUp = () => me?.role==="admin" || me?.role==="head";
 const seeOverview = () => isAdmin() || me?.dept==="PVP";
-const canSpons = () => isAdmin() || ["ER","PVP","Treasurer"].includes(me?.dept);
-const seeSpons = () => isHeadUp() || canSpons();
-const canAlloc = () => isAdmin() || ["Treasurer","PVP"].includes(me?.dept);
-const seeBudget = () => isHeadUp() || canAlloc();
-const canBudget = d => canAlloc() || (me?.role==="head" && me?.dept===d);
+const canSpons = () => isAdmin() || (!!me?.dept && (sponsAccess.edit||[]).includes(me.dept));
+const seeSpons = () => isAdmin() || (!!me?.dept && ((sponsAccess.see||[]).includes(me.dept) || (sponsAccess.edit||[]).includes(me.dept)));
 const can = k => isAdmin() || !!(perms[me?.role]||{})[k];
 const mine = t => !!me?.dept && (t.depts||toks(t.owner)).includes(me.dept);
 const canTask = t => can("statusAny") || (can("statusOwn") && mine(t));
@@ -837,8 +804,8 @@ document.querySelector(".tabs").addEventListener("click", e=>{ if(e.target.close
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeMenu(); });
 
 // ---------- views ----------
-const VIEWS = ["login","noaccess","mine","overview","tracker","calendar","sponsors","budget","structure","who","access"];
-const PNAMES={mine:"My tasks",overview:"Overview",tracker:"Tracker",calendar:"Calendar",sponsors:"Sponsors",budget:"Budget",structure:"Committee",who:"Who to ask",access:"Access"};
+const VIEWS = ["login","noaccess","mine","overview","tracker","calendar","sponsors","structure","who","access"];
+const PNAMES={mine:"My tasks",overview:"Overview",tracker:"Tracker",calendar:"Calendar",sponsors:"Sponsors",structure:"Committee",who:"Who to ask",access:"Access"};
 let curView=null;
 function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") : "";
   for(const n of VIEWS){ const el=$("v-"+n); if(el) el.hidden = n!==v; }
@@ -847,10 +814,10 @@ function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") :
   const gate=(v==="login"||v==="noaccess"); document.documentElement.toggleAttribute("data-gate",gate);
   let tc=document.querySelector('meta[name="theme-color"]'); if(!tc){ tc=document.createElement("meta"); tc.name="theme-color"; document.head.appendChild(tc); }
   tc.content = gate ? "#71191a" : getComputedStyle(document.querySelector(".nav")).backgroundColor;
-  for(const n of ["mine","overview","tracker","calendar","sponsors","budget","structure","who","access"]){ const a=$("t-"+n); if(n===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); }
+  for(const n of ["mine","overview","tracker","calendar","sponsors","structure","who","access"]){ const a=$("t-"+n); if(n===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); }
   document.querySelectorAll("#bnav [data-v]").forEach(a=>{ if(a.dataset.v===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
   updateFab(); if(v==="mine") markMentionsSeen(); }
-function route(){ if(!me) return; const h=location.hash.slice(1); const ok={tracker:1,calendar:1,structure:1,who:isHeadUp(),access:isAdmin(),overview:seeOverview(),sponsors:seeSpons(),budget:seeBudget()}; show(ok[h]?h:"mine"); }
+function route(){ if(!me) return; const h=location.hash.slice(1); const ok={tracker:1,calendar:1,structure:1,who:isHeadUp(),access:isAdmin(),overview:seeOverview(),sponsors:seeSpons()}; show(ok[h]?h:"mine"); }
 window.addEventListener("hashchange", ()=>{ route(); window.scrollTo(0,0); });
 
 // ---------- auth ----------
@@ -863,7 +830,7 @@ $("out").onclick = $("out2").onclick = ()=>{ closeMenu(); signOut(auth); };
 onAuthStateChanged(auth, async u=>{
   unsub.forEach(fn=>fn()); unsub=[]; me=null; $("cdbar").hidden=true; logs=[]; mdPicked=false;
   document.querySelector(".tabs").hidden = true; $("me").hidden = true; $("menu").hidden = true; $("pname").textContent = ""; closeMenu();
-  $("bnav").hidden = true; $("fab").hidden = true; document.body.classList.remove("authed"); comments=[]; sponsors=[]; budget={};
+  $("bnav").hidden = true; $("fab").hidden = true; document.body.classList.remove("authed"); comments=[]; sponsors=[]; if(sponsUnsub){ sponsUnsub(); sponsUnsub=null; }
   if(!u){ show("login"); return; }
   const email = (u.email||"").toLowerCase();
   let snap = null;
@@ -878,7 +845,7 @@ onAuthStateChanged(auth, async u=>{
   me = {email, name:u.displayName||email, role:m.role, dept:m.dept||""};
   $("mename").textContent = me.name; $("melvl").textContent = (ROLE_LABEL[me.role]||me.role) + (me.role==="head"&&me.dept?" · "+me.dept:"");
   $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("t-access").hidden = !isAdmin(); $("t-who").hidden = !isHeadUp();
-  $("t-overview").hidden = !seeOverview(); $("b-overview").hidden = !seeOverview(); $("t-sponsors").hidden = !seeSpons(); $("t-budget").hidden = !seeBudget();
+  $("t-overview").hidden = !seeOverview(); $("b-overview").hidden = !seeOverview(); $("t-sponsors").hidden = !seeSpons();
   $("bnav").hidden = false; document.body.classList.add("authed");
   setDoc(doc(db,"people",email),{name:me.name,dept:me.dept},{merge:true}).catch(e=>console.warn("people",e));
   if(me.role==="head" && me.dept) f.own = me.dept;
@@ -893,8 +860,7 @@ function start(){
   unsub.push(onSnapshot(collection(db,"heads"), s=>{ heads={}; s.docs.forEach(d=>heads[d.id]=d.data().list||[]); renderHeads(); }, fail));
   unsub.push(onSnapshot(query(collection(db,"comments"),orderBy("at","desc"),limit(500)), s=>{ comments=s.docs.map(d=>({id:d.id,...d.data()})); renderMentions(); if($("td").open&&curTask) renderComments(curTask); render(); }, e=>console.warn("comments",e)));
   unsub.push(onSnapshot(collection(db,"people"), s=>{ people={}; s.docs.forEach(d=>people[d.id]=d.data()); if($("td").open&&curTask) renderComments(curTask); }, e=>console.warn("people",e)));
-  if(seeSpons()) unsub.push(onSnapshot(collection(db,"sponsors"), s=>{ sponsors=s.docs.map(d=>({id:d.id,...d.data()})); renderSponsors(); renderOverview(); }, e=>console.warn("sponsors",e)));
-  if(seeBudget()) unsub.push(onSnapshot(collection(db,"budget"), s=>{ budget={}; s.docs.forEach(d=>budget[d.id]=d.data()); renderBudget(); renderOverview(); if($("bd").open&&curB) renderBD(); }, e=>console.warn("budget",e)));
+  unsub.push(onSnapshot(doc(db,"settings","sponsors"), s=>{ const d=s.exists()?s.data():{}; sponsAccess={see:d.see||["ER","PVP","Treasurer"],edit:d.edit||["ER","PVP","Treasurer"]}; applySponsAccess(); renderSponsAccess(); }, e=>console.warn("sponsAccess",e)));
   if(isAdmin()) unsub.push(onSnapshot(collection(db,"requests"), s=>{ requests = s.docs.map(d=>({email:d.id,...d.data()})).sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0)); renderRequests(); }, fail));
   if(isAdmin()) unsub.push(onSnapshot(collection(db,"members"), s=>{ members = s.docs.map(d=>({email:d.id,...d.data()})).sort((a,b)=>a.email.localeCompare(b.email)); renderMembers(); }, fail));
 }
@@ -1319,7 +1285,6 @@ function renderOverview(){ if(!$("ogrid")||!me||!seeOverview()) return;
   $("oweek").innerHTML=week.slice(0,12).map(t=>li(t,"")).join("")||'<li style="color:var(--mute);font-size:14px">Nothing due this week.</li>';
   const fin=[];
   if(seeSpons()){ const yes=sponsors.filter(s=>["yes","docs"].includes(s.stage)); fin.push(`<a href="#sponsors"><b>${thb(yes.reduce((a,s)=>a+(+s.amount||0),0))} THB</b><span>from ${yes.length} sponsor${yes.length===1?"":"s"} agreed · ${sponsors.filter(s=>!["yes","docs","no"].includes(s.stage)).length} in progress</span></a>`); }
-  if(seeBudget()){ let al=0,sp=0; Object.values(budget).forEach(b=>{ al+=+b.alloc||0; (b.items||[]).forEach(i=>{ if(["paid","rcpt"].includes(i.st)) sp+=+i.amt||0; }); }); fin.push(`<a href="#budget"><b>${thb(sp)} / ${thb(al)} THB</b><span>spent of the total budget</span></a>`); }
   $("ofin").innerHTML=fin.join(""); }
 document.addEventListener("click",e=>{ const b=e.target.closest("[data-ogo]"); if(!b) return; f.own=b.dataset.ogo; location.hash="#tracker"; render(); });
 
@@ -1349,31 +1314,6 @@ document.addEventListener("dragover",e=>{ if(!dragS) return; const c=e.target.cl
 document.addEventListener("drop",e=>{ if(!dragS) return; const c=e.target.closest?.(".col[data-sst]"); if(!c) return; e.preventDefault(); const s=sponsors.find(x=>x.id===dragS), st=c.dataset.sst; dragS=null; c.classList.remove("drop");
   if(!s||s.stage===st) return; s.stage=st; renderSponsors(); updateDoc(doc(db,"sponsors",s.id),{stage:st,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>toast(`${s.name} → ${SSTAGE.find(x=>x[0]===st)[1]}`)).catch(fail); });
 
-// ---------- budget ----------
-const BST={plan:"Planned",req:"Requested",paid:"Paid",rcpt:"Receipt filed"};
-let curB=null;
-const bcalc = b => { let sp=0,cm=0,pl=0; (b?.items||[]).forEach(i=>{ const a=+i.amt||0; if(["paid","rcpt"].includes(i.st)) sp+=a; else if(i.st==="req") cm+=a; else pl+=a; }); const al=+b?.alloc||0; return {al,sp,cm,pl,left:al-sp-cm}; };
-function renderBudget(){ if(!$("btab")||!me||!seeBudget()) return; let A=0,S=0,C=0;
-  const D=Object.keys(SLOTS);
-  $("btab").tBodies[0].innerHTML=D.map(d=>{ const b=budget[d], c=bcalc(b); A+=c.al; S+=c.sp; C+=c.cm; const base=Math.max(c.al,c.sp+c.cm,1);
-    return `<tr data-bd="${esc(d)}" style="--dc:${col(d)}"><td><span class="dt" style="--dc:${col(d)}">${esc(d)}</span></td><td class="num">${c.al?thb(c.al):"—"}</td><td class="num">${thb(c.sp)}</td><td class="num">${c.cm?thb(c.cm):"—"}</td><td class="num${c.left<0?" over":""}">${c.al||c.sp?thb(c.left):"—"}</td><td><div class="bbar"><i class="sp" style="width:${c.sp/base*100}%"></i><i class="cm" style="width:${c.cm/base*100}%"></i></div></td></tr>`; }).join("");
-  $("bkpi").innerHTML=`<div class="kpi"><b>${thb(A)}</b><span>THB total budget</span></div><div class="kpi"><b>${thb(S)}</b><span>THB spent</span></div><div class="kpi"><b>${thb(C)}</b><span>THB waiting</span></div><div class="kpi ${A-S-C<0?"warn":""}"><b>${thb(A-S-C)}</b><span>THB left</span></div>`; }
-function renderBD(){ const d=curB, b=budget[d]||{}, c=bcalc(b), ed=canBudget(d);
-  $("bdt").innerHTML=`<span class="dt" style="--dc:${col(d)}">${esc(d)}</span> budget`; $("bal").value=c.al||""; $("bal").disabled=!canAlloc(); $("baf").querySelector("button").hidden=!canAlloc();
-  $("bsum").innerHTML=`<span>Spent <b>${thb(c.sp)}</b></span><span>Waiting <b>${thb(c.cm)}</b></span><span>Planned <b>${thb(c.pl)}</b></span><span class="${c.left<0?"over":""}" style="${c.left<0?"color:var(--red);font-weight:700":""}">Left <b>${thb(c.left)}</b></span>`;
-  $("bil").innerHTML=(b.items||[]).map((i,k)=>`<tr><td>${ed?`<input data-bi="${k}" data-f="desc" value="${esc(i.desc)}" maxlength="120" aria-label="Item">`:esc(i.desc)}${+i.amt>10000?'<small style="display:block;color:var(--mute);font-size:11px">Over 10,000: TOR + 3 quotes</small>':""}</td><td class="num">${ed?`<input data-bi="${k}" data-f="amt" type="number" min="0" class="num" value="${+i.amt||0}" aria-label="Amount">`:thb(i.amt)}</td><td>${ed?`<select data-bi="${k}" data-f="st" aria-label="Status">${Object.entries(BST).map(([v,l])=>`<option value="${v}"${v===i.st?" selected":""}>${l}</option>`).join("")}</select>`:BST[i.st]||i.st}</td><td>${ed?`<button type="button" class="mini" data-birm="${k}" aria-label="Remove item">×</button>`:""}</td></tr>`).join("")||'<tr><td colspan="4" style="color:var(--mute)">No items yet.</td></tr>';
-  $("bif").hidden=!ed; $("bdb").textContent=b.updatedBy?`Updated by ${b.updatedBy}`:(ed?"":"You can view this budget but not change it."); }
-function openBD(d){ curB=d; renderBD(); try{$("bd").showModal();}catch(e){$("bd").setAttribute("open","");} }
-const saveB=(patch)=>setDoc(doc(db,"budget",curB),{...patch,updatedBy:me.name,updatedAt:serverTimestamp()},{merge:true}).catch(fail);
-$("bdx").onclick=()=>{ try{$("bd").close();}catch(e){$("bd").removeAttribute("open");} };
-document.addEventListener("click",e=>{ const r=e.target.closest("tr[data-bd]"); if(r) openBD(r.dataset.bd); });
-$("baf").addEventListener("submit",e=>{ e.preventDefault(); if(!canAlloc()) return; saveB({alloc:Math.max(0,Math.round(+$("bal").value||0))}).then(()=>toast("Budget saved.")); });
-$("bif").addEventListener("submit",e=>{ e.preventDefault(); const desc=$("bin").value.trim(); if(!desc) return; const items=[...(budget[curB]?.items||[])]; if(items.length>=60){ toast("Up to 60 items per department."); return; }
-  items.push({desc:desc.slice(0,120),amt:Math.max(0,Math.round(+$("bia").value||0)),st:"plan"}); saveB({items}); $("bin").value=""; $("bia").value=""; $("bin").focus(); });
-$("bil").addEventListener("change",e=>{ const k=e.target.dataset.bi; if(k==null) return; const items=(budget[curB]?.items||[]).map(x=>({...x})); const it=items[k]; if(!it) return;
-  const fld=e.target.dataset.f; it[fld]= fld==="amt" ? Math.max(0,Math.round(+e.target.value||0)) : String(e.target.value).slice(0,120); saveB({items}); });
-$("bil").addEventListener("click",e=>{ const b=e.target.closest("[data-birm]"); if(!b) return; const items=[...(budget[curB]?.items||[])]; items.splice(+b.dataset.birm,1); saveB({items}); });
-
 // ---------- bottom bar + floating add ----------
 $("bmore").onclick=openMenu;
 function updateFab(){ const v=curView; let show=false, label="Add task";
@@ -1387,6 +1327,24 @@ const closeN=()=>{ try{$("nwd").close();}catch(e){$("nwd").removeAttribute("open
 $("nwx").onclick=closeN; $("nwc").onclick=closeN;
 $("nwf").addEventListener("submit",e=>{ e.preventDefault(); const title=$("nwtt").value.trim(); if(!title) return; addTask(title,$("nwd2").value,$("nwo").value.trim()||"PVP",+$("nwp").value).then(closeN).catch(fail); });
 $("fab").onclick=()=>{ if(curView==="sponsors") openSponsor(null); else openNew(); };
+
+// ---------- who can see sponsors (set on the Access page) ----------
+let sponsUnsub=null;
+function applySponsAccess(){ if(!me) return; const see=seeSpons();
+  $("t-sponsors").hidden=!see;
+  if(see && !sponsUnsub) sponsUnsub=onSnapshot(collection(db,"sponsors"), s=>{ sponsors=s.docs.map(d=>({id:d.id,...d.data()})); renderSponsors(); renderOverview(); }, e=>console.warn("sponsors",e));
+  if(!see && sponsUnsub){ sponsUnsub(); sponsUnsub=null; sponsors=[]; }
+  renderSponsors(); renderOverview(); if(curView==="sponsors"&&!see) location.hash="#mine"; else if(location.hash==="#sponsors"&&see&&curView!=="sponsors") route(); updateFab(); }
+function renderSponsAccess(){ if(!$("spa")||!isAdmin()) return;
+  $("spa").tBodies[0].innerHTML=DEPTS.map(d=>`<tr><td><span class="dt" style="--dc:${col(d)}">${esc(d)}</span></td>${["see","edit"].map(k=>`<td class="pc2"><label class="sw"><input type="checkbox" data-spa="${k}" value="${esc(d)}"${(sponsAccess[k]||[]).includes(d)?" checked":""} aria-label="${k==="see"?"See":"Edit"} sponsors: ${esc(d)}"><span></span></label></td>`).join("")}</tr>`).join(""); }
+document.addEventListener("change",e=>{ const k=e.target.dataset?.spa; if(!k||!isAdmin()) return; const v=e.target.value;
+  const next={see:[...(sponsAccess.see||[])],edit:[...(sponsAccess.edit||[])]};
+  const set=(key,on)=>{ next[key]=next[key].filter(x=>x!==v); if(on) next[key].push(v); };
+  set(k,e.target.checked); if(k==="edit"&&e.target.checked) set("see",true); if(k==="see"&&!e.target.checked) set("edit",false);
+  setDoc(doc(db,"settings","sponsors"),next).then(()=>toast("Sponsor access updated.")).catch(fail); });
+document.querySelectorAll(".brand").forEach(b=>{ b.setAttribute("role","link"); b.tabIndex=0; b.style.cursor="pointer";
+  const go=()=>{ if(!me) return; closeMenu(); location.hash = seeOverview() ? "#overview" : "#mine"; };
+  b.addEventListener("click",go); b.addEventListener("keydown",e=>{ if(e.key==="Enter") go(); }); });
 </script>
 </body>
 </html>
