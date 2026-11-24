@@ -63,7 +63,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124q";
+const BUILD="b20261124r";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -634,7 +634,7 @@ document.addEventListener("drop",e=>{ if(!dragS) return; const c=e.target.closes
 $("bmore").onclick=openMenu;
 function updateFab(){ const v=curView; let show=false, label="Add task";
   if(me&&!["login","noaccess"].includes(v)){ if(v==="sponsors"){ show=canSpons(); label="Add sponsor"; } else if(["mine","tracker","calendar","overview"].includes(v)){ show=can("add"); } }
-  $("fab").hidden=!show; $("fab").setAttribute("aria-label",label); $("fab").title=label; }
+  $("fab").hidden=!show; $("fab").setAttribute("aria-label",label); $("fab").title=label; updateBot(); }
 $("nwp").innerHTML=phOpts(-1);
 function openNew(){ $("nwtt").value=""; $("nwd2").value=""; const own=me?.dept&&me.role==="head"?me.dept:"PVP"; setPick("nwo",own);
   const td=iso(new Date()); const ph=PH.findIndex(p=>td>=p[2]&&td<p[3]); $("nwp").value=String(Math.max(ph<0?0:ph, phVis(0)?0:1));
@@ -738,6 +738,55 @@ $("qk").addEventListener("click",e=>{ if(e.target===$("qk")) closeSearch(); });
 document.addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); if($("qk").open) closeSearch(); else openSearch(); } });
 $("srchbtn").onclick=openSearch; $("tsearch").onclick=openSearch;
 if(/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent)) document.querySelectorAll(".tsearch kbd").forEach(k=>k.textContent="⌘K");
+
+// ---------- quick answers bubble (canned choices, no AI; reads only the tasks this user can already see) ----------
+const HB_MAX=5, HB_LOG=5; // tasks shown per answer, chat bubbles kept
+const hbOwn=t=>t.depts?.length?t.depts:toks(t.owner);
+const hbFor=(t,d)=>{ const o=hbOwn(t); return o.includes(d)||(d==="PVP"&&o.includes("President")); };
+const hbDay=n=>{ const x=new Date(); x.setDate(x.getDate()+n); return iso(x); };
+const hbDate=d=>new Date(d+"T00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+const hbByDue=(a,b)=>(a.due||"9999").localeCompare(b.due||"9999");
+let hbStarted=false;
+function updateBot(){ const show=!!me&&!["login","noaccess"].includes(curView); $("hb").hidden=!show; if(!show) closeBot(); }
+function openBot(){ $("hp").hidden=false; $("hb").setAttribute("aria-expanded","true");
+  if(!hbStarted){ hbStarted=true; const nm=people[me.email]?.nick||String(me.name||"").split(" ")[0]; hbSay(`Hi ${esc(nm)}! What do you want to check?`); }
+  hbMenu(); setTimeout(()=>$("hch").querySelector("button")?.focus(),30); }
+function closeBot(){ $("hp").hidden=true; $("hb").setAttribute("aria-expanded","false"); }
+function hbAdd(cls,html){ const el=document.createElement("div"); el.className="hm "+cls; el.innerHTML=html; const log=$("hlog"); log.appendChild(el);
+  while(log.children.length>HB_LOG) log.firstElementChild.remove(); return el; }
+const hbSay=(html,wide)=>hbAdd("bot"+(wide?" wide":""),html);
+function hbMenu(){ $("hch").innerHTML=[["mine","My tasks"],["over","Overdue"],["soon","Today & tomorrow"]].map(([k,l])=>`<button type="button" data-hb="${k}">${l}</button>`).join(""); }
+const hbItem=(t,td)=>`<li><button type="button" data-task="${esc(t.id)}" style="--dc:${tcol(t)}"><span class="d${t.due&&t.due<td?" late":""}">${t.due?hbDate(t.due):"—"}</span><span class="t">${esc(t.title)}</span><span class="o">${esc(t.owner)} · ${ST[t.status]||""}</span></button></li>`;
+// Groups share one budget of HB_MAX tasks so an answer never gets long; the rest is a "see all" link.
+function hbGroups(G,td,go,goLabel){ let left=HB_MAX, hidden=0;
+  const html=G.filter(g=>g[2].length).map(([cls,label,a])=>{ const shown=a.slice(0,Math.max(0,left)); left-=shown.length; hidden+=a.length-shown.length;
+    return `<h4 class="${cls}">${label} (${a.length})</h4>`+(shown.length?`<ul>${shown.map(t=>hbItem(t,td)).join("")}</ul>`:""); }).join("");
+  return html+(hidden?`<button type="button" class="more" data-go="${go}">+ ${hidden} more · See all in ${goLabel}</button>`:""); }
+function hbAnswer(k){ const td=iso(new Date()), open=tasks.filter(t=>t.status!=="dn");
+  if(k==="mine"){
+    if(!me.dept){ hbSay("Your department isn't set yet, so I can't tell which tasks are yours. Ask a PVP to set it on the Access page. You can still check Overdue or Today & tomorrow."); return; }
+    const shared=isHeadUp()?["All","All heads"]:["All"], w=hbDay(7);
+    const T=open.filter(t=>hbFor(t,me.dept)||hbOwn(t).some(x=>shared.includes(x)));
+    const over=T.filter(t=>t.due&&t.due<td).sort(hbByDue), week=T.filter(t=>t.due&&t.due>=td&&t.due<=w).sort(hbByDue);
+    if(!over.length&&!week.length){ const nx=T.filter(t=>t.due&&t.due>w).sort(hbByDue)[0];
+      hbSay(`Nothing due for ${esc(me.dept)} in the next 7 days. 🎉`+(nx?` Next up: <b>${esc(nx.title)}</b> on ${hbDate(nx.due)}.`:"")); }
+    else hbSay(`<p class="sum">${esc(me.dept)} + shared tasks</p>`+hbGroups([["over","Overdue",over],["","Next 7 days",week]],td,"#mine","My tasks"),true);
+  } else if(k==="over"){
+    const a=open.filter(t=>t.due&&t.due<td).sort(hbByDue);
+    hbSay(a.length?`<p class="sum">Across all departments, oldest first</p>`+hbGroups([["over","Overdue",a]],td,"late","Tracker"):"Nothing is overdue. 🎉",a.length>0);
+  } else if(k==="soon"){
+    const a=open.filter(t=>t.due===td), b=open.filter(t=>t.due===hbDay(1));
+    hbSay(a.length||b.length?hbGroups([["over","Today",a],["","Tomorrow",b]],td,"#calendar","Calendar"):"Nothing is due today or tomorrow. 🎉",a.length+b.length>0);
+  }
+  hbMenu(); }
+function hbAsk(label,k){ const you=hbAdd("you",""); you.textContent=label; hbAnswer(k); $("hlog").scrollTop=you.offsetTop-8; }
+function hbGo(go){ closeBot(); if(go==="late"){ if(location.hash!=="#tracker") location.hash="#tracker"; if(!f.late) $("late").click(); } else location.hash=go; }
+$("hb").onclick=()=>{ if($("hp").hidden) openBot(); else closeBot(); };
+$("hpx").onclick=()=>{ closeBot(); $("hb").focus(); };
+$("hch").addEventListener("click",e=>{ const b=e.target.closest("[data-hb]"); if(b) hbAsk(b.textContent,b.dataset.hb); });
+$("hlog").addEventListener("click",e=>{ const t=e.target.closest("[data-task]"); if(t){ openTask(t.dataset.task); return; } const g=e.target.closest("[data-go]"); if(g) hbGo(g.dataset.go); });
+$("hp").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); closeBot(); $("hb").focus(); } });
+document.addEventListener("click",e=>{ if($("hp").hidden) return; if(!e.target.isConnected||e.target.closest("#hp,#hb,dialog")) return; closeBot(); });
 
 // ---------- notifications when someone tags you ----------
 const NKEY="tubc-notify";

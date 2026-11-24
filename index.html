@@ -562,6 +562,42 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
 .subbar{position:absolute;top:4px;bottom:4px;left:0;width:0;background:#fff;border-radius:7px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 .subbar.anim{transition:transform .32s cubic-bezier(.2,.8,.2,1),width .32s cubic-bezier(.2,.8,.2,1)}
 :root[data-theme=dark] .subtabs a[aria-current=page]{color:#9b1b1e}
+/* helper bubble */
+.hb{position:fixed;left:max(20px,env(safe-area-inset-left));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:21;width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--red);box-shadow:0 6px 20px rgba(0,0,0,.18);cursor:pointer;display:grid;place-items:center;transition:transform .15s}
+.hb:hover{transform:scale(1.06)}.hb:active{transform:scale(.96)}
+.hb:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.hb svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hb[aria-expanded=true]{background:var(--red);color:#fff;border-color:var(--red)}
+.hp{position:fixed;left:max(20px,env(safe-area-inset-left));bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:21;width:min(380px,calc(100vw - 32px));max-height:min(460px,calc(100dvh - 140px));display:flex;flex-direction:column;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);overflow:hidden;transform-origin:bottom left;animation:hpin .18s ease-out}
+.hp[hidden]{display:none}
+@keyframes hpin{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.hph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);font:700 15px "Red Hat Display",sans-serif}
+.hph button{border:0;background:none;color:var(--mute);font-size:22px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px}
+.hph button:hover{background:var(--panel);color:var(--ink)}
+.hlog{position:relative;flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.hm{max-width:92%;padding:9px 12px;border-radius:14px;font:14px/1.4 "Red Hat Text",sans-serif}
+.hm.bot{align-self:flex-start;background:var(--panel);border-bottom-left-radius:4px}
+.hm.you{align-self:flex-end;background:var(--red);color:#fff;border-bottom-right-radius:4px}
+.hm.bot.wide{max-width:100%;width:100%}
+.hm h4{margin:8px 0 4px;font:700 12px "Red Hat Text",sans-serif;text-transform:uppercase;letter-spacing:.04em;color:var(--mute)}
+.hm h4:first-child{margin-top:0}
+.hm h4.over{color:var(--red)}
+.hm ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.hm li button{width:100%;display:grid;grid-template-columns:50px 1fr;gap:1px 8px;text-align:left;border:0;background:var(--bg);color:var(--ink);border-radius:8px;padding:7px 8px;font:inherit;cursor:pointer;box-shadow:inset 3px 0 0 var(--dc,var(--line))}
+.hm li button:hover{background:var(--goldsoft)}
+.hm li .d{grid-row:span 2;align-self:center;font:700 13px "Red Hat Display",sans-serif;color:var(--mute)}
+.hm li .d.late{color:var(--red)}
+.hm li .t{font-weight:600;font-size:13.5px;overflow-wrap:anywhere}
+.hm li .o{font-size:12px;color:var(--mute)}
+.hm .sum{margin:0 0 8px;font-size:13px;color:var(--mute)}
+.hm .more{display:block;margin:6px 0 0;border:0;background:none;padding:4px 0;font:600 12.5px "Red Hat Text",sans-serif;color:var(--red);cursor:pointer;text-align:left}
+.hm .more:hover{text-decoration:underline}
+.hch{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px 12px;border-top:1px solid var(--line)}
+.hch button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 12px;font:600 13px "Red Hat Text",sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.hch button:hover{border-color:var(--red);color:var(--red)}
+.hch button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+:root[data-gate] .hb,:root[data-gate] .hp{display:none!important}
+@media(max-width:760px){.hb{bottom:calc(76px + env(safe-area-inset-bottom,0px));left:16px}.hp{left:16px;bottom:calc(138px + env(safe-area-inset-bottom,0px));max-height:min(460px,calc(100dvh - 210px))}}
 </style>
 </head>
 <body>
@@ -821,6 +857,8 @@ kbd{font:600 11px "Red Hat Text",sans-serif;border:1px solid var(--line);border-
   <button type="button" id="bmore"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>More</button>
 </nav>
 <button type="button" class="fab" id="fab" aria-label="Add task" title="Add task" hidden>+</button>
+<button type="button" class="hb" id="hb" aria-label="Quick answers" title="Quick answers" aria-expanded="false" aria-controls="hp" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg></button>
+<section class="hp" id="hp" role="dialog" aria-label="Quick answers" hidden><div class="hph"><span>Quick answers</span><button type="button" id="hpx" aria-label="Close">×</button></div><div class="hlog" id="hlog" aria-live="polite"></div><div class="hch" id="hch" role="group" aria-label="Choices"></div></section>
 <div class="view" id="v-tracker" hidden>
 <header class="band top"><div class="wrap">
   <div class="head">
@@ -916,7 +954,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261124q";
+const BUILD="b20261124r";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -1487,7 +1525,7 @@ document.addEventListener("drop",e=>{ if(!dragS) return; const c=e.target.closes
 $("bmore").onclick=openMenu;
 function updateFab(){ const v=curView; let show=false, label="Add task";
   if(me&&!["login","noaccess"].includes(v)){ if(v==="sponsors"){ show=canSpons(); label="Add sponsor"; } else if(["mine","tracker","calendar","overview"].includes(v)){ show=can("add"); } }
-  $("fab").hidden=!show; $("fab").setAttribute("aria-label",label); $("fab").title=label; }
+  $("fab").hidden=!show; $("fab").setAttribute("aria-label",label); $("fab").title=label; updateBot(); }
 $("nwp").innerHTML=phOpts(-1);
 function openNew(){ $("nwtt").value=""; $("nwd2").value=""; const own=me?.dept&&me.role==="head"?me.dept:"PVP"; setPick("nwo",own);
   const td=iso(new Date()); const ph=PH.findIndex(p=>td>=p[2]&&td<p[3]); $("nwp").value=String(Math.max(ph<0?0:ph, phVis(0)?0:1));
@@ -1591,6 +1629,55 @@ $("qk").addEventListener("click",e=>{ if(e.target===$("qk")) closeSearch(); });
 document.addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); if($("qk").open) closeSearch(); else openSearch(); } });
 $("srchbtn").onclick=openSearch; $("tsearch").onclick=openSearch;
 if(/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent)) document.querySelectorAll(".tsearch kbd").forEach(k=>k.textContent="⌘K");
+
+// ---------- quick answers bubble (canned choices, no AI; reads only the tasks this user can already see) ----------
+const HB_MAX=5, HB_LOG=5; // tasks shown per answer, chat bubbles kept
+const hbOwn=t=>t.depts?.length?t.depts:toks(t.owner);
+const hbFor=(t,d)=>{ const o=hbOwn(t); return o.includes(d)||(d==="PVP"&&o.includes("President")); };
+const hbDay=n=>{ const x=new Date(); x.setDate(x.getDate()+n); return iso(x); };
+const hbDate=d=>new Date(d+"T00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+const hbByDue=(a,b)=>(a.due||"9999").localeCompare(b.due||"9999");
+let hbStarted=false;
+function updateBot(){ const show=!!me&&!["login","noaccess"].includes(curView); $("hb").hidden=!show; if(!show) closeBot(); }
+function openBot(){ $("hp").hidden=false; $("hb").setAttribute("aria-expanded","true");
+  if(!hbStarted){ hbStarted=true; const nm=people[me.email]?.nick||String(me.name||"").split(" ")[0]; hbSay(`Hi ${esc(nm)}! What do you want to check?`); }
+  hbMenu(); setTimeout(()=>$("hch").querySelector("button")?.focus(),30); }
+function closeBot(){ $("hp").hidden=true; $("hb").setAttribute("aria-expanded","false"); }
+function hbAdd(cls,html){ const el=document.createElement("div"); el.className="hm "+cls; el.innerHTML=html; const log=$("hlog"); log.appendChild(el);
+  while(log.children.length>HB_LOG) log.firstElementChild.remove(); return el; }
+const hbSay=(html,wide)=>hbAdd("bot"+(wide?" wide":""),html);
+function hbMenu(){ $("hch").innerHTML=[["mine","My tasks"],["over","Overdue"],["soon","Today & tomorrow"]].map(([k,l])=>`<button type="button" data-hb="${k}">${l}</button>`).join(""); }
+const hbItem=(t,td)=>`<li><button type="button" data-task="${esc(t.id)}" style="--dc:${tcol(t)}"><span class="d${t.due&&t.due<td?" late":""}">${t.due?hbDate(t.due):"—"}</span><span class="t">${esc(t.title)}</span><span class="o">${esc(t.owner)} · ${ST[t.status]||""}</span></button></li>`;
+// Groups share one budget of HB_MAX tasks so an answer never gets long; the rest is a "see all" link.
+function hbGroups(G,td,go,goLabel){ let left=HB_MAX, hidden=0;
+  const html=G.filter(g=>g[2].length).map(([cls,label,a])=>{ const shown=a.slice(0,Math.max(0,left)); left-=shown.length; hidden+=a.length-shown.length;
+    return `<h4 class="${cls}">${label} (${a.length})</h4>`+(shown.length?`<ul>${shown.map(t=>hbItem(t,td)).join("")}</ul>`:""); }).join("");
+  return html+(hidden?`<button type="button" class="more" data-go="${go}">+ ${hidden} more · See all in ${goLabel}</button>`:""); }
+function hbAnswer(k){ const td=iso(new Date()), open=tasks.filter(t=>t.status!=="dn");
+  if(k==="mine"){
+    if(!me.dept){ hbSay("Your department isn't set yet, so I can't tell which tasks are yours. Ask a PVP to set it on the Access page. You can still check Overdue or Today & tomorrow."); return; }
+    const shared=isHeadUp()?["All","All heads"]:["All"], w=hbDay(7);
+    const T=open.filter(t=>hbFor(t,me.dept)||hbOwn(t).some(x=>shared.includes(x)));
+    const over=T.filter(t=>t.due&&t.due<td).sort(hbByDue), week=T.filter(t=>t.due&&t.due>=td&&t.due<=w).sort(hbByDue);
+    if(!over.length&&!week.length){ const nx=T.filter(t=>t.due&&t.due>w).sort(hbByDue)[0];
+      hbSay(`Nothing due for ${esc(me.dept)} in the next 7 days. 🎉`+(nx?` Next up: <b>${esc(nx.title)}</b> on ${hbDate(nx.due)}.`:"")); }
+    else hbSay(`<p class="sum">${esc(me.dept)} + shared tasks</p>`+hbGroups([["over","Overdue",over],["","Next 7 days",week]],td,"#mine","My tasks"),true);
+  } else if(k==="over"){
+    const a=open.filter(t=>t.due&&t.due<td).sort(hbByDue);
+    hbSay(a.length?`<p class="sum">Across all departments, oldest first</p>`+hbGroups([["over","Overdue",a]],td,"late","Tracker"):"Nothing is overdue. 🎉",a.length>0);
+  } else if(k==="soon"){
+    const a=open.filter(t=>t.due===td), b=open.filter(t=>t.due===hbDay(1));
+    hbSay(a.length||b.length?hbGroups([["over","Today",a],["","Tomorrow",b]],td,"#calendar","Calendar"):"Nothing is due today or tomorrow. 🎉",a.length+b.length>0);
+  }
+  hbMenu(); }
+function hbAsk(label,k){ const you=hbAdd("you",""); you.textContent=label; hbAnswer(k); $("hlog").scrollTop=you.offsetTop-8; }
+function hbGo(go){ closeBot(); if(go==="late"){ if(location.hash!=="#tracker") location.hash="#tracker"; if(!f.late) $("late").click(); } else location.hash=go; }
+$("hb").onclick=()=>{ if($("hp").hidden) openBot(); else closeBot(); };
+$("hpx").onclick=()=>{ closeBot(); $("hb").focus(); };
+$("hch").addEventListener("click",e=>{ const b=e.target.closest("[data-hb]"); if(b) hbAsk(b.textContent,b.dataset.hb); });
+$("hlog").addEventListener("click",e=>{ const t=e.target.closest("[data-task]"); if(t){ openTask(t.dataset.task); return; } const g=e.target.closest("[data-go]"); if(g) hbGo(g.dataset.go); });
+$("hp").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); closeBot(); $("hb").focus(); } });
+document.addEventListener("click",e=>{ if($("hp").hidden) return; if(!e.target.isConnected||e.target.closest("#hp,#hb,dialog")) return; closeBot(); });
 
 // ---------- notifications when someone tags you ----------
 const NKEY="tubc-notify";
