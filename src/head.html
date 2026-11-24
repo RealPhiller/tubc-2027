@@ -686,6 +686,23 @@ small.opt{font-weight:400;color:var(--mute)}
 .tour-a span{flex:1}
 .tour-a button{min-height:40px}
 body.touring{overflow:hidden}
+/* announcement banner */
+.annbar{background:var(--goldsoft);color:var(--ink);border-bottom:1px solid color-mix(in srgb,var(--gold) 50%,transparent);padding:10px max(5vw,16px);animation:annin .35s cubic-bezier(.2,.8,.2,1)}
+.annbar.urgent{background:#c8302d;color:#fff;border-color:#a1221f}
+.annbar .wrap{display:flex;align-items:center;gap:12px}
+.annic{font-size:20px;line-height:1}
+.annb{flex:1;min-width:0}
+.annb p{margin:0;font:600 15px/1.4 "Red Hat Text",sans-serif;overflow-wrap:anywhere;white-space:pre-line}
+.annmeta{display:block;font-size:12px;opacity:.7;margin-top:2px}
+.annlink{font:700 14px "Red Hat Text",sans-serif;color:inherit;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+.annx{border:0;background:none;color:inherit;font-size:24px;line-height:1;cursor:pointer;padding:4px 8px;border-radius:6px;opacity:.7}
+.annx:hover{opacity:1;background:rgba(0,0,0,.08)}
+@keyframes annin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+:root[data-gate] .annbar{display:none!important}
+.annf{background:var(--panel);border-radius:8px;padding:16px;display:grid;gap:10px;margin-top:8px}
+.annf textarea{width:100%;box-sizing:border-box;font:15px/1.4 "Red Hat Text",sans-serif;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);resize:vertical}
+.annrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.annrow input{flex:1;min-width:200px}
 </style>
 </head>
 <body>
@@ -709,6 +726,7 @@ body.touring{overflow:hidden}
   </div>
 </div></nav>
 <div class="cdbar" id="cdbar" hidden><div class="wrap" id="cdin" role="status"></div></div>
+<div class="annbar" id="annbar" role="status" hidden><div class="wrap"><span class="annic" aria-hidden="true">📣</span><div class="annb"><p id="anntext"></p><span class="annmeta" id="annmeta"></span></div><a class="annlink" id="annlink" target="_blank" rel="noopener noreferrer" hidden>Open link</a><button type="button" class="annx" id="annx" aria-label="Close announcement">×</button></div></div>
 <div class="scrim" id="scrim" hidden></div>
 <div class="view gate" id="v-login" hidden><div class="gsky" aria-hidden="true"></div><div class="gbox">
   <div class="gmarkw"><div class="tlogo gmark" role="img" aria-label="TUBC logo"></div></div><h1 class="glogo"><span>TUBC</span> <span>2027</span></h1><span class="gline" aria-hidden="true"></span><p>Sign in with your Google account. New here? You can ask to join after signing in.</p>
@@ -773,6 +791,10 @@ body.touring{overflow:hidden}
     <select id="mr" aria-label="Level"><option value="viewer">Member</option><option value="head">Head</option><option value="admin">Admin</option></select>
     <select id="md" aria-label="Department"></select><button type="submit">Add member</button></form>
   <div class="scroll"><table class="qt stack" id="mt"><thead><tr><th>Email</th><th>Level</th><th>Department</th><th></th></tr></thead><tbody></tbody></table></div>
+  <h2 class="ptitle">Announcement</h2>
+  <p class="plede">Shows as a banner at the top of every page for everyone until you remove it. People can close it on their own device; a new announcement shows again for everyone.</p>
+  <form class="annf" id="annf"><textarea id="annt" maxlength="280" rows="2" placeholder="e.g. All-heads meeting Fri 28 Nov, 6pm, room 301" aria-label="Announcement" required></textarea>
+  <div class="annrow"><select id="annl" aria-label="Type"><option value="info">Normal (gold)</option><option value="urgent">Urgent (red)</option></select><input id="annu" type="url" placeholder="Link (optional), e.g. a Google Meet link" aria-label="Link"><button type="submit" class="pri">Post</button><button type="button" class="ghost" id="annrm" hidden>Remove</button></div></form>
   <h2 class="ptitle">Key dates</h2>
   <p class="plede">Used for the countdown at the top of every page.</p>
   <form class="add" id="kdf"><label class="kdl">The Challenger <input type="date" id="kd1" required></label><label class="kdl">TUBC starts <input type="date" id="kd2" required></label><button type="submit">Save dates</button></form>

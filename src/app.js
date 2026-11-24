@@ -70,7 +70,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125a";
+const BUILD="b20261125b";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -128,7 +128,7 @@ $("login").onclick = async ()=>{ $("lerr").textContent=""; try{ const pv=new Goo
 $("out").onclick = $("out2").onclick = ()=>{ closeMenu(); closeUM(); signOut(auth); };
 
 onAuthStateChanged(auth, async u=>{
-  unsub.forEach(fn=>fn()); unsub=[]; me=null; events=[]; $("cdbar").hidden=true; logs=[]; mdPicked=false;
+  unsub.forEach(fn=>fn()); unsub=[]; me=null; events=[]; ann=null; $("annbar").hidden=true; $("cdbar").hidden=true; logs=[]; mdPicked=false;
   document.querySelector(".tabs").hidden = true; $("me").hidden = true; $("menu").hidden = true; $("pname").textContent = ""; closeMenu();
   $("bnav").hidden = true; $("fab").hidden = true; document.body.classList.remove("authed"); comments=[]; seenComments=null; sponsors=[]; if(sponsUnsub){ sponsUnsub(); sponsUnsub=null; }
   if(!u){ show("login"); return; }
@@ -154,6 +154,7 @@ onAuthStateChanged(auth, async u=>{
 
 function start(){
   unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})).filter(t=>phVis(t.phase)); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
+  unsub.push(onSnapshot(doc(db,"settings","announce"), s=>{ ann=s.exists()?s.data():null; renderAnn(); }, e=>console.warn("announce",e)));
   unsub.push(onSnapshot(collection(db,"events"), s=>{ events=s.docs.map(d=>({id:d.id,...d.data()})); renderCal(); }, e=>console.warn("events",e)));
   unsub.push(onSnapshot(doc(db,"settings","event"), s=>{ if(s.exists()) ev={...ev,...s.data()}; renderCd(); if($("kd1")){ $("kd1").value=ev.challenger||""; $("kd2").value=ev.tubc||""; } }, ()=>{}));
   unsub.push(onSnapshot(query(collection(db,"log"),orderBy("at","desc"),limit(200)), s=>{ logs=s.docs.map(d=>({id:d.id,...d.data()})); renderFeed(); if($("td").open&&curTask) renderHist(curTask); }, e=>console.warn("log",e)));
@@ -905,6 +906,31 @@ $("hch").addEventListener("click",e=>{ const b=e.target.closest("[data-hb]"); if
 $("hlog").addEventListener("click",e=>{ const g=e.target.closest("[data-go]"); if(g) hbGo(g.dataset.go); }); // task rows open via the page-wide [data-task] handler
 $("hp").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.stopPropagation(); closeBot(); $("hb").focus(); } });
 document.addEventListener("click",e=>{ if($("hp").hidden) return; if(!e.target.isConnected||e.target.closest("#hp,#hb,dialog")) return; closeBot(); });
+
+// ---------- announcement banner (admins post it on the Access page; stored in settings/announce) ----------
+let ann = null, annDirty = false;
+const ANN_KEY = id => "tubc-ann-closed:" + id;
+function renderAnn(){
+  const b = $("annbar"), a = ann && ann.text ? ann : null;
+  let closed = false; try { closed = !!(a && localStorage.getItem(ANN_KEY(a.id))); } catch {}
+  b.hidden = !me || !a || closed;
+  if (a) {
+    $("anntext").textContent = a.text; b.classList.toggle("urgent", a.level === "urgent");
+    $("annmeta").textContent = (a.by ? a.by + " · " : "") + rel(a.at);
+    const L = $("annlink"); L.hidden = !a.link; if (a.link) L.href = a.link;
+  }
+  if (isAdmin()) {
+    $("annrm").hidden = !a;
+    if (a && !annDirty) { $("annt").value = a.text; $("annl").value = a.level || "info"; $("annu").value = a.link || ""; }
+  }
+}
+$("annx").onclick = () => { if (!ann) return; try { localStorage.setItem(ANN_KEY(ann.id), "1"); } catch {} $("annbar").hidden = true; };
+["annt", "annl", "annu"].forEach(id => $(id).addEventListener("input", () => { annDirty = true; }));
+$("annf").addEventListener("submit", e => { e.preventDefault(); const text = $("annt").value.trim(), link = $("annu").value.trim(); if (!text) return;
+  if (link && !/^https?:\/\//i.test(link)) { toast("The link must start with https://"); return; }
+  setDoc(doc(db,"settings","announce"), { text, level: $("annl").value, link, by: me.name, at: serverTimestamp(), id: String(Date.now()) })
+    .then(() => { annDirty = false; toast("Announcement posted. Everyone sees it now."); }).catch(fail); });
+$("annrm").onclick = () => { deleteDoc(doc(db,"settings","announce")).then(() => { annDirty = false; $("annt").value = ""; $("annu").value = ""; $("annl").value = "info"; toast("Announcement removed."); }).catch(fail); };
 
 // ---------- first-time tour (shown once per account; replay from the avatar menu) ----------
 const TOUR_KEY = () => "tubc-tour-v1:" + (me?.email || "");
