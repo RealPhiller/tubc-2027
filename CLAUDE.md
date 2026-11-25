@@ -20,7 +20,7 @@ Owner: Puripat (President, GitHub `RealPhiller`). Reply to Puripat in Thai unles
 | `sw.js` | Service worker: shows tag notifications and opens the task when one is tapped |
 | `manifest.json`, `icon.svg` | Web app manifest + icon (needed for iPhone Add to Home Screen notifications) |
 | `firestore.rules` | Firestore security rules. **Source of truth is this file**; deploy with `firebase deploy --only firestore:rules` |
-| `line-bot/` | LINE bot on Google Apps Script (`Code.gs`, `appsscript.json`, setup steps in `README.md`). Answers `/tasks`, `/overdue`, `/today` in registered LINE groups (one per department) using reply messages only. Not part of the site build |
+| `line-bot/` | LINE bot on Google Apps Script (`Code.gs`, `appsscript.json`, setup steps in `README.md`). Answers `/tasks`, `/overdue`, `/today` in registered LINE groups (one per department, plus ALL and HEADS groups) using reply messages; the only push is opt-in announcements. Not part of the site build |
 | `firebase.json`, `.firebaserc` | Firebase CLI config (rules only; hosting is GitHub Pages, not Firebase) |
 
 First time in a fresh clone: if `src/` does not exist yet, run `node tools/build.mjs --split` and commit `src/`.
@@ -90,6 +90,7 @@ Rules validate field names and sizes on writes; when you add a field to a collec
 - **Phase from due date**: `phaseFor(due, owner, fallback)`; applied on read in the tasks snapshot and written on add/edit. A task in the Kickoff dates counts as Kickoff only if owned only by PVP/President (`pvpOnly`), otherwise Setup. The LINE bot uses the same rule (`phaseFor(due, owner)` in Code.gs). No Topic picker anywhere.
 - **Add task** = the Edit box in new mode (`openEdit(null, from, {due})`, `openNew(due)`; FAB, `#madd`, calendar click). One `addDoc` with note/steps/links on "Add task". On phones it runs in 2 steps (`edStep`: Basics → Details). **Delete task** lives in the Edit box (`#edel`, confirm bar) for `can("del")`.
 - **Bottom bar** (phones): tapping the page you're on scrolls to the top (1 s instant fallback).
+- **Announcements to LINE**: the Announcement form has opt-in boxes (`#anlall`, `#anlheads`) that save `line: ["ALL"|"HEADS"]` on `settings/announce`. The bot's `checkAnnounce()` (1-minute time-driven trigger, added by hand in Apps Script) pushes each new announcement once (`LAST_ANN`) to groups registered as ALL (`/setup <code>`) or HEADS (`/setup <code> heads`), then writes `lineId`, `lineSent`, `lineErr`, `lineAt` back; the form shows that status (`#annls`). Pushes use the LINE OA quota (one per group member).
 - **Task details on phones (≤760px)**: `#td` becomes a bottom sheet with a `.grab` bar. Close by dragging the grab bar/header down more than 90px (pointer events), tapping the backdrop above it, ✕ or Esc; all go through `closeTd()`, which slides it out. Desktop keeps the centred dialog. Not yet checked with the iPhone keyboard open.
 
 ## iPhone sign-in (do not break)
