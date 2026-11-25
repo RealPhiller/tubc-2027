@@ -92,7 +92,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125n";
+const BUILD="b20261125o";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -659,7 +659,7 @@ function renderMine(){ if(!$("mlist")||!me) return;
   // phase strip in the header: progress per phase for this view; tap to jump
   const p0=seeKickoff()?0:1, t0=Date.parse(PH[p0][2]), t1=Date.parse(PH[5][3]), now=Date.now();
   $("line").style.setProperty("--phn", PH.length-p0);
-  $("line").innerHTML = PH.map((p,i)=>{ if(!phVis(i)) return ""; const ts=T.filter(t=>t.phase===i),d=ts.filter(t=>t.status==="dn").length; return `<button type="button" class="seg" data-go="${i}"><b>${p[0]}</b><span>${p[1]} · ${d}/${ts.length}</span><div class="bar"><i data-k="ph${i}-${esc(cur)}" data-w="${ts.length?d/ts.length*100:0}"></i></div></button>`; }).join("") + (now>=t0&&now<=t1?`<div class="now" style="left:${(now-t0)/(t1-t0)*100}%"></div>`:"");
+  $("line").innerHTML = PH.map((p,i)=>{ if(!phVis(i)) return ""; const ts=T.filter(t=>t.phase===i),d=ts.filter(t=>t.status==="dn").length; return `<button type="button" class="seg" data-go="${i}"><b>${p[0]}</b><span>${p[1]} · ${d}/${ts.length}</span><div class="bar"><i data-k="ph${i}-${esc(cur)}" data-w="${ts.length?d/ts.length*100:0}"></i></div></button>`; }).join("") + (now>=t0&&now<=t1?(x=>`<div class="now${x<6?" l":x>94?" r":""}" style="left:${x}%"></div>`)((now-t0)/(t1-t0)*100):"");
   animBars($("line"));
   const item=t=>`<li class="mi ${t.status}${jd(t.id)}" style="--dc:${tcol(t)}"><button type="button" class="mt" data-task="${t.id}"><span class="md">${t.due?when(t):"—"}${relDue(t)}</span><span class="mtt"${canEdit(t)?' title="Double-click to rename"':""}>${esc(t.title)}</span><span class="mo">${pills(t)}</span>${extras(t)}</button><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${canTask(t)?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></li>`;
   const MFOLD=3, more=(k,n,closed)=>`<li class="mmw"><button type="button" class="mmore" data-mmore="${k}" aria-expanded="${!closed}">${closed?`Show ${n-MFOLD} more`:"Show less"}</button></li>`;

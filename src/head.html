@@ -41,7 +41,10 @@ h1{font-size:clamp(32px,5vw,48px);text-wrap:balance}
 .bar{height:6px;background:rgba(255,255,255,.22);border-radius:3px;margin-top:8px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .7s cubic-bezier(.2,.8,.2,1)}
 .now{position:absolute;top:-10px;bottom:-6px;width:2px;background:var(--gold)}
-.now::after{content:"Today";position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--gold);white-space:nowrap}
+.now{border-radius:2px;z-index:0;opacity:.85}
+#v-mine .seg{position:relative;z-index:1}
+.now::after{content:"Today";position:absolute;top:-24px;left:50%;transform:translateX(-50%);font:700 11px/1 "Red Hat Text",sans-serif;letter-spacing:.02em;color:#17120f;background:var(--gold);padding:4px 8px;border-radius:99px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.now.l::after{left:-1px;transform:none}.now.r::after{left:auto;right:-1px;transform:none}
 .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px}
 select,input{font:16px "Red Hat Text",sans-serif;padding:8px 10px;min-height:44px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
 .chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 14px;min-height:44px;font:500 15px "Red Hat Text",sans-serif;cursor:pointer}
@@ -856,7 +859,7 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
 @keyframes sheetdown{from{transform:none}to{transform:translateY(100%)}}
 @media(max-width:760px){#td.dout,#ed.dout{animation:sheetdown .22s ease-in forwards}}
 /* Tasks page (Tracker merged in): phase strip in the header, phase → month groups */
-#v-mine .line{margin-top:18px;grid-template-columns:repeat(var(--phn,6),minmax(0,1fr))}
+#v-mine .line{margin-top:44px;grid-template-columns:repeat(var(--phn,6),minmax(0,1fr))}
 @media(max-width:760px){#v-mine .line{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .madd{margin-left:auto;min-height:44px;border:0;border-radius:999px;padding:0 18px;background:var(--gold);color:#17120f;font:700 15px "Red Hat Text",sans-serif;cursor:pointer}
 .madd:hover{filter:brightness(1.05)}
