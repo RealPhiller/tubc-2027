@@ -800,6 +800,49 @@ select.st:hover:not(:disabled){filter:brightness(.97)}
 .mmore[aria-expanded="true"]::after{content:" \25B4"}
 .mi.mrev{animation:mrev .35s cubic-bezier(.2,.8,.2,1) both}
 @keyframes mrev{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* edit box: one draft, one Save */
+#ed{width:min(640px,calc(100% - 24px));max-height:calc(100dvh - 32px);overflow:auto;padding-bottom:0}
+#ed .dh{position:sticky;top:-20px;background:var(--bg);z-index:3;padding:20px 0 8px;margin-top:-20px}
+#ed .da{position:sticky;bottom:0;background:var(--bg);z-index:3;margin:14px -20px 0;padding:12px 20px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+#eds{min-width:110px;transition:transform .15s}
+#eds:disabled{opacity:.45;cursor:not-allowed}
+#eds:not(:disabled){animation:edpop .3s ease}
+@keyframes edpop{50%{transform:scale(1.05)}}
+.ferr{margin:4px 0 0;color:#d23a33;font:600 13px "Red Hat Text",sans-serif}
+.ferr[hidden]{display:none}
+.esec{border-top:1px solid var(--line);padding-top:12px}
+.esh{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.esh b{font:700 15px "Red Hat Display",sans-serif}
+.esh small{color:var(--mute);font-size:12.5px}
+.eitems{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.eitems li{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid transparent;border-radius:10px;padding:6px 8px;transition:border-color .15s,box-shadow .15s}
+.eitems li.bad{border-color:#d23a33}
+.eitems li.enew{animation:mrev .35s cubic-bezier(.2,.8,.2,1)}
+.eitems li.edrag{box-shadow:0 8px 22px rgba(0,0,0,.18);border-color:var(--gold);background:var(--bg)}
+.eitems li.eempty{background:none;color:var(--mute);font-size:13.5px;padding:2px 0}
+.eitems input:not([type=checkbox]){flex:1;min-width:0;min-height:36px;padding:6px 8px;font:15px "Red Hat Text",sans-serif;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--ink)}
+.eitems input:not([type=checkbox]):hover{border-color:var(--line)}
+.eitems input:not([type=checkbox]):focus{border-color:var(--gold);background:var(--bg);outline:0}
+.eitems input[type=checkbox]{width:18px;height:18px;min-height:0;padding:0;margin:0;accent-color:var(--red);flex:none}
+.egrip{cursor:grab;color:var(--mute);font-size:14px;letter-spacing:-2px;padding:6px 4px;touch-action:none;user-select:none;flex:none}
+.erm{flex:none}
+.elinks .lic{flex:none;width:22px;height:22px;border-radius:5px;display:grid;place-items:center;font:700 11px "Red Hat Text",sans-serif;color:#fff}
+.elinks .eln2{flex:0 1 38%}
+.eadd{display:flex;gap:8px;margin-top:8px}
+.eadd input{flex:1;min-width:0}
+.enote2{margin:4px 0 0;color:var(--mute);font-size:12.5px}
+.ebar{position:sticky;bottom:64px;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--goldsoft);border:1px solid var(--gold);font:600 14px "Red Hat Text",sans-serif;color:var(--ink);animation:hpin .18s ease-out}
+.ebar[hidden]{display:none}
+.ebar div{display:flex;gap:8px}
+.pri.danger{background:#c8302d;border-color:#c8302d}
+@media(max-width:600px){.elinks li{flex-wrap:wrap}.elinks .eln2{flex:1 1 calc(100% - 70px)}.elinks .elu2{flex:1 1 100%;order:3}.eadd2{flex-wrap:wrap}.eadd2 input{flex:1 1 100%}}
+@media(max-width:760px){
+#ed{margin:0;inset:auto 0 0 0;width:100%;max-width:100%;max-height:calc(100dvh - 32px);border-radius:18px 18px 0 0;padding:0 18px 0;overscroll-behavior:contain;box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+#ed[open]{animation:sheetup .3s cubic-bezier(.2,.8,.2,1)}
+#ed .dh{top:0;margin-top:0;padding:16px 0 8px}
+#ed .da{margin:14px -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px))}
+#ed .da button{flex:1}
+}
 </style>
 </head>
 <body>
@@ -1012,13 +1055,19 @@ select.st:hover:not(:disabled){filter:brightness(.97)}
 <dialog id="ed" aria-labelledby="edt"><form id="edf">
   <div class="dh"><h3 id="edt">Edit task</h3><button type="button" class="x" id="edx" aria-label="Close">×</button></div>
   <div class="ef">
-    <label>Task<input id="et" required></label>
-    <div class="two"><label>Start date <small class="opt">optional, for multi-day</small><input id="estart" type="date"></label><label>Due date<input id="edue" type="date"></label></div>
+    <label>Task<input id="et" maxlength="200"></label><p class="ferr" id="etitleerr" hidden></p>
+    <div class="two"><label>Start date <small class="opt">optional, for multi-day</small><input id="estart" type="date"></label><label>Due date<input id="edue" type="date"></label></div><p class="ferr" id="edateerr" hidden></p>
     <label>Topic<select id="eph"></select></label>
     <div class="flab">Owner <small style="font-weight:400;color:var(--mute)">Tick one or more</small><input type="hidden" id="eown" value=""><details class="opick" data-for="eown"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details></div>
     <label>Notes<textarea id="enote"></textarea></label>
+    <div class="esec"><div class="esh"><b>Steps</b><small id="esc"></small></div><ul class="eitems esteps" id="esl"></ul><p class="ferr" id="esterr" hidden></p>
+      <div class="eadd"><input id="esi" maxlength="140" placeholder="Add a step, then press Enter" aria-label="New step"><button type="button" class="ghost sm" id="esa">Add</button></div></div>
+    <div class="esec"><div class="esh"><b>Links</b><small>Drive, Canva, Docs…</small></div><ul class="eitems elinks" id="ell"></ul><p class="ferr" id="elerr" hidden></p>
+      <div class="eadd eadd2"><input id="elu" type="url" placeholder="https://…" aria-label="Link address"><input id="eln" maxlength="60" placeholder="Name (optional)" aria-label="Link name"><button type="button" class="ghost sm" id="ela">Add</button></div></div>
+    <p class="enote2">Changes are only sent when you press Save.</p>
   </div>
-  <div class="da"><button type="button" class="ghost" id="edc">Cancel</button><button type="submit" class="pri">Save</button></div>
+  <div class="ebar" id="ebar" role="alertdialog" aria-live="assertive" hidden></div>
+  <div class="da"><button type="button" class="ghost" id="edc">Cancel</button><button type="submit" class="pri" id="eds" disabled>Save</button></div>
 </form></dialog>
 
 <div class="view" id="v-overview" hidden>
@@ -1191,7 +1240,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125i";
+const BUILD="b20261125j";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -1491,25 +1540,105 @@ document.addEventListener("click",e=>{ if(e.target.closest(".inl-t,.inl-row")) r
 
 
 // ---------- edit + drag ----------
-let editId=null;
-function openEdit(id){ const t=tasks.find(x=>x.id===id); if(!t||!canEdit(t)) return; editId=id;
+let editId=null, ed=null; // ed = the open edit form's draft: { id, from, stamp, steps:[{t,d,o}], links:[{u,l,o}] } (o = index in the saved task, null = new)
+const edStamp = t => t?.updatedAt?.toMillis ? t.updatedAt.toMillis() : 0;
+function openEdit(id, from){ const t=tasks.find(x=>x.id===id); if(!t||!canEdit(t)) return; editId=id;
+  ed={ id, from: from||"", stamp: edStamp(t), steps:(t.checks||[]).map((c,o)=>({t:c.t,d:!!c.d,o})), links:(t.links||[]).map((l,o)=>({u:l.u,l:l.l||"",o})) };
   $("et").value=t.title||""; $("estart").value=spans(t)?t.start:""; $("edue").value=t.due||""; setPick("eown",t.owner||""); $("enote").value=t.note||"";
-  $("eph").innerHTML=phOpts(t.phase);
+  $("eph").innerHTML=phOpts(t.phase); $("esi").value=""; $("elu").value=""; $("eln").value=""; $("ebar").hidden=true;
+  renderEdSteps(); renderEdLinks(); edUpdate();
   try{ $("td").close(); }catch(e){}
   try{$("ed").showModal();}catch(e){$("ed").setAttribute("open","");} setTimeout(()=>$("et").focus(),50); }
-const closeE=()=>{ try{$("ed").close();}catch(e){$("ed").removeAttribute("open");} };
-$("edx").onclick=closeE; $("edc").onclick=closeE;
-$("edf").addEventListener("submit", e=>{ e.preventDefault(); const t=tasks.find(x=>x.id===editId); if(!t) return;
-  const title=$("et").value.trim(); if(!title) return; const owner=$("eown").value.trim()||"PVP"; const due=$("edue").value; const phase=+$("eph").value;
-  const st=$("estart").value; if(st&&due&&st>due){ toast("The start date must be on or before the due date."); return; }
-  const ns=st&&due&&st<due?st:"", os=spans(t)?t.start:"";
-  const upd={title,due,owner,depts:toks(owner),note:$("enote").value.trim(),phase,updatedBy:me.name,updatedAt:serverTimestamp()};
+function closeE(){ const back=ed&&ed.from==="td"?ed.id:null; ed=null; try{$("ed").close();}catch(e){$("ed").removeAttribute("open");} if(back) openTask(back); }
+const edT = () => ed && tasks.find(x=>x.id===ed.id);
+function edVals(){ return { title:$("et").value.trim(), start:$("estart").value, due:$("edue").value, phase:+$("eph").value, owner:$("eown").value.trim()||"PVP", note:$("enote").value.trim() }; }
+// Everything that differs from the saved task, as short phrases (also used for the activity log).
+function edChanges(){ const t=edT(); if(!t) return []; const v=edVals(), c=[], os=spans(t)?t.start:"", ns=v.start&&v.due&&v.start<v.due?v.start:"";
+  if(v.title!==(t.title||"")) c.push("renamed");
+  if(v.due!==(t.due||"")) c.push(`due ${fmt(t.due)||"none"} → ${fmt(v.due)||"none"}`);
+  if(ns!==os) c.push(ns?`start ${fmt(ns)}`:"start date removed");
+  if(v.phase!==t.phase) c.push(`moved to ${PH[v.phase][0]}`);
+  if(v.owner!==(t.owner||"")) c.push(`owner ${t.owner} → ${v.owner}`);
+  if(v.note!==(t.note||"")) c.push("note updated");
+  const n=(k,w)=>k+" "+w+(k===1?"":"s"), S=ed.steps, oc=(t.checks||[]);
+  const sAdd=S.filter(s=>s.o==null).length, sRm=oc.length-S.filter(s=>s.o!=null).length, sRen=S.filter(s=>s.o!=null&&s.t.trim()!==oc[s.o].t).length, sTick=S.filter(s=>s.o!=null&&s.d!==!!oc[s.o].d).length;
+  const kept=S.filter(s=>s.o!=null).map(s=>s.o), sMoved=kept.some((o,i)=>i&&o<kept[i-1]);
+  if(sAdd) c.push(n(sAdd,"step")+" added"); if(sRm) c.push(n(sRm,"step")+" removed"); if(sRen) c.push(n(sRen,"step")+" renamed"); if(sTick) c.push(n(sTick,"step")+" ticked/unticked"); if(sMoved) c.push("steps reordered");
+  const L=ed.links, ol=(t.links||[]);
+  const lAdd=L.filter(l=>l.o==null).length, lRm=ol.length-L.filter(l=>l.o!=null).length, lCh=L.filter(l=>l.o!=null&&(l.u.trim()!==ol[l.o].u||l.l.trim()!==(ol[l.o].l||""))).length;
+  if(lAdd) c.push(n(lAdd,"link")+" added"); if(lRm) c.push(n(lRm,"link")+" removed"); if(lCh) c.push(n(lCh,"link")+" changed");
+  return c; }
+function edErrors(){ const v=edVals(), e={};
+  if(!v.title) e.title="The task needs a name.";
+  if(v.start&&v.due&&v.start>v.due) e.date="The start date must be on or before the due date.";
+  if(v.start&&!v.due) e.date="Add a due date too, or clear the start date.";
+  const bad=ed.links.find(l=>!/^https?:\/\/\S+$/i.test(l.u.trim())); if(bad) e.links="Every link must start with https:// (fix or remove the highlighted one).";
+  if(ed.steps.some(s=>!s.t.trim())) e.steps="A step can't be empty (type something or remove it).";
+  return e; }
+// Refresh the Save button ("Save (3)"), inline errors and the error highlights.
+function edUpdate(){ if(!ed) return; const ch=edChanges(), er=edErrors(), b=$("eds");
+  [["etitleerr",er.title],["edateerr",er.date],["esterr",er.steps],["elerr",er.links]].forEach(([id,m])=>{ const p=$(id); p.hidden=!m; p.textContent=m||""; });
+  $("ell").querySelectorAll("li").forEach((li,i)=>li.classList.toggle("bad",!/^https?:\/\/\S+$/i.test((ed.links[i]?.u||"").trim())));
+  $("esl").querySelectorAll("li").forEach((li,i)=>li.classList.toggle("bad",!(ed.steps[i]?.t||"").trim()));
+  b.disabled=!ch.length||Object.keys(er).length>0; b.textContent=ch.length?`Save (${ch.length})`:"Save";
+  b.title=ch.length?ch.join(" · "):"Nothing changed yet";
+  $("esc").textContent=ed.steps.length?`${ed.steps.filter(s=>s.d).length} of ${ed.steps.length} done`:"";
+  if(!$("ebar").hidden && $("ebar").dataset.kind==="discard" && !ch.length) $("ebar").hidden=true; }
+function renderEdSteps(){ $("esl").innerHTML=ed.steps.map((s,i)=>`<li data-i="${i}"><span class="egrip" title="Drag to reorder" aria-hidden="true">⋮⋮</span><input type="checkbox" class="eck"${s.d?" checked":""} aria-label="Done"><input class="etx" value="${esc(s.t)}" maxlength="140" aria-label="Step ${i+1}"><button type="button" class="mini erm" aria-label="Remove step">×</button></li>`).join("")||'<li class="eempty">No steps yet. Add one below.</li>'; }
+function renderEdLinks(){ $("ell").innerHTML=ed.links.map((l,i)=>{ const [c,k]=linkKind(l.u); return `<li data-i="${i}"><span class="lic" style="background:${c}">${k}</span><input class="eln2" value="${esc(l.l)}" maxlength="60" placeholder="Name (optional)" aria-label="Link name"><input class="elu2" type="url" value="${esc(l.u)}" maxlength="500" aria-label="Link address"><button type="button" class="mini erm" aria-label="Remove link">×</button></li>`; }).join("")||'<li class="eempty">No links yet. Add one below.</li>'; }
+function edAddStep(){ const v=$("esi").value.trim(); if(!v) { $("esi").focus(); return; } if(ed.steps.length>=40){ toast("Up to 40 steps per task."); return; }
+  ed.steps.push({t:v.slice(0,140),d:false,o:null}); $("esi").value=""; renderEdSteps(); edUpdate(); $("esl").lastElementChild?.classList.add("enew"); $("esi").focus(); }
+function edAddLink(){ const u=$("elu").value.trim(), l=$("eln").value.trim().slice(0,60); if(!u){ $("elu").focus(); return; }
+  if(!/^https?:\/\/\S+$/i.test(u)){ $("elerr").hidden=false; $("elerr").textContent="Links must start with https://"; $("elu").focus(); return; }
+  if(ed.links.length>=20){ toast("Up to 20 links per task."); return; }
+  ed.links.push({u:u.slice(0,500),l,o:null}); $("elu").value=""; $("eln").value=""; renderEdLinks(); edUpdate(); $("ell").lastElementChild?.classList.add("enew"); $("elu").focus(); }
+$("esa").onclick=edAddStep; $("ela").onclick=edAddLink;
+$("esi").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); edAddStep(); } });
+["elu","eln"].forEach(id=>$(id).addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); edAddLink(); } }));
+$("esl").addEventListener("input",e=>{ const li=e.target.closest("li[data-i]"); if(!li) return; const s=ed.steps[+li.dataset.i]; if(e.target.classList.contains("etx")) s.t=e.target.value; edUpdate(); });
+$("esl").addEventListener("change",e=>{ const li=e.target.closest("li[data-i]"); if(!li||!e.target.classList.contains("eck")) return; ed.steps[+li.dataset.i].d=e.target.checked; edUpdate(); });
+$("ell").addEventListener("input",e=>{ const li=e.target.closest("li[data-i]"); if(!li) return; const l=ed.links[+li.dataset.i];
+  if(e.target.classList.contains("eln2")) l.l=e.target.value; if(e.target.classList.contains("elu2")){ l.u=e.target.value; const [c,k]=linkKind(l.u.trim()), ic=li.querySelector(".lic"); ic.style.background=c; ic.textContent=k; } edUpdate(); });
+[$("esl"),$("ell")].forEach(ul=>ul.addEventListener("click",e=>{ const b=e.target.closest(".erm"); if(!b) return; const i=+b.closest("li").dataset.i;
+  if(ul.id==="esl"){ ed.steps.splice(i,1); renderEdSteps(); } else { ed.links.splice(i,1); renderEdLinks(); } edUpdate(); }));
+// Drag a step by its ⋮⋮ handle to reorder (mouse or touch).
+$("esl").addEventListener("pointerdown",e=>{ const g=e.target.closest(".egrip"); if(!g) return; e.preventDefault(); const li=g.closest("li"); li.classList.add("edrag"); try{g.setPointerCapture(e.pointerId);}catch(_){}
+  const move=ev=>{ const over=document.elementFromPoint(ev.clientX,ev.clientY)?.closest("#esl li[data-i]"); if(!over||over===li) return; const r=over.getBoundingClientRect(); if(ev.clientY<r.top+r.height/2) over.before(li); else over.after(li); };
+  const up=()=>{ g.removeEventListener("pointermove",move); g.removeEventListener("pointerup",up); g.removeEventListener("pointercancel",up); li.classList.remove("edrag");
+    ed.steps=[...$("esl").querySelectorAll("li[data-i]")].map(x=>ed.steps[+x.dataset.i]); renderEdSteps(); edUpdate(); };
+  g.addEventListener("pointermove",move); g.addEventListener("pointerup",up); g.addEventListener("pointercancel",up); });
+// Fields: re-check after any edit (the owner picker updates its hidden input in its own handler, so wait a tick).
+$("edf").addEventListener("input",()=>setTimeout(edUpdate,0)); $("edf").addEventListener("change",()=>setTimeout(edUpdate,0));
+// Leaving with unsaved changes asks first.
+function edBar(kind, who){ const b=$("ebar"); b.dataset.kind=kind; b.hidden=false;
+  b.innerHTML = kind==="discard"
+    ? `<span>Discard your unsaved changes?</span><div><button type="button" class="ghost sm" data-eb="keep">Keep editing</button><button type="button" class="pri sm danger" data-eb="discard">Discard</button></div>`
+    : `<span><b>${esc(who||"Someone")}</b> changed this task while you were editing. Save yours over it?</span><div><button type="button" class="ghost sm" data-eb="keep">Keep editing</button><button type="button" class="pri sm" data-eb="force">Save anyway</button></div>`;
+  b.querySelector('[data-eb="keep"]').focus(); }
+$("ebar").addEventListener("click",e=>{ const k=e.target.closest("[data-eb]")?.dataset.eb; if(!k) return; $("ebar").hidden=true;
+  if(k==="discard") closeE(); else if(k==="force") edSave(true); });
+function edLeave(){ if(ed && edChanges().length) edBar("discard"); else closeE(); }
+$("edx").onclick=edLeave; $("edc").onclick=edLeave;
+$("ed").addEventListener("cancel",e=>{ e.preventDefault(); if(!$("ebar").hidden) { $("ebar").hidden=true; return; } edLeave(); });
+$("ed").addEventListener("click",e=>{ if(e.target===$("ed")){ const r=$("ed").getBoundingClientRect(); if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) edLeave(); } });
+// Save: one update with every changed field, one activity-log line.
+function edSave(force){ const t=edT(); if(!t){ toast("This task was deleted while you were editing."); ed=null; closeE(); return; }
+  const ch=edChanges(); if(!ch.length||Object.keys(edErrors()).length) return;
+  if(!force && edStamp(t)!==ed.stamp && t.updatedBy!==me.name) { edBar("conflict", t.updatedBy); return; }
+  const v=edVals(), os=spans(t)?t.start:"", ns=v.start&&v.due&&v.start<v.due?v.start:"", upd={updatedBy:me.name,updatedAt:serverTimestamp()};
+  if(v.title!==(t.title||"")) upd.title=v.title;
+  if(v.due!==(t.due||"")) { upd.due=v.due; if(typeof t.order!=="number") upd.order=v.due?Date.parse(v.due)/86400000:99999; }
   if(ns!==os) upd.start=ns||deleteField();
-  if(due!==t.due && typeof t.order!=="number") upd.order=due?Date.parse(due)/86400000:99999;
-  if(phase!==t.phase){ const inP=tasks.filter(x=>x.phase===phase&&x.id!==t.id); upd.order=inP.length?Math.max(...inP.map(ordKey))+1:ordKey(t); }
-  const ch=[]; if(title!==t.title) ch.push("renamed"); if(due!==(t.due||"")) ch.push(`due ${fmt(t.due)||"none"} → ${fmt(due)||"none"}`); if(owner!==t.owner) ch.push(`owner ${t.owner} → ${owner}`); if(phase!==t.phase) ch.push(`moved to ${PH[phase][0]}`); if(ns!==os) ch.push(ns?`dates ${rng(ns,due)}`:"start date removed"); if(upd.note!==(t.note||"")) ch.push("note updated");
-  updateDoc(doc(db,"tasks",editId),upd).then(()=>{ if(ch.length) logIt({id:t.id,title},"edit",ch.join(", ")); closeE();toast("Task saved.");}).catch(fail); });
-$("tde").onclick=()=>{ if(curTask) openEdit(curTask); };
+  if(v.owner!==(t.owner||"")) { upd.owner=v.owner; upd.depts=toks(v.owner); }
+  if(v.note!==(t.note||"")) upd.note=v.note;
+  if(v.phase!==t.phase){ upd.phase=v.phase; const inP=tasks.filter(x=>x.phase===v.phase&&x.id!==t.id); upd.order=inP.length?Math.max(...inP.map(ordKey))+1:ordKey(t); }
+  const checks=ed.steps.map(s=>({t:s.t.trim().slice(0,140),d:!!s.d})); if(JSON.stringify(checks)!==JSON.stringify((t.checks||[]).map(c=>({t:c.t,d:!!c.d})))) upd.checks=checks;
+  const links=ed.links.map(l=>({u:l.u.trim().slice(0,500),l:l.l.trim().slice(0,60)})); if(JSON.stringify(links)!==JSON.stringify((t.links||[]).map(l=>({u:l.u,l:l.l||""})))) upd.links=links;
+  const title=v.title, id=t.id;
+  updateDoc(doc(db,"tasks",id),upd).then(()=>{ logIt({id,title},"edit",ch.join(", ").slice(0,290)); toast("Saved."); }).catch(fail);
+  closeE(); }
+$("edf").addEventListener("submit",e=>{ e.preventDefault(); edSave(false); });
+$("tde").onclick=()=>{ if(curTask) openEdit(curTask,"td"); };
 
 let dragId=null;
 const clearDrop=()=>document.querySelectorAll(".drop-before,.drop-after,.drop-into").forEach(el=>el.classList.remove("drop-before","drop-after","drop-into"));
@@ -1752,30 +1881,19 @@ $("mf").addEventListener("submit", e=>{ e.preventDefault(); const email=$("me1")
 const canSteps = t => canTask(t) || canEdit(t);
 function renderSteps(t){ const ck=t.checks||[], n=ck.length, d=ck.filter(c=>c.d).length, ok=canSteps(t);
   $("tckc").textContent=n?`${d} of ${n} done`:""; $("tckb").parentNode.hidden=!n; $("tckb").style.width=(n?d/n*100:0)+"%";
-  $("tckl").innerHTML=ck.map((c,i)=>`<li class="${c.d?"on":""}"><input type="checkbox" id="ck${i}" data-ck="${i}"${c.d?" checked":""}${ok?"":" disabled"}><label for="ck${i}">${esc(c.t)}</label>${ok?`<button type="button" class="mini" data-ckrm="${i}" aria-label="Remove step">×</button>`:""}</li>`).join("")||(ok?"":'<li class="fd" style="color:var(--mute);font-size:14px">No steps.</li>');
-  $("tckf").hidden=!ok; $("tck").hidden=!n&&!ok; }
+  $("tckl").innerHTML=ck.map((c,i)=>`<li class="${c.d?"on":""}"><input type="checkbox" id="ck${i}" data-ck="${i}"${c.d?" checked":""}${ok?"":" disabled"}><label for="ck${i}">${esc(c.t)}</label></li>`).join("");
+  $("tckf").hidden=true; $("tck").hidden=!n; } // adding, renaming and removing steps happens in Edit
 function saveSteps(t,checks,what){ t.checks=checks; renderSteps(t); render();
   return updateDoc(doc(db,"tasks",t.id),{checks,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{ if(what) logIt(t,"edit",what); }).catch(fail); }
-$("tckf").addEventListener("submit",e=>{ e.preventDefault(); const t=tasks.find(x=>x.id===curTask), v=$("tcki").value.trim(); if(!t||!v) return; if((t.checks||[]).length>=40){ toast("Up to 40 steps per task."); return; }
-  saveSteps(t,[...(t.checks||[]),{t:v.slice(0,140),d:false}],"step added: "+v.slice(0,80)); $("tcki").value=""; $("tcki").focus(); });
 $("tckl").addEventListener("change",e=>{ const i=e.target.dataset.ck; if(i==null) return; const t=tasks.find(x=>x.id===curTask); if(!t) return;
   const ck=(t.checks||[]).map((c,j)=>j==i?{...c,d:e.target.checked}:c); saveSteps(t,ck,(e.target.checked?"ticked: ":"unticked: ")+String(ck[i].t).slice(0,80)); });
-$("tckl").addEventListener("click",e=>{ const b=e.target.closest("[data-ckrm]"); if(!b) return; const t=tasks.find(x=>x.id===curTask); if(!t) return;
-  const ck=[...(t.checks||[])]; const [rm]=ck.splice(+b.dataset.ckrm,1); saveSteps(t,ck,"step removed: "+String(rm?.t||"").slice(0,80)); });
 
 // ---------- task links ----------
 function linkKind(u){ try{ const h=new URL(u).hostname; if(/docs\.google/.test(h)) return ["#1a73e8","G"]; if(/drive\.google/.test(h)) return ["#188038","D"]; if(/canva/.test(h)) return ["#7d2ae8","C"]; if(/figma/.test(h)) return ["#a259ff","F"]; if(/notion/.test(h)) return ["#37352f","N"]; if(/airtable/.test(h)) return ["#f82b60","A"]; return ["#868e96","↗"]; }catch{ return ["#868e96","↗"]; } }
 function renderLinks(t){ const L=t.links||[], ok=canEdit(t);
   $("tlkl").innerHTML=L.map((l,i)=>{ const [c,k]=linkKind(l.u); let host=""; try{ host=new URL(l.u).hostname.replace(/^www\./,""); }catch{}
-    return `<li><a href="${esc(l.u)}" target="_blank" rel="noopener noreferrer"><span class="lic" style="background:${c}">${k}</span><b>${esc(l.l||host||l.u)}</b><span class="lh">${esc(host)}</span></a>${ok?`<button type="button" class="mini" data-lkrm="${i}" aria-label="Remove link">×</button>`:""}</li>`; }).join("");
-  $("tlkf").hidden=!ok; $("tlk").hidden=!L.length&&!ok; }
-$("tlkf").addEventListener("submit",e=>{ e.preventDefault(); const t=tasks.find(x=>x.id===curTask); if(!t) return; let u=$("tlku").value.trim();
-  if(!/^https?:\/\//i.test(u)){ toast("Links must start with https://"); return; } if((t.links||[]).length>=20){ toast("Up to 20 links per task."); return; }
-  const l=$("tlkn").value.trim().slice(0,60); const links=[...(t.links||[]),{u:u.slice(0,500),l}]; t.links=links; renderLinks(t); render();
-  updateDoc(doc(db,"tasks",t.id),{links,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>logIt(t,"edit","link added: "+(l||u).slice(0,80))).catch(fail); $("tlku").value=""; $("tlkn").value=""; });
-$("tlkl").addEventListener("click",e=>{ const b=e.target.closest("[data-lkrm]"); if(!b) return; const t=tasks.find(x=>x.id===curTask); if(!t) return;
-  const links=[...(t.links||[])]; const [rm]=links.splice(+b.dataset.lkrm,1); t.links=links; renderLinks(t); render();
-  updateDoc(doc(db,"tasks",t.id),{links,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>logIt(t,"edit","link removed: "+(rm?.l||rm?.u||"").slice(0,80))).catch(fail); });
+    return `<li><a href="${esc(l.u)}" target="_blank" rel="noopener noreferrer"><span class="lic" style="background:${c}">${k}</span><b>${esc(l.l||host||l.u)}</b><span class="lh">${esc(host)}</span></a></li>`; }).join("");
+  $("tlkf").hidden=true; $("tlk").hidden=!L.length; } // adding and removing links happens in Edit
 
 // ---------- comments + @mentions ----------
 const initials = s => String(s||"?").trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();

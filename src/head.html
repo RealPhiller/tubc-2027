@@ -800,6 +800,49 @@ select.st:hover:not(:disabled){filter:brightness(.97)}
 .mmore[aria-expanded="true"]::after{content:" \25B4"}
 .mi.mrev{animation:mrev .35s cubic-bezier(.2,.8,.2,1) both}
 @keyframes mrev{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* edit box: one draft, one Save */
+#ed{width:min(640px,calc(100% - 24px));max-height:calc(100dvh - 32px);overflow:auto;padding-bottom:0}
+#ed .dh{position:sticky;top:-20px;background:var(--bg);z-index:3;padding:20px 0 8px;margin-top:-20px}
+#ed .da{position:sticky;bottom:0;background:var(--bg);z-index:3;margin:14px -20px 0;padding:12px 20px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+#eds{min-width:110px;transition:transform .15s}
+#eds:disabled{opacity:.45;cursor:not-allowed}
+#eds:not(:disabled){animation:edpop .3s ease}
+@keyframes edpop{50%{transform:scale(1.05)}}
+.ferr{margin:4px 0 0;color:#d23a33;font:600 13px "Red Hat Text",sans-serif}
+.ferr[hidden]{display:none}
+.esec{border-top:1px solid var(--line);padding-top:12px}
+.esh{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.esh b{font:700 15px "Red Hat Display",sans-serif}
+.esh small{color:var(--mute);font-size:12.5px}
+.eitems{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.eitems li{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid transparent;border-radius:10px;padding:6px 8px;transition:border-color .15s,box-shadow .15s}
+.eitems li.bad{border-color:#d23a33}
+.eitems li.enew{animation:mrev .35s cubic-bezier(.2,.8,.2,1)}
+.eitems li.edrag{box-shadow:0 8px 22px rgba(0,0,0,.18);border-color:var(--gold);background:var(--bg)}
+.eitems li.eempty{background:none;color:var(--mute);font-size:13.5px;padding:2px 0}
+.eitems input:not([type=checkbox]){flex:1;min-width:0;min-height:36px;padding:6px 8px;font:15px "Red Hat Text",sans-serif;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--ink)}
+.eitems input:not([type=checkbox]):hover{border-color:var(--line)}
+.eitems input:not([type=checkbox]):focus{border-color:var(--gold);background:var(--bg);outline:0}
+.eitems input[type=checkbox]{width:18px;height:18px;min-height:0;padding:0;margin:0;accent-color:var(--red);flex:none}
+.egrip{cursor:grab;color:var(--mute);font-size:14px;letter-spacing:-2px;padding:6px 4px;touch-action:none;user-select:none;flex:none}
+.erm{flex:none}
+.elinks .lic{flex:none;width:22px;height:22px;border-radius:5px;display:grid;place-items:center;font:700 11px "Red Hat Text",sans-serif;color:#fff}
+.elinks .eln2{flex:0 1 38%}
+.eadd{display:flex;gap:8px;margin-top:8px}
+.eadd input{flex:1;min-width:0}
+.enote2{margin:4px 0 0;color:var(--mute);font-size:12.5px}
+.ebar{position:sticky;bottom:64px;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--goldsoft);border:1px solid var(--gold);font:600 14px "Red Hat Text",sans-serif;color:var(--ink);animation:hpin .18s ease-out}
+.ebar[hidden]{display:none}
+.ebar div{display:flex;gap:8px}
+.pri.danger{background:#c8302d;border-color:#c8302d}
+@media(max-width:600px){.elinks li{flex-wrap:wrap}.elinks .eln2{flex:1 1 calc(100% - 70px)}.elinks .elu2{flex:1 1 100%;order:3}.eadd2{flex-wrap:wrap}.eadd2 input{flex:1 1 100%}}
+@media(max-width:760px){
+#ed{margin:0;inset:auto 0 0 0;width:100%;max-width:100%;max-height:calc(100dvh - 32px);border-radius:18px 18px 0 0;padding:0 18px 0;overscroll-behavior:contain;box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+#ed[open]{animation:sheetup .3s cubic-bezier(.2,.8,.2,1)}
+#ed .dh{top:0;margin-top:0;padding:16px 0 8px}
+#ed .da{margin:14px -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px))}
+#ed .da button{flex:1}
+}
 </style>
 </head>
 <body>
@@ -1012,13 +1055,19 @@ select.st:hover:not(:disabled){filter:brightness(.97)}
 <dialog id="ed" aria-labelledby="edt"><form id="edf">
   <div class="dh"><h3 id="edt">Edit task</h3><button type="button" class="x" id="edx" aria-label="Close">×</button></div>
   <div class="ef">
-    <label>Task<input id="et" required></label>
-    <div class="two"><label>Start date <small class="opt">optional, for multi-day</small><input id="estart" type="date"></label><label>Due date<input id="edue" type="date"></label></div>
+    <label>Task<input id="et" maxlength="200"></label><p class="ferr" id="etitleerr" hidden></p>
+    <div class="two"><label>Start date <small class="opt">optional, for multi-day</small><input id="estart" type="date"></label><label>Due date<input id="edue" type="date"></label></div><p class="ferr" id="edateerr" hidden></p>
     <label>Topic<select id="eph"></select></label>
     <div class="flab">Owner <small style="font-weight:400;color:var(--mute)">Tick one or more</small><input type="hidden" id="eown" value=""><details class="opick" data-for="eown"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details></div>
     <label>Notes<textarea id="enote"></textarea></label>
+    <div class="esec"><div class="esh"><b>Steps</b><small id="esc"></small></div><ul class="eitems esteps" id="esl"></ul><p class="ferr" id="esterr" hidden></p>
+      <div class="eadd"><input id="esi" maxlength="140" placeholder="Add a step, then press Enter" aria-label="New step"><button type="button" class="ghost sm" id="esa">Add</button></div></div>
+    <div class="esec"><div class="esh"><b>Links</b><small>Drive, Canva, Docs…</small></div><ul class="eitems elinks" id="ell"></ul><p class="ferr" id="elerr" hidden></p>
+      <div class="eadd eadd2"><input id="elu" type="url" placeholder="https://…" aria-label="Link address"><input id="eln" maxlength="60" placeholder="Name (optional)" aria-label="Link name"><button type="button" class="ghost sm" id="ela">Add</button></div></div>
+    <p class="enote2">Changes are only sent when you press Save.</p>
   </div>
-  <div class="da"><button type="button" class="ghost" id="edc">Cancel</button><button type="submit" class="pri">Save</button></div>
+  <div class="ebar" id="ebar" role="alertdialog" aria-live="assertive" hidden></div>
+  <div class="da"><button type="button" class="ghost" id="edc">Cancel</button><button type="submit" class="pri" id="eds" disabled>Save</button></div>
 </form></dialog>
 
 <div class="view" id="v-overview" hidden>
