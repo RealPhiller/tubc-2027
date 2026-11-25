@@ -62,6 +62,7 @@ const ownHtml = s => toks(s).map(o=>`<span class="dt" style="--dc:${col(o)}">${e
 const thb = n => (Math.round(+n||0)).toLocaleString("en-US");
 let seenComments = null, swReg = null;
 let inl = null, inlPending = false, openT = null; // rename-in-place state (see that section)
+let mOpen = new Set(), mReveal = null; // My tasks: which folded groups are open
 let events = [], comments = [], people = {}, sponsors = [], sponsAccess = {see:["ER","PVP","Treasurer"],edit:["ER","PVP","Treasurer"]};
 
 let logs = [], ev = {challenger:"2027-08-22", tubc:"2027-10-04"};
@@ -76,7 +77,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125h";
+const BUILD="b20261125i";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -568,6 +569,7 @@ let mdPicked=false;
 $("mdept").addEventListener("change",()=>{ mdPicked=true; renderMine(); });
 $("mall").addEventListener("change",renderMine);
 function renderMine(){ if(!$("mlist")||!me) return;
+  const reveal=mReveal; mReveal=null;
   const sel=$("mdept"), cur=mdPicked?sel.value:(me.dept||"");
   sel.innerHTML='<option value="">Choose a department…</option>'+DEPTS.map(d=>`<option${d===cur?" selected":""}>${esc(d)}</option>`).join(""); sel.value=cur;
   if(!cur){ $("mlist").innerHTML='<p class="mempty">Pick a department above to see its tasks. Ask a PVP to set your department in Access so this opens automatically.</p>'; $("msum").textContent="What your department needs to do next."; $("mbarf").style.width="0"; renderFeed(); return; }
@@ -580,9 +582,17 @@ function renderMine(){ if(!$("mlist")||!me) return;
   const over=G[0][2].length;
   $("msum").textContent=`${cur}: ${open.length} open${over?` · ${over} overdue`:""} · ${done.length} of ${T.length} done`;
   $("mbarf").dataset.k="mine-"+cur; $("mbarf").dataset.w=T.length?done.length/T.length*100:0; animBars($("mbarf").parentNode);
-  $("mlist").innerHTML=(open.length?G.filter(g=>g[2].length).map(([k,l,a])=>`<section class="mg ${k}"><h2>${l} <span class="n">${a.length}</span></h2><ul>${a.map(item).join("")}</ul></section>`).join(""):'<p class="mempty">Nothing open for this department. 🎉</p>')
+  const MFOLD=3, fold=(k,a)=>k==="later"&&a.length>MFOLD+1; // "Later" shows its first 3 tasks until someone taps "Show more"
+  const grp=([k,l,a])=>{ const closed=fold(k,a)&&!mOpen.has(k), list=closed?a.slice(0,MFOLD):a;
+    const btn=fold(k,a)?`<li class="mmw"><button type="button" class="mmore" data-mmore="${k}" aria-expanded="${!closed}">${closed?`Show ${a.length-MFOLD} more`:"Show less"}</button></li>`:"";
+    return `<section class="mg ${k}"><h2>${l} <span class="n">${a.length}</span></h2><ul>${list.map(item).join("")}${btn}</ul></section>`; };
+  $("mlist").innerHTML=(open.length?G.filter(g=>g[2].length).map(grp).join(""):'<p class="mempty">Nothing open for this department. 🎉</p>')
     +(done.length?`<details class="mdone"><summary>Done (${done.length})</summary><ul style="list-style:none;padding:0;display:grid;gap:8px;margin-top:8px">${done.map(item).join("")}</ul></details>`:"");
+  if(reveal&&motion()) $("mlist").querySelectorAll(`.mg.${reveal} li.mi`).forEach((li,i)=>{ if(i>=3){ li.classList.add("mrev"); li.style.animationDelay=Math.min(i-3,12)*35+"ms"; } });
   renderFeed(); }
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-mmore]"); if(!b) return; const k=b.dataset.mmore;
+  if(mOpen.has(k)){ mOpen.delete(k); renderMine(); $("mlist").querySelector(`.mg.${k}`)?.scrollIntoView({block:"nearest",behavior:motion()?"smooth":"auto"}); }
+  else { mOpen.add(k); mReveal=k; renderMine(); } });
 
 // ---------- structure ----------
 // Members see a flat list (PVP -> every department); PVP and heads see who in the PVP owns what.
