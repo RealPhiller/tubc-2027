@@ -41,6 +41,15 @@ function relDue(t){ if(!t.due||t.status==="dn") return ""; const n=dayDiff(iso(n
   if(n===0) return `<span class="rd soon">Today</span>`; if(n===1) return `<span class="rd soon">Tomorrow</span>`;
   return n<=30 ? `<span class="rd">in ${n} days</span>` : ""; }
 const RM = matchMedia("(prefers-reduced-motion: reduce)"); const motion = () => !RM.matches;
+// ---------- popup closing animation: every dialog.close() plays a short exit first (closeNow() skips it) ----------
+{ const P=HTMLDialogElement.prototype, nClose=P.close, nShow=P.showModal;
+  P.closeNow=function(v){ clearTimeout(this._outT); this._outT=null; this.classList.remove("dout"); if(this.open) nClose.call(this,v); };
+  P.close=function(v){ if(!this.open||this._outT) return; if(!motion()) return this.closeNow(v);
+    const fin=()=>{ if(this._outT) this.closeNow(v); };
+    this.classList.add("dout"); this._outT=setTimeout(fin,320);
+    const onEnd=e=>{ if(e.target!==this||e.pseudoElement) return; this.removeEventListener("animationend",onEnd); fin(); };
+    this.addEventListener("animationend",onEnd); };
+  P.showModal=function(){ if(this._outT) this.closeNow(); return nShow.call(this); }; }
 const justDone = new Map(); // task id -> time it was ticked, for the done animation
 const jd = id => { const t0=justDone.get(id); return t0==null ? "" : ` justdone" style="--ad:-${Math.min(1200,Date.now()-t0)}ms`; };
 const prevW = {};
@@ -77,7 +86,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125j";
+const BUILD="b20261125k";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -97,8 +106,9 @@ const canHeads = d => can("headsAny") || (can("headsOwn") && me?.dept===d);
 const ordKey = t => typeof t.order==="number" ? t.order : (t.due ? Date.parse(t.due)/86400000 : 99999);
 
 // ---------- mobile menu ----------
-function openMenu(){ $("drawer").classList.add("open"); $("scrim").hidden=false; $("menu").setAttribute("aria-expanded","true"); document.body.style.overflow="hidden"; setTimeout(()=>$("dclose").focus(),50); }
-function closeMenu(){ $("drawer").classList.remove("open"); $("scrim").hidden=true; $("menu").setAttribute("aria-expanded","false"); document.body.style.overflow=""; }
+let scrimT=null;
+function openMenu(){ $("drawer").classList.add("open"); clearTimeout(scrimT); $("scrim").hidden=false; requestAnimationFrame(()=>$("scrim").classList.add("on")); $("menu").setAttribute("aria-expanded","true"); document.body.style.overflow="hidden"; setTimeout(()=>$("dclose").focus(),50); }
+function closeMenu(){ $("drawer").classList.remove("open"); $("scrim").classList.remove("on"); clearTimeout(scrimT); scrimT=setTimeout(()=>{ $("scrim").hidden=true; }, motion()?220:0); $("menu").setAttribute("aria-expanded","false"); document.body.style.overflow=""; }
 $("menu").onclick=openMenu; $("dclose").onclick=closeMenu; $("scrim").onclick=closeMenu;
 document.querySelector(".tabs").addEventListener("click", e=>{ if(e.target.closest("a")) closeMenu(); });
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeMenu(); });
@@ -362,8 +372,8 @@ $("tdx").onclick=()=>closeTd();
 // ---------- task details as a bottom sheet on phones (drag the top bar down, tap above, ✕ or Esc to close) ----------
 const sheetMQ=matchMedia("(max-width:760px)");
 function closeTd(){ const d=$("td"); if(!d.open) return;
-  const done=()=>{ d.classList.remove("closing"); d.style.transition=d.style.transform=""; try{d.close();}catch(e){d.removeAttribute("open");} };
-  if(!sheetMQ.matches||!motion()){ done(); return; }
+  const done=()=>{ d.classList.remove("closing"); d.style.transition=d.style.transform=""; try{d.closeNow();}catch(e){d.removeAttribute("open");} };
+  if(!sheetMQ.matches||!motion()){ d.close(); return; }
   d.classList.add("closing"); d.style.transition="transform .22s ease-in"; d.style.transform="translateY(100%)"; setTimeout(done,220); }
 let shY=null, shDy=0;
 $("td").addEventListener("pointerdown",e=>{ const d=$("td"); if(!sheetMQ.matches||d.scrollTop>0||!e.target.closest(".grab,.dh")||e.target.closest("button")) return;
@@ -1232,3 +1242,5 @@ function notifyMentions(){ if(!me) return; const ids=new Set(comments.map(c=>c.i
   seenComments=ids; }
 navigator.serviceWorker?.addEventListener("message",e=>{ if(e.data?.task){ const go=()=>tasks.length?openTask(e.data.task):setTimeout(go,300); go(); } });
 (()=>{ const q=new URLSearchParams(location.search).get("task"); if(!q) return; const go=()=>{ if(me&&tasks.some(t=>t.id===q)){ openTask(q); history.replaceState(null,"",location.pathname+location.hash); } else setTimeout(go,400); }; setTimeout(go,600); })();
+// Esc: let the closing animation play (dialogs with their own Esc handling call preventDefault first)
+document.querySelectorAll("dialog").forEach(d=>d.addEventListener("cancel",e=>{ if(e.defaultPrevented) return; e.preventDefault(); d.close(); }));

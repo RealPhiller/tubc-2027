@@ -220,18 +220,19 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .menu span{display:block;height:2px;background:var(--ink);border-radius:2px}
 .menu:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .pname{display:block;margin-left:auto;font-weight:600;font-size:15px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.drawer{position:fixed;top:0;left:0;bottom:0;z-index:30;width:min(300px,84vw);background:var(--bg);display:flex;flex-direction:column;padding:12px 16px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 0 40px rgba(0,0,0,.25);transform:translateX(-105%);transition:transform .22s ease;overflow-y:auto;visibility:hidden}
-.drawer.open{transform:none;visibility:visible}
+.drawer{position:fixed;top:0;left:0;bottom:0;z-index:30;width:min(300px,84vw);background:var(--bg);display:flex;flex-direction:column;padding:12px 16px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 0 40px rgba(0,0,0,.25);transform:translateX(-105%);transition:transform .22s cubic-bezier(.4,0,1,1),visibility 0s linear .22s;overflow-y:auto;visibility:hidden}
+.drawer.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s}
 .dhead{display:flex;justify-content:space-between;align-items:center;min-height:48px;margin-bottom:8px}
 .drawer .tabs{flex-direction:column;gap:2px;overflow:visible}
 .drawer .tabs a{min-height:50px;padding:0 14px;border-bottom:0;border-left:3px solid transparent;border-radius:0 8px 8px 0;font-size:17px}
 .drawer .tabs a[aria-current=page]{border-left-color:var(--red);background:var(--panel);color:var(--ink)}
 .drawer .me{margin:auto 0 0;padding-top:16px;border-top:1px solid var(--line);flex-direction:column;align-items:flex-start;gap:8px;font-size:15px}
 .drawer .me .ghost{width:100%}
-.scrim{display:block;position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.4)}
+.scrim{display:block;position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.4);opacity:0;transition:opacity .22s ease}
+.scrim.on{opacity:1}.scrim:not(.on){pointer-events:none}
 .phase{scroll-margin-top:64px}
 }
-@media(max-width:1240px) and (prefers-reduced-motion:reduce){.drawer{transition:none}}
+@media(max-width:1240px) and (prefers-reduced-motion:reduce){.drawer,.drawer.open,.scrim{transition:none}}
 .rqf{display:grid;gap:12px;text-align:left;margin:18px 0 12px}
 .rqf label{display:grid;gap:4px;font-size:14px;font-weight:600}
 .rqf small{font-weight:400;opacity:.8}
@@ -843,6 +844,17 @@ select.st:hover:not(:disabled){filter:brightness(.97)}
 #ed .da{margin:14px -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px))}
 #ed .da button{flex:1}
 }
+/* popups: pop in, fade + drop out (dialog.dout is set by the patched close() in app.js) */
+dialog[open]{animation:dlgin .2s cubic-bezier(.2,.8,.2,1)}
+dialog[open]::backdrop{animation:bdin .2s ease-out}
+dialog.dout{animation:dlgout .17s ease-in forwards;pointer-events:none}
+dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
+@keyframes dlgin{from{opacity:0;transform:translateY(10px) scale(.97)}}
+@keyframes dlgout{to{opacity:0;transform:translateY(10px) scale(.97)}}
+@keyframes bdin{from{opacity:0}}
+@keyframes bdout{to{opacity:0}}
+@keyframes sheetdown{from{transform:none}to{transform:translateY(100%)}}
+@media(max-width:760px){#td.dout,#ed.dout{animation:sheetdown .22s ease-in forwards}}
 </style>
 </head>
 <body>
