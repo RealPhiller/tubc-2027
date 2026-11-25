@@ -92,7 +92,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125o";
+const BUILD="b20261125p";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -557,9 +557,15 @@ async function loadCals(tok){ if(calMap) return calMap; let m={};
   catch(e){ if(e.status!==403) throw e; m=cachedCals(); }
   return calMap=m; }
 const calColor = n => String(1+[...n].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7)%24);
-async function calFor(tok,name){ const m=await loadCals(tok), full=CAL_PREFIX+name; if(m[full]) return m[full];
+// Calendars made through the API can end up hidden from the person's list ("Hide from list"), so their events never
+// show. Every time we add to a calendar, make sure it's shown and ticked (once per calendar per page load).
+const calShown=new Set();
+async function showCal(tok,id,name,isNew){ if(calShown.has(id)) return; calShown.add(id);
+  try{ await gapi(tok,"PATCH","/users/me/calendarList/"+encodeURIComponent(id),{hidden:false,selected:true,...(isNew?{colorId:calColor(name)}:{})}); }
+  catch(e){ calShown.delete(id); console.warn("calendarList",name,e); } }
+async function calFor(tok,name){ const m=await loadCals(tok), full=CAL_PREFIX+name; if(m[full]){ await showCal(tok,m[full],name,false); return m[full]; }
   const c=await gapi(tok,"POST","/calendars",{summary:full,description:"TUBC 2027 tasks for "+name+". Added from "+location.origin+location.pathname,timeZone:"Asia/Bangkok"});
-  m[full]=c.id; saveCals(m); try{ await gapi(tok,"PATCH","/users/me/calendarList/"+encodeURIComponent(c.id),{colorId:calColor(name)}); }catch(e){}
+  m[full]=c.id; saveCals(m); await showCal(tok,c.id,name,true);
   return c.id; }
 // Which department calendars a task belongs in.
 function calNames(t,chosen){ if(chosen) return [chosen];
@@ -581,7 +587,7 @@ function gcalFail(e){ console.error(e);
   toast("Couldn't add to Google Calendar. Try again."); }
 $("tdg").onclick=async()=>{ const t=tasks.find(x=>x.id===curTask); if(!t?.due) return; const b=$("tdg");
   const L=b.lastChild; b.disabled=true; L.textContent="Adding…";
-  try{ const tok=await gcalToken(); await pushEvent(tok,t); L.textContent="✓ In your Google Calendar"; b.classList.add("done"); toast("Added to "+calNames(t).map(n=>CAL_PREFIX+n).join(", ")+"."); }
+  try{ const tok=await gcalToken(); await pushEvent(tok,t); L.textContent="✓ In your Google Calendar"; b.classList.add("done"); toast("Added to "+calNames(t).map(n=>CAL_PREFIX+n).join(", ")+" in "+auth.currentUser.email+"."); }
   catch(e){ b.disabled=false; L.textContent="Add to Google Calendar"; gcalFail(e); } };
 var EVERY=["All","All heads"];
 function gTasks(){ const d=$("gdept").value, inc=$("gall").checked;
@@ -595,7 +601,7 @@ $("cgall").onclick=async()=>{ const T=gTasks(); if(!T.length) return;
   const b=$("cgall"), L=$("cglbl"); b.disabled=true;
   try{ const tok=await gcalToken(); let n=0;
     const gd=$("gdept").value||null; for(const t of T){ L.textContent=`Adding ${++n}/${T.length}…`; await pushEvent(tok,t,gd); }
-    toast(`${T.length} task${T.length>1?"s":""} added to Google Calendar${$("gdept").value?" under "+CAL_PREFIX+$("gdept").value:""}.`); }
+    toast(`${T.length} task${T.length>1?"s":""} added to ${auth.currentUser.email}'s Google Calendar${$("gdept").value?" under "+CAL_PREFIX+$("gdept").value:""}.`); }
   catch(e){ gcalFail(e); }
   finally{ b.disabled=false; gLabel(); } };
 
