@@ -22,7 +22,7 @@ const MAX = 10;          // tasks listed per answer
 const CACHE_SECONDS = 120; // keeps Firestore reads low when many people ask at once
 const DEPTS = ["PVP", "Oper", "Inven", "Doc", "CR", "PR", "Buddy", "Stage-co", "IT", "Photog", "ER", "Excur", "Treasurer", "Venue", "Case Writer", "Uni Affairs"];
 const ALIAS = { president: "PVP", stage: "Stage-co", case: "Case Writer", writer: "Case Writer", uni: "Uni Affairs", treasury: "Treasurer", photo: "Photog", inventory: "Inven" };
-const ST = { todo: "To do", prog: "In progress", blk: "Blocked", dn: "Done" };
+const ST = { todo: "To do", prog: "In progress", dn: "Done" }; // "Blocked" removed 2026-11-25; old blk tasks read as In progress
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 // ---------- web app entry points ----------
@@ -218,7 +218,7 @@ function addTyped(text, st, c) {
 }
 function saveAdd(st, c) {
   const by = (c.ctx.nameOf(c.src) || "LINE user") + " (LINE)";
-  const phase = phaseFor(st.due, c.home);
+  const phase = phaseFor(st.due, st.owner);
   c.ctx.addTask({ title: st.title, due: st.due, owner: st.owner, phase: phase, by: by });
   c.ctx.state.del(c.key);
   return menu(c.home, "Added to the tracker\n\n\u2022 " + st.title + "\n\u2022 Due " + fmtDate(st.due) + " \u00b7 " + PHASES[phase] + "\n\u2022 Owner: " + st.owner + "\n\n" + SITE);
@@ -329,7 +329,8 @@ function editTyped(text, st, c) {
   return null;
 }
 function saveDue(t, d, c) {
-  const patch = { due: d };
+  const patch = { due: d }, ph = phaseFor(d, t.owner);
+  if (ph !== Number(t.phase)) patch.phase = ph;
   if (t.start && t.start >= d) patch.start = null; // a multi-day task whose start is now on or after the new due date becomes a one-day task
   return saveEdit(t, patch, "edit", "due " + (t.due ? fmtDate(t.due) : "none") + " \u2192 " + fmtDate(d), c);
 }
@@ -342,13 +343,15 @@ function saveEdit(t, patch, action, detail, c) {
   return menu(c.home, "Saved: " + (patch.title || t.title) + "\n\u2022 " + detail.charAt(0).toUpperCase() + detail.slice(1));
 }
 
-// Same phase dates as the site. Kickoff is PVP-only there, so other groups' tasks go to Setup at the earliest.
+// Same phase rule as the site: the phase follows the due date. Kickoff is PVP-only, so a task in the Kickoff dates
+// that isn't owned only by PVP/President goes to Setup.
 const PHASES = ["Kickoff", "Setup", "Recruitment", "Planning", "The Challenger", "TUBC"];
 const PHASE_START = ["2026-11-23", "2027-01-08", "2027-02-01", "2027-03-05", "2027-07-01", "2027-09-01"];
-function phaseFor(due, home) {
+function pvpOnly(owner) { const o = String(owner || "").split(",").map(x => x.trim()).filter(Boolean); return o.length > 0 && o.every(x => x === "PVP" || x === "President"); }
+function phaseFor(due, owner) {
   let i = 0;
   PHASE_START.forEach((s, k) => { if (due >= s) i = k; });
-  return i === 0 && home !== "PVP" ? 1 : i;
+  return i === 0 && !pvpOnly(owner) ? 1 : i;
 }
 function validIso(d) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d || ""))) return false;
@@ -488,7 +491,7 @@ function loadTasks() {
     const r = UrlFetchApp.fetch(url, { headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken(), "X-Goog-User-Project": PROJECT }, muteHttpExceptions: true });
     if (r.getResponseCode() !== 200) throw new Error("Firestore " + r.getResponseCode() + ": " + r.getContentText().slice(0, 300));
     const j = JSON.parse(r.getContentText());
-    (j.documents || []).forEach(d => out.push(Object.assign({ id: d.name.split("/").pop() }, fromFields(d.fields || {}))));
+    (j.documents || []).forEach(d => { const t = Object.assign({ id: d.name.split("/").pop() }, fromFields(d.fields || {})); if (t.status === "blk") t.status = "prog"; if (t.due) t.phase = phaseFor(t.due, t.owner); out.push(t); });
     token = j.nextPageToken || "";
   } while (token);
   return out;
@@ -566,7 +569,7 @@ function addTaskDoc(t) {
 function updateTaskDoc(t, patch, by, action, detail) {
   const now = new Date().toISOString();
   const str = v => ({ stringValue: String(v) });
-  const enc = v => Array.isArray(v) ? { arrayValue: { values: v.map(str) } } : str(v);
+  const enc = v => Array.isArray(v) ? { arrayValue: { values: v.map(str) } } : typeof v === "number" ? { integerValue: String(v) } : str(v);
   const fields = { updatedBy: str(by), updatedAt: { timestampValue: now } };
   Object.keys(patch).forEach(k => { if (patch[k] !== null) fields[k] = enc(patch[k]); });
   const mask = Object.keys(patch).concat(["updatedBy", "updatedAt"]).map(k => "updateMask.fieldPaths=" + k).join("&");

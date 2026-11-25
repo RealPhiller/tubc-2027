@@ -19,7 +19,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const PH = [["Kickoff","Nov–Jan","2026-11-23","2027-01-08"],["Setup","January","2027-01-08","2027-02-01"],["Recruitment","Feb–Mar","2027-02-01","2027-03-05"],["Planning","Mar–Jun","2027-03-05","2027-07-01"],["The Challenger","Jul–Aug","2027-07-01","2027-09-01"],["TUBC","Sep–Oct","2027-09-01","2027-10-20"]];
-const ST = {todo:"To do",prog:"In progress",blk:"Blocked",dn:"Done"};
+const ST = {todo:"To do",prog:"In progress",dn:"Done"}; // "Blocked" was removed 2026-11-25; old blk tasks read as In progress
 const SLOTS = {"Oper":2,"Inven":1,"Doc":1,"CR":2,"PR":1,"Buddy":1,"Stage-co":1,"IT":2,"Photog":1,"ER":2,"Excur":1,"Treasurer":2,"Venue":1,"Case Writer":2,"Uni Affairs":1};
 const OWNERS = {"Oper":"Puripat","Inven":"Puripat","Doc":"Puripat","Buddy":"Puripat and Sattam","CR":"Sattam","PR":"Sattam","Stage-co":"Krang","IT":"Krang","Photog":"Krang","ER":"All PVP","Excur":"All PVP","Treasurer":"All PVP","Venue":"All PVP","Case Writer":"Freelance · Competition team","Uni Affairs":"Freelance · Competition team"};
 
@@ -64,8 +64,14 @@ function animNum(key,el,to,fmtFn){ const from=numFrom[key]??0; numFrom[key]=to; 
   const t0=performance.now(), d=700; const step=t=>{ const p=Math.min(1,(t-t0)/d), e=1-Math.pow(1-p,3); fmtFn(el,Math.round(from+(to-from)*e)); if(p<1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
 const OWNER_GROUPS = [["Leadership",["PVP","President"]],["Shared",["All","All heads"]],["Departments",Object.keys(SLOTS)]];
 const toks = s => String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
+// The phase follows the due date. Kickoff is PVP-only, so a task in the Kickoff dates not owned only by PVP/President counts as Setup.
+const pvpOnly = o => { const d=toks(o); return d.length>0 && d.every(x=>x==="PVP"||x==="President"); };
+function phaseFor(due, owner, fallback){ if(!due) return fallback ?? 1; let i=PH.findIndex(p=>due>=p[2]&&due<p[3]); if(i<0) i=due<PH[0][2]?0:PH.length-1; return i===0&&!pvpOnly(owner)?1:i; }
 const DCOL = {"PVP":"#b4232a","President":"#b4232a","Oper":"#f76707","Inven":"#8d5524","Doc":"#66a80f","CR":"#e64980","PR":"#be4bdb","Buddy":"#e8a817","Stage-co":"#7048e8","IT":"#1c7ed6","Photog":"#15aabf","ER":"#2b8a3e","Excur":"#12b886","Treasurer":"#495057","Venue":"#4263eb","Case Writer":"#a61e4d","Uni Affairs":"#0b7285","All":"#868e96","All heads":"#868e96"};
 const col = o => DCOL[o] || "#868e96";
+const PHCOL = ["#5c7cfa","#0ca678","#f59f00","#7950f2","#e8590c","#c2255c"]; // one colour per phase (Kickoff → TUBC)
+// Owner and phase as small coloured pills: one per department in its colour, then the phase.
+const pills = t => toks(t.owner).map(d=>`<span class="pill own" style="--pc:${col(d)}">${esc(d)}</span>`).join("") + (PH[t.phase]?`<span class="pill ph" style="--pc:${PHCOL[t.phase]}">${PH[t.phase][0]}</span>`:"");
 const tcol = t => { const o=(t.depts&&t.depts.length?t.depts:toks(t.owner)); const d=o.find(x=>DCOL[x]&&!["All","All heads"].includes(x))||o[0]; return col(d); };
 const ownHtml = s => toks(s).map(o=>`<span class="dt" style="--dc:${col(o)}">${esc(o)}</span>`).join(" ");
 const thb = n => (Math.round(+n||0)).toLocaleString("en-US");
@@ -86,7 +92,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125k";
+const BUILD="b20261125n";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -114,10 +120,10 @@ document.querySelector(".tabs").addEventListener("click", e=>{ if(e.target.close
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeMenu(); });
 
 // ---------- views ----------
-const VIEWS = ["login","noaccess","profile","mine","overview","tracker","calendar","sponsors","structure","who","access"];
-const PNAMES={profile:"My profile",mine:"My tasks",overview:"Overview",tracker:"Tracker",calendar:"Calendar",sponsors:"Sponsors",structure:"Team",who:"Team · Who to ask",access:"Access"};
+const VIEWS = ["login","noaccess","profile","mine","overview","calendar","sponsors","structure","who","access"];
+const PNAMES={profile:"My profile",mine:"Tasks",overview:"Overview",calendar:"Calendar",sponsors:"Sponsors",structure:"Team",who:"Team · Who to ask",access:"Access"};
 let curView=null, prevView=null;
-const VORDER=["mine","overview","tracker","calendar","sponsors","structure","who","profile","access"];
+const VORDER=["mine","overview","calendar","sponsors","structure","who","profile","access"];
 function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") : "";
   for(const n of VIEWS){ const el=$("v-"+n); if(el) el.hidden = n!==v; }
   if(v!==curView && curView && motion()){ const a=VORDER.indexOf(curView), b=VORDER.indexOf(v), dx=(a<0||b<0)?0:(b>a?1:-1);
@@ -129,12 +135,12 @@ function show(v){ if($("pname")) $("pname").textContent = me ? (PNAMES[v]||"") :
   let tc=document.querySelector('meta[name="theme-color"]'); if(!tc){ tc=document.createElement("meta"); tc.name="theme-color"; document.head.appendChild(tc); }
   tc.content = gate ? "#71191a" : getComputedStyle(document.querySelector(".nav")).backgroundColor;
   const tabOf = (v==="structure"||v==="who") ? "team" : v;
-  for(const n of ["mine","overview","tracker","calendar","sponsors","team"]){ const a=$("t-"+n); if(n===tabOf) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); }
+  for(const n of ["mine","overview","calendar","sponsors","team"]){ const a=$("t-"+n); if(n===tabOf) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); }
   document.querySelectorAll(".subtabs a").forEach(a=>{ if(a.dataset.sub===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); a.hidden = a.dataset.sub==="who" && !isHeadUp(); });
   closeUM(); requestAnimationFrame(()=>{ moveTabBar(); moveSubBars(); }); if(prevView!==v) staggerIn(v); prevView=v;
   document.querySelectorAll("#bnav [data-v]").forEach(a=>{ if(a.dataset.v===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
   updateFab(); if(v==="mine") markMentionsSeen(); if(v==="profile") renderProfile(); }
-function route(){ if(!me) return; const h=location.hash.slice(1); const hh = h==="team" ? "structure" : h; const ok={profile:1,tracker:1,calendar:1,structure:1,who:isHeadUp(),access:isAdmin(),overview:seeOverview(),sponsors:seeSpons()}; show(ok[hh]?hh:"mine"); }
+function route(){ if(!me) return; const h=location.hash.slice(1); const hh = h==="team" ? "structure" : h; const ok={profile:1,calendar:1,structure:1,who:isHeadUp(),access:isAdmin(),overview:seeOverview(),sponsors:seeSpons()}; show(ok[hh]?hh:"mine"); }
 window.addEventListener("hashchange", ()=>{ route(); window.scrollTo(0,0); });
 
 // ---------- auth ----------
@@ -161,7 +167,7 @@ onAuthStateChanged(auth, async u=>{
     return; }
   me = {email, name:u.displayName||email, role:m.role, dept:m.dept||""};
   paintMe(); $("melvl").textContent = (ROLE_LABEL[me.role]||me.role) + (me.role==="head"&&me.dept?" · "+me.dept:"");
-  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("umaccess").hidden = !isAdmin(); applyStructView(); $("np").innerHTML=phOpts(-1); $("nwp").innerHTML=phOpts(-1);
+  $("me").hidden = false; document.querySelector(".tabs").hidden = false; $("menu").hidden = false; $("umaccess").hidden = !isAdmin(); applyStructView(); 
   $("t-overview").hidden = !seeOverview(); $("b-overview").hidden = !seeOverview(); $("t-sponsors").hidden = !seeSpons();
   $("bnav").hidden = false; document.body.classList.add("authed");
   me.photo=u.photoURL||""; syncProfile(u);
@@ -170,7 +176,7 @@ onAuthStateChanged(auth, async u=>{
 });
 
 function start(){
-  unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>({id:d.id,...d.data()})).filter(t=>phVis(t.phase)); $("save").textContent = "Live · synced"; render(); }, e=>{ fail(e); $("save").textContent="Not connected"; }));
+  unsub.push(onSnapshot(collection(db,"tasks"), s=>{ tasks = s.docs.map(d=>{ const t={id:d.id,...d.data()}; if(t.status==="blk") t.status="prog"; t.phase=phaseFor(t.due,t.owner,t.phase); return t; }).filter(t=>phVis(t.phase)); render(); }, e=>{ fail(e); }));
   unsub.push(onSnapshot(collection(db,"presence"), s=>{ presence=s.docs.map(d=>({email:d.id,...d.data()})); renderOnline(); }, e=>console.warn("presence",e)));
   startPresence(); renderOnline();
   unsub.push(onSnapshot(doc(db,"settings","announce"), s=>{ ann=s.exists()?s.data():null; renderAnn(); }, e=>console.warn("announce",e)));
@@ -186,29 +192,9 @@ function start(){
   if(isAdmin()) unsub.push(onSnapshot(collection(db,"members"), s=>{ members = s.docs.map(d=>({email:d.id,...d.data()})).sort((a,b)=>a.email.localeCompare(b.email)); renderMembers(); }, fail));
 }
 
-// ---------- tracker ----------
+// ---------- render everything that shows tasks ----------
 function render(){
   if (inl) { inlPending = true; return; }
-  const T = tasks, done = T.filter(t=>t.status==="dn").length;
-  animNum("pct",$("pct").firstChild,T.length?Math.round(done/T.length*100):0,(n,v)=>{ n.nodeValue=v+"%"; });
-  $("cnt").textContent = done+" of "+T.length+" tasks done";
-  const p0=seeKickoff()?0:1, t0=Date.parse(PH[p0][2]), t1=Date.parse(PH[5][3]), now=Date.now();
-  $("line").style.gridTemplateColumns = innerWidth>760 ? `repeat(${PH.length-p0},minmax(0,1fr))` : "";
-  $("line").innerHTML = PH.map((p,i)=>{ if(!phVis(i)) return ""; const ts=T.filter(t=>t.phase===i),d=ts.filter(t=>t.status==="dn").length;return `<button class="seg" data-go="${i}"><b>${p[0]}</b><span>${p[1]} · ${d}/${ts.length}</span><div class="bar"><i data-k="ph${i}" data-w="${ts.length?d/ts.length*100:0}"></i></div></button>`}).join("") + (now>=t0&&now<=t1?`<div class="now" style="left:${(now-t0)/(t1-t0)*100}%"></div>`:"");
-  const owners=[...new Set(T.flatMap(t=>toks(t.owner)))].sort();
-  if(f.own && !owners.includes(f.own)) owners.push(f.own);
-  $("own").innerHTML = '<option value="">Everyone</option>'+owners.map(o=>`<option${o===f.own?" selected":""}>${esc(o)}</option>`).join("");
-  $("seed").hidden = !(isAdmin() && T.length===0);
-  $("addf").hidden = !can("add");
-  const before=new Map(); if(motion()) document.querySelectorAll("#list .row").forEach(r=>before.set(r.dataset.id,r.getBoundingClientRect().top));
-  $("list").innerHTML = PH.map((p,i)=>{ if(!phVis(i)) return "";
-    const rows=T.filter(t=>t.phase===i && (!f.own||toks(t.owner).includes(f.own)) && (!f.hide||t.status!=="dn") && (!f.late||(t.due<today&&t.status!=="dn"))).sort((a,b)=>ordKey(a)-ordKey(b));
-    const d=T.filter(t=>t.phase===i&&t.status==="dn").length, n=T.filter(t=>t.phase===i).length;
-    return `<section class="phase" id="ph${i}" data-phase="${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2><div class="rows" data-phase="${i}">${rows.length?rows.map(t=>{const ok=canTask(t),ed=canEdit(t),mv=canMove(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}${jd(t.id)}" style="--dc:${tcol(t)}" data-id="${t.id}"${mv?' draggable="true"':""}><span class="grip${mv?"":" off"}" title="${mv?"Drag to move":""}" aria-hidden="true">⋮⋮</span><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta m1"><span class="dw"><span class="d">${when(t)}</span>${relDue(t)}</span></div><div class="tcell"><button type="button" class="t tlink" data-task="${t.id}"${ed?' title="Double-click to rename"':""}>${esc(t.title)}</button>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${extras(t)}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta m2"><span class="o">${ownHtml(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div><div class="acts">${ed?`<button class="ico" data-edit="${t.id}" aria-label="Edit task" title="Edit">✎</button>`:""}${can("del")?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:""}</div></div>`}).join(""):`<p class="empty drop-empty">${T.length?(f.own||f.hide||f.late?"Nothing here with these filters.":"No tasks in this topic yet."):"No tasks yet."}</p>`}</div></section>`;
-  }).join("");
-  animBars($("line"));
-  if(before.size) document.querySelectorAll("#list .row").forEach(r=>{ const o=before.get(r.dataset.id); if(o==null) return; const dy=o-r.getBoundingClientRect().top;
-    if(Math.abs(dy)>1&&Math.abs(dy)<2000) r.animate([{transform:`translateY(${dy}px)`},{transform:"none"}],{duration:300,easing:"cubic-bezier(.2,.8,.2,1)"}); });
   renderCal(); renderMine(); renderOverview();
 }
 function extras(t){ const ck=t.checks||[], n=ck.length, d=ck.filter(c=>c.d).length, l=(t.links||[]).length, c=comments.filter(x=>x.task===t.id).length;
@@ -222,23 +208,17 @@ document.addEventListener("click", e=>{
   if(b.dataset.edit){ openEdit(b.dataset.edit); return; }
   if(b.dataset.tick){ const t=tasks.find(x=>x.id===b.dataset.tick); if(t) setStatus(t.id, t.status==="dn"?"todo":"dn"); }
   else if(b.dataset.del){ if(b.dataset.armed){ const dt=tasks.find(x=>x.id===b.dataset.del); deleteDoc(doc(db,"tasks",b.dataset.del)).then(()=>logIt(dt,"delete","Deleted the task")).catch(fail); } else { b.dataset.armed=1; b.textContent="Delete?"; b.style.fontSize="13px"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="×"; b.style.fontSize=""; } },3000); } }
-  else if(b.dataset.go!==undefined){ $("ph"+b.dataset.go)?.scrollIntoView({behavior:"smooth"}); }
+  else if(b.dataset.go!==undefined){ const sec=$("mph"+b.dataset.go); if(sec) sec.scrollIntoView({behavior:motion()?"smooth":"auto",block:"start"}); else toast("No open tasks in "+PH[+b.dataset.go][0]+" for this view."); }
   else if(b.dataset.dept){ openDept(b.dataset.dept); }
   else if(b.dataset.rm){ if(b.dataset.armed){ deleteDoc(doc(db,"members",b.dataset.rm)).catch(fail); } else { b.dataset.armed=1; b.textContent="Remove?"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="Remove"; } },3000); } }
 });
 document.addEventListener("change", e=>{
   const el=e.target;
   if(el.dataset.st) setStatus(el.dataset.st, el.value);
-  if(el.id==="own"){ f.own=el.value; render(); }
   if(el.dataset.role) setDoc(doc(db,"members",el.dataset.role),{role:el.value},{merge:true}).catch(fail);
   if(el.dataset.mdept) setDoc(doc(db,"members",el.dataset.mdept),{dept:el.value},{merge:true}).catch(fail);
 });
-$("hide").onclick=()=>{f.hide=!f.hide;$("hide").setAttribute("aria-pressed",f.hide);render();};
-$("late").onclick=()=>{f.late=!f.late;$("late").setAttribute("aria-pressed",f.late);render();};
-$("np").innerHTML = phOpts(-1);
-function addTask(title,due,owner,phase,start){ return addDoc(collection(db,"tasks"),{title,due,...(start&&due&&start<due?{start}:{}),owner,depts:toks(owner),status:"todo",phase,note:"",order:due?Date.parse(due)/86400000:99999,updatedBy:me.name,updatedAt:serverTimestamp()}).then(r=>{ logIt({id:r.id,title},"add","Added for "+owner); toast("Task added."); return r; }); }
-$("addf").addEventListener("submit", e=>{ e.preventDefault(); const title=$("nt").value.trim(); if(!title) return; const owner=$("no").value.trim()||"PVP";
-  addTask(title,$("nd").value,owner,+$("np").value).then(()=>{ $("nt").value=""; setPick("no","PVP");}).catch(fail); });
+function addTask(title,due,owner,phase,start,extra){ return addDoc(collection(db,"tasks"),{title,due,...(start&&due&&start<due?{start}:{}),owner,depts:toks(owner),status:"todo",phase,note:"",order:due?Date.parse(due)/86400000:99999,...(extra||{}),updatedBy:me.name,updatedAt:serverTimestamp()}).then(r=>{ logIt({id:r.id,title},"add","Added for "+owner); toast("Task added."); return r; }); }
 $("seed").onclick = async ()=>{ const b=writeBatch(db); SEED.forEach(t=>b.set(doc(collection(db,"tasks")),{title:t[0],due:t[1],owner:t[2],depts:toks(t[2]),status:"todo",phase:t[4],note:t[5]||"",order:Date.parse(t[1])/86400000,updatedBy:"",updatedAt:serverTimestamp()})); try{ await b.commit(); toast("Starter tasks loaded."); }catch(e){ fail(e); } };
 
 
@@ -333,8 +313,7 @@ document.addEventListener("touchmove",e=>{ if(cd?.on) e.preventDefault(); },{pas
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&cd?.on) cdEnd(false); });
 document.addEventListener("click",e=>{ if(cdSkip){ cdSkip=false; e.stopPropagation(); e.preventDefault(); } },true);
 $("cal").addEventListener("click",e=>{ if(!can("add")||e.target.closest("button,[data-ev]")) return; const d=e.target.closest(".day[data-date]"); if(d) openNewOn(d.dataset.date); });
-function openNewOn(date){ openNew(); $("nwd2").value=date;
-  let ph=PH.findIndex(p=>date>=p[2]&&date<p[3]); if(ph<0) ph=date<PH[0][2]?0:PH.length-1; if(!phVis(ph)) ph=1; $("nwp").value=String(ph); }
+function openNewOn(date){ openNew(date); }
 
 // ---------- calendar events (bands such as exam weeks or holidays; admins add and edit, everyone sees them) ----------
 const EVC={blue:"#1c7ed6",green:"#2b8a3e",gold:"#e8a817",red:"#c8302d",purple:"#7048e8",grey:"#868e96"};
@@ -389,22 +368,34 @@ document.addEventListener("click",e=>{ if(e.target.closest(".inl-t,.inl-row")) r
 // ---------- edit + drag ----------
 let editId=null, ed=null; // ed = the open edit form's draft: { id, from, stamp, steps:[{t,d,o}], links:[{u,l,o}] } (o = index in the saved task, null = new)
 const edStamp = t => t?.updatedAt?.toMillis ? t.updatedAt.toMillis() : 0;
-function openEdit(id, from){ const t=tasks.find(x=>x.id===id); if(!t||!canEdit(t)) return; editId=id;
-  ed={ id, from: from||"", stamp: edStamp(t), steps:(t.checks||[]).map((c,o)=>({t:c.t,d:!!c.d,o})), links:(t.links||[]).map((l,o)=>({u:l.u,l:l.l||"",o})) };
-  $("et").value=t.title||""; $("estart").value=spans(t)?t.start:""; $("edue").value=t.due||""; setPick("eown",t.owner||""); $("enote").value=t.note||"";
-  $("eph").innerHTML=phOpts(t.phase); $("esi").value=""; $("elu").value=""; $("eln").value=""; $("ebar").hidden=true;
-  renderEdSteps(); renderEdLinks(); edUpdate();
+// openEdit(null, from, {due}) opens the same box as a new task ("Add task"); on phones it then runs in 2 steps.
+function openEdit(id, from, preset){ const isNew=id==null; const t=isNew?null:tasks.find(x=>x.id===id); if(isNew?!can("add"):(!t||!canEdit(t))) return; editId=id;
+  const own=me?.dept&&me.role==="head"?me.dept:"PVP";
+  ed = isNew ? { id:null, isNew:true, from:from||"", stamp:0, steps:[], links:[], blank:{title:"",due:preset?.due||"",start:"",owner:own,note:"",checks:[],links:[]} }
+             : { id, from: from||"", stamp: edStamp(t), steps:(t.checks||[]).map((c,o)=>({t:c.t,d:!!c.d,o})), links:(t.links||[]).map((l,o)=>({u:l.u,l:l.l||"",o})) };
+  const src=isNew?ed.blank:t;
+  $("et").value=src.title||""; $("estart").value=!isNew&&spans(t)?t.start:""; $("edue").value=src.due||""; setPick("eown",src.owner||""); $("enote").value=src.note||"";
+  $("esi").value=""; $("elu").value=""; $("eln").value=""; $("ebar").hidden=true;
+  $("edt").textContent=isNew?"New task":"Edit task"; $("ed").classList.toggle("new",isNew); $("edel").hidden=isNew||!can("del");
+  $("enote2").textContent=isNew?"Nothing is added until you press Add task.":"Changes are only sent when you press Save.";
+  edStep(1); renderEdSteps(); renderEdLinks(); edUpdate();
   try{ $("td").close(); }catch(e){}
   try{$("ed").showModal();}catch(e){$("ed").setAttribute("open","");} setTimeout(()=>$("et").focus(),50); }
 function closeE(){ const back=ed&&ed.from==="td"?ed.id:null; ed=null; try{$("ed").close();}catch(e){$("ed").removeAttribute("open");} if(back) openTask(back); }
-const edT = () => ed && tasks.find(x=>x.id===ed.id);
-function edVals(){ return { title:$("et").value.trim(), start:$("estart").value, due:$("edue").value, phase:+$("eph").value, owner:$("eown").value.trim()||"PVP", note:$("enote").value.trim() }; }
+const edT = () => ed && (ed.isNew ? ed.blank : tasks.find(x=>x.id===ed.id));
+function edVals(){ const due=$("edue").value, owner=$("eown").value.trim()||"PVP", t=edT(); return { title:$("et").value.trim(), start:$("estart").value, due, phase:phaseFor(due,owner,t?.phase), owner, note:$("enote").value.trim() }; }
+// Phones: a new task is filled in 2 steps (basics, then details). Computers show everything at once.
+const edPhone=()=>matchMedia("(max-width:760px)").matches;
+function edStep(n){ if(!ed) return; ed.step=n; const d=$("ed"); d.classList.toggle("s1",n===1); d.classList.toggle("s2",n===2);
+  $("esind").textContent=n===1?"Step 1 of 2 · Basics":"Step 2 of 2 · Details (optional)"; d.scrollTop=0; }
+function edNext(){ const er=edErrors(), v=edVals(); if(!v.title||!v.due||er.date){ edUpdate(true); (!v.title?$("et"):$("edue")).focus(); return; } edStep(2); setTimeout(()=>$("enote").focus(),50); }
+$("enext").onclick=edNext; $("eback").onclick=()=>{ edStep(1); setTimeout(()=>$("et").focus(),50); };
 // Everything that differs from the saved task, as short phrases (also used for the activity log).
-function edChanges(){ const t=edT(); if(!t) return []; const v=edVals(), c=[], os=spans(t)?t.start:"", ns=v.start&&v.due&&v.start<v.due?v.start:"";
+function edChanges(){ const t=edT(); if(!t) return []; const v=edVals(), c=[], os=ed.isNew?"":(spans(t)?t.start:""), ns=v.start&&v.due&&v.start<v.due?v.start:"";
   if(v.title!==(t.title||"")) c.push("renamed");
   if(v.due!==(t.due||"")) c.push(`due ${fmt(t.due)||"none"} → ${fmt(v.due)||"none"}`);
   if(ns!==os) c.push(ns?`start ${fmt(ns)}`:"start date removed");
-  if(v.phase!==t.phase) c.push(`moved to ${PH[v.phase][0]}`);
+  if(!ed.isNew&&v.phase!==t.phase) c.push(`phase → ${PH[v.phase][0]}`);
   if(v.owner!==(t.owner||"")) c.push(`owner ${t.owner} → ${v.owner}`);
   if(v.note!==(t.note||"")) c.push("note updated");
   const n=(k,w)=>k+" "+w+(k===1?"":"s"), S=ed.steps, oc=(t.checks||[]);
@@ -415,20 +406,22 @@ function edChanges(){ const t=edT(); if(!t) return []; const v=edVals(), c=[], o
   const lAdd=L.filter(l=>l.o==null).length, lRm=ol.length-L.filter(l=>l.o!=null).length, lCh=L.filter(l=>l.o!=null&&(l.u.trim()!==ol[l.o].u||l.l.trim()!==(ol[l.o].l||""))).length;
   if(lAdd) c.push(n(lAdd,"link")+" added"); if(lRm) c.push(n(lRm,"link")+" removed"); if(lCh) c.push(n(lCh,"link")+" changed");
   return c; }
-function edErrors(){ const v=edVals(), e={};
-  if(!v.title) e.title="The task needs a name.";
+function edErrors(show){ const v=edVals(), e={};
+  if(!v.title && (!ed.isNew||show)) e.title="The task needs a name.";
+  if(ed.isNew && show && !v.due) e.date="Pick a due date.";
   if(v.start&&v.due&&v.start>v.due) e.date="The start date must be on or before the due date.";
   if(v.start&&!v.due) e.date="Add a due date too, or clear the start date.";
   const bad=ed.links.find(l=>!/^https?:\/\/\S+$/i.test(l.u.trim())); if(bad) e.links="Every link must start with https:// (fix or remove the highlighted one).";
   if(ed.steps.some(s=>!s.t.trim())) e.steps="A step can't be empty (type something or remove it).";
   return e; }
 // Refresh the Save button ("Save (3)"), inline errors and the error highlights.
-function edUpdate(){ if(!ed) return; const ch=edChanges(), er=edErrors(), b=$("eds");
+function edUpdate(show){ if(!ed) return; const ch=edChanges(), er=edErrors(show), b=$("eds"), v=edVals();
+  $("ephv").textContent=v.due?PH[v.phase][0]:"—"; $("ephs").textContent=v.due?"follows the due date":"set a due date";
   [["etitleerr",er.title],["edateerr",er.date],["esterr",er.steps],["elerr",er.links]].forEach(([id,m])=>{ const p=$(id); p.hidden=!m; p.textContent=m||""; });
   $("ell").querySelectorAll("li").forEach((li,i)=>li.classList.toggle("bad",!/^https?:\/\/\S+$/i.test((ed.links[i]?.u||"").trim())));
   $("esl").querySelectorAll("li").forEach((li,i)=>li.classList.toggle("bad",!(ed.steps[i]?.t||"").trim()));
-  b.disabled=!ch.length||Object.keys(er).length>0; b.textContent=ch.length?`Save (${ch.length})`:"Save";
-  b.title=ch.length?ch.join(" · "):"Nothing changed yet";
+  if(ed.isNew){ const ready=v.title&&v.due&&!Object.keys(edErrors(true)).length; b.disabled=!ready; b.textContent="Add task"; b.title=ready?"":"Needs a name and a due date"; $("enext").disabled=false; }
+  else { b.disabled=!ch.length||Object.keys(er).length>0; b.textContent=ch.length?`Save (${ch.length})`:"Save"; b.title=ch.length?ch.join(" · "):"Nothing changed yet"; }
   $("esc").textContent=ed.steps.length?`${ed.steps.filter(s=>s.d).length} of ${ed.steps.length} done`:"";
   if(!$("ebar").hidden && $("ebar").dataset.kind==="discard" && !ch.length) $("ebar").hidden=true; }
 function renderEdSteps(){ $("esl").innerHTML=ed.steps.map((s,i)=>`<li data-i="${i}"><span class="egrip" title="Drag to reorder" aria-hidden="true">⋮⋮</span><input type="checkbox" class="eck"${s.d?" checked":""} aria-label="Done"><input class="etx" value="${esc(s.t)}" maxlength="140" aria-label="Step ${i+1}"><button type="button" class="mini erm" aria-label="Remove step">×</button></li>`).join("")||'<li class="eempty">No steps yet. Add one below.</li>'; }
@@ -458,18 +451,22 @@ $("esl").addEventListener("pointerdown",e=>{ const g=e.target.closest(".egrip");
 $("edf").addEventListener("input",()=>setTimeout(edUpdate,0)); $("edf").addEventListener("change",()=>setTimeout(edUpdate,0));
 // Leaving with unsaved changes asks first.
 function edBar(kind, who){ const b=$("ebar"); b.dataset.kind=kind; b.hidden=false;
-  b.innerHTML = kind==="discard"
-    ? `<span>Discard your unsaved changes?</span><div><button type="button" class="ghost sm" data-eb="keep">Keep editing</button><button type="button" class="pri sm danger" data-eb="discard">Discard</button></div>`
+  b.innerHTML = kind==="delete"
+    ? `<span>Delete this task for everyone? This can't be undone.</span><div><button type="button" class="ghost sm" data-eb="keep">Keep it</button><button type="button" class="pri sm danger" data-eb="delete">Delete</button></div>`
+    : kind==="discard"
+    ? `<span>${ed?.isNew?"Discard this new task?":"Discard your unsaved changes?"}</span><div><button type="button" class="ghost sm" data-eb="keep">Keep editing</button><button type="button" class="pri sm danger" data-eb="discard">Discard</button></div>`
     : `<span><b>${esc(who||"Someone")}</b> changed this task while you were editing. Save yours over it?</span><div><button type="button" class="ghost sm" data-eb="keep">Keep editing</button><button type="button" class="pri sm" data-eb="force">Save anyway</button></div>`;
   b.querySelector('[data-eb="keep"]').focus(); }
 $("ebar").addEventListener("click",e=>{ const k=e.target.closest("[data-eb]")?.dataset.eb; if(!k) return; $("ebar").hidden=true;
-  if(k==="discard") closeE(); else if(k==="force") edSave(true); });
-function edLeave(){ if(ed && edChanges().length) edBar("discard"); else closeE(); }
+  if(k==="discard") closeE(); else if(k==="force") edSave(true);
+  else if(k==="delete"){ const t=edT(); if(!t||ed.isNew) return; ed.from=""; deleteDoc(doc(db,"tasks",t.id)).then(()=>{ logIt(t,"delete","Deleted the task"); toast("Task deleted."); }).catch(fail); closeE(); } });
+$("edel").onclick=()=>edBar("delete");
+function edLeave(){ const dirty=ed&&(ed.isNew?(edVals().title||edVals().note||$("estart").value||ed.steps.length||ed.links.length):edChanges().length); if(dirty) edBar("discard"); else closeE(); }
 $("edx").onclick=edLeave; $("edc").onclick=edLeave;
 $("ed").addEventListener("cancel",e=>{ e.preventDefault(); if(!$("ebar").hidden) { $("ebar").hidden=true; return; } edLeave(); });
 $("ed").addEventListener("click",e=>{ if(e.target===$("ed")){ const r=$("ed").getBoundingClientRect(); if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) edLeave(); } });
 // Save: one update with every changed field, one activity-log line.
-function edSave(force){ const t=edT(); if(!t){ toast("This task was deleted while you were editing."); ed=null; closeE(); return; }
+function edSave(force){ if(ed?.isNew){ edCreate(); return; } const t=edT(); if(!t){ toast("This task was deleted while you were editing."); ed=null; closeE(); return; }
   const ch=edChanges(); if(!ch.length||Object.keys(edErrors()).length) return;
   if(!force && edStamp(t)!==ed.stamp && t.updatedBy!==me.name) { edBar("conflict", t.updatedBy); return; }
   const v=edVals(), os=spans(t)?t.start:"", ns=v.start&&v.due&&v.start<v.due?v.start:"", upd={updatedBy:me.name,updatedAt:serverTimestamp()};
@@ -478,36 +475,19 @@ function edSave(force){ const t=edT(); if(!t){ toast("This task was deleted whil
   if(ns!==os) upd.start=ns||deleteField();
   if(v.owner!==(t.owner||"")) { upd.owner=v.owner; upd.depts=toks(v.owner); }
   if(v.note!==(t.note||"")) upd.note=v.note;
-  if(v.phase!==t.phase){ upd.phase=v.phase; const inP=tasks.filter(x=>x.phase===v.phase&&x.id!==t.id); upd.order=inP.length?Math.max(...inP.map(ordKey))+1:ordKey(t); }
+  if(v.phase!==t.phase) upd.phase=v.phase;
   const checks=ed.steps.map(s=>({t:s.t.trim().slice(0,140),d:!!s.d})); if(JSON.stringify(checks)!==JSON.stringify((t.checks||[]).map(c=>({t:c.t,d:!!c.d})))) upd.checks=checks;
   const links=ed.links.map(l=>({u:l.u.trim().slice(0,500),l:l.l.trim().slice(0,60)})); if(JSON.stringify(links)!==JSON.stringify((t.links||[]).map(l=>({u:l.u,l:l.l||""})))) upd.links=links;
   const title=v.title, id=t.id;
   updateDoc(doc(db,"tasks",id),upd).then(()=>{ logIt({id,title},"edit",ch.join(", ").slice(0,290)); toast("Saved."); }).catch(fail);
   closeE(); }
+function edCreate(){ const v=edVals(); if(edPhone()&&ed.step===1){ edNext(); return; }
+  if(!v.title||!v.due||Object.keys(edErrors(true)).length){ edUpdate(true); return; }
+  const checks=ed.steps.map(s=>({t:s.t.trim().slice(0,140),d:!!s.d})), links=ed.links.map(l=>({u:l.u.trim().slice(0,500),l:l.l.trim().slice(0,60)}));
+  addTask(v.title,v.due,v.owner,v.phase,v.start,{note:v.note,...(checks.length?{checks}:{}),...(links.length?{links}:{})}).catch(fail);
+  ed=null; closeE(); }
 $("edf").addEventListener("submit",e=>{ e.preventDefault(); edSave(false); });
 $("tde").onclick=()=>{ if(curTask) openEdit(curTask,"td"); };
-
-let dragId=null;
-const clearDrop=()=>document.querySelectorAll(".drop-before,.drop-after,.drop-into").forEach(el=>el.classList.remove("drop-before","drop-after","drop-into"));
-document.addEventListener("dragstart", e=>{ const r=e.target.closest?.(".row[draggable]"); if(!r) return; dragId=r.dataset.id; r.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",dragId);}catch(_){} });
-document.addEventListener("dragend", ()=>{ dropAt=null; document.querySelectorAll(".dragging").forEach(el=>el.classList.remove("dragging")); clearDrop(); dragId=null; });
-let dropAt=null;
-document.addEventListener("dragover", e=>{ if(!dragId) return; const box=e.target.closest?.(".rows"); if(!box) return; e.preventDefault();
-  const r=e.target.closest(".row");
-  if(r && r.dataset.id!==dragId){ const b=r.getBoundingClientRect(), mid=b.top+b.height/2; let pos=e.clientY<mid?"before":"after";
-    if(dropAt&&dropAt.el===r&&Math.abs(e.clientY-mid)<18) pos=dropAt.pos;
-    if(!dropAt||dropAt.el!==r||dropAt.pos!==pos){ clearDrop(); r.classList.add("drop-"+pos); dropAt={el:r,pos}; } }
-  else if(!r && !box.classList.contains("drop-into")){ clearDrop(); dropAt=null; box.classList.add("drop-into"); } });
-document.addEventListener("drop", e=>{ if(!dragId) return; const box=e.target.closest?.(".rows"); if(!box) return; e.preventDefault();
-  const phase=+box.dataset.phase; const r=e.target.closest(".row"); const ids=[...box.querySelectorAll(".row")].map(x=>x.dataset.id).filter(id=>id!==dragId);
-  let idx=ids.length; if(r && r.dataset.id!==dragId){ const b=r.getBoundingClientRect(); idx=ids.indexOf(r.dataset.id)+(r.classList.contains("drop-before")?0:r.classList.contains("drop-after")?1:(e.clientY<b.top+b.height/2?0:1)); }
-  const key=id=>ordKey(tasks.find(x=>x.id===id));
-  const prev=idx>0?key(ids[idx-1]):null, next=idx<ids.length?key(ids[idx]):null;
-  const order= prev==null&&next==null ? ordKey(tasks.find(x=>x.id===dragId)) : prev==null ? next-1 : next==null ? prev+1 : (prev+next)/2;
-  const t=tasks.find(x=>x.id===dragId); clearDrop(); const id=dragId; dragId=null;
-  if(!t || (t.phase===phase && ordKey(t)===order)) return;
-  const oldP=t.phase; t.phase=phase; t.order=order; render();
-  updateDoc(doc(db,"tasks",id),{phase,order,updatedBy:me.name,updatedAt:serverTimestamp()}).then(()=>{ if(oldP!==phase) logIt(t,"move",`Moved to ${PH[phase][0]}`); }).catch(fail); });
 
 // ---------- permissions matrix ----------
 function renderPerms(){ if(!$("pm")||!isAdmin()) return;
@@ -654,31 +634,48 @@ function renderCd(){ const el=$("cdbar"); if(!el) return; if(!me){ el.hidden=tru
   const show=(up.length?up:vis.slice(-2)).slice(0,4);
   el.hidden=!show.length; $("cdin").innerHTML=show.map(item).join(""); }
 
-// ---------- my tasks ----------
-let mdPicked=false;
-$("mdept").addEventListener("change",()=>{ mdPicked=true; renderMine(); });
+// ---------- tasks (one page: urgent first, then phase → month) ----------
+// Scope: a department (default: your own) or "*" = everyone. Overdue and the next 7 days come first, then each phase
+// with its later tasks grouped by month. A phase shows its first 3 tasks until someone taps "Show more".
+let mdPicked=false, mScope="";
+$("mdept").addEventListener("change",()=>{ mdPicked=true; mScope=$("mdept").value; renderMine(); });
 $("mall").addEventListener("change",renderMine);
+$("madd").onclick=()=>openNew();
+const monKey=d=>d.slice(0,7), monLabel=k=>MON[+k.slice(5,7)-1]+" "+k.slice(0,4);
 function renderMine(){ if(!$("mlist")||!me) return;
   const reveal=mReveal; mReveal=null;
-  const sel=$("mdept"), cur=mdPicked?sel.value:(me.dept||"");
-  sel.innerHTML='<option value="">Choose a department…</option>'+DEPTS.map(d=>`<option${d===cur?" selected":""}>${esc(d)}</option>`).join(""); sel.value=cur;
-  if(!cur){ $("mlist").innerHTML='<p class="mempty">Pick a department above to see its tasks. Ask a PVP to set your department in Access so this opens automatically.</p>'; $("msum").textContent="What your department needs to do next."; $("mbarf").style.width="0"; renderFeed(); return; }
+  const sel=$("mdept"), cur=mdPicked?mScope:(me.dept||"*"), all=cur==="*";
+  sel.innerHTML='<option value="*">Everyone</option>'+DEPTS.map(d=>`<option value="${esc(d)}"${d===cur?" selected":""}>${esc(d)}</option>`).join(""); sel.value=cur;
+  $("mallw").hidden=all; $("madd").hidden=!can("add");
   const inc=$("mall").checked, shared=["All","All heads"];
-  const T=tasks.filter(t=>{ const o=t.depts?.length?t.depts:toks(t.owner); return o.includes(cur)||(cur==="PVP"&&o.includes("President"))||(inc&&o.some(x=>shared.includes(x))); });
-  const td=iso(new Date()), plus=n=>{ const x=new Date(); x.setDate(x.getDate()+n); return iso(x); }, w=plus(7), m=plus(30);
-  const open=T.filter(t=>t.status!=="dn").sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")), done=T.filter(t=>t.status==="dn");
-  const G=[["over","Overdue",open.filter(t=>t.due&&t.due<td)],["week","Due in the next 7 days",open.filter(t=>t.due&&t.due>=td&&t.due<=w)],["month","Next 30 days",open.filter(t=>t.due>w&&t.due<=m)],["later","Later",open.filter(t=>t.due>m)],["nod","No date",open.filter(t=>!t.due)]];
-  const item=t=>`<li class="mi ${t.status}${jd(t.id)}" style="--dc:${tcol(t)}"><button type="button" class="mt" data-task="${t.id}"><span class="md">${t.due?when(t):"—"}${relDue(t)}</span><span class="mtt"${canEdit(t)?' title="Double-click to rename"':""}>${esc(t.title)}</span><span class="mo">${esc(t.owner)} · ${PH[t.phase]?.[0]||""}</span></button><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${canTask(t)?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></li>`;
-  const over=G[0][2].length;
-  $("msum").textContent=`${cur}: ${open.length} open${over?` · ${over} overdue`:""} · ${done.length} of ${T.length} done`;
+  const T=all?tasks:tasks.filter(t=>{ const o=t.depts?.length?t.depts:toks(t.owner); return o.includes(cur)||(cur==="PVP"&&o.includes("President"))||(inc&&o.some(x=>shared.includes(x))); });
+  const td=iso(new Date()), plus=n=>{ const x=new Date(); x.setDate(x.getDate()+n); return iso(x); }, w=plus(7);
+  const byDue=(a,b)=>(a.due||"9999").localeCompare(b.due||"9999")||ordKey(a)-ordKey(b);
+  const open=T.filter(t=>t.status!=="dn").sort(byDue), done=T.filter(t=>t.status==="dn");
+  const over=open.filter(t=>t.due&&t.due<td), week=open.filter(t=>t.due&&t.due>=td&&t.due<=w), later=open.filter(t=>t.due>w), nod=open.filter(t=>!t.due);
+  const label=all?"Everyone":cur;
+  $("msum").textContent=`${label}: ${open.length} open${over.length?` · ${over.length} overdue`:""} · ${done.length} of ${T.length} done`;
   $("mbarf").dataset.k="mine-"+cur; $("mbarf").dataset.w=T.length?done.length/T.length*100:0; animBars($("mbarf").parentNode);
-  const MFOLD=3, fold=(k,a)=>k==="later"&&a.length>MFOLD+1; // "Later" shows its first 3 tasks until someone taps "Show more"
-  const grp=([k,l,a])=>{ const closed=fold(k,a)&&!mOpen.has(k), list=closed?a.slice(0,MFOLD):a;
-    const btn=fold(k,a)?`<li class="mmw"><button type="button" class="mmore" data-mmore="${k}" aria-expanded="${!closed}">${closed?`Show ${a.length-MFOLD} more`:"Show less"}</button></li>`:"";
-    return `<section class="mg ${k}"><h2>${l} <span class="n">${a.length}</span></h2><ul>${list.map(item).join("")}${btn}</ul></section>`; };
-  $("mlist").innerHTML=(open.length?G.filter(g=>g[2].length).map(grp).join(""):'<p class="mempty">Nothing open for this department. 🎉</p>')
+  // phase strip in the header: progress per phase for this view; tap to jump
+  const p0=seeKickoff()?0:1, t0=Date.parse(PH[p0][2]), t1=Date.parse(PH[5][3]), now=Date.now();
+  $("line").style.setProperty("--phn", PH.length-p0);
+  $("line").innerHTML = PH.map((p,i)=>{ if(!phVis(i)) return ""; const ts=T.filter(t=>t.phase===i),d=ts.filter(t=>t.status==="dn").length; return `<button type="button" class="seg" data-go="${i}"><b>${p[0]}</b><span>${p[1]} · ${d}/${ts.length}</span><div class="bar"><i data-k="ph${i}-${esc(cur)}" data-w="${ts.length?d/ts.length*100:0}"></i></div></button>`; }).join("") + (now>=t0&&now<=t1?`<div class="now" style="left:${(now-t0)/(t1-t0)*100}%"></div>`:"");
+  animBars($("line"));
+  const item=t=>`<li class="mi ${t.status}${jd(t.id)}" style="--dc:${tcol(t)}"><button type="button" class="mt" data-task="${t.id}"><span class="md">${t.due?when(t):"—"}${relDue(t)}</span><span class="mtt"${canEdit(t)?' title="Double-click to rename"':""}>${esc(t.title)}</span><span class="mo">${pills(t)}</span>${extras(t)}</button><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${canTask(t)?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></li>`;
+  const MFOLD=3, more=(k,n,closed)=>`<li class="mmw"><button type="button" class="mmore" data-mmore="${k}" aria-expanded="${!closed}">${closed?`Show ${n-MFOLD} more`:"Show less"}</button></li>`;
+  const flat=(k,l,a)=>a.length?`<section class="mg ${k}"><h2>${l} <span class="n">${a.length}</span></h2><ul>${a.map(item).join("")}</ul></section>`:"";
+  const phases=PH.map((p,i)=>{ if(!phVis(i)) return ""; const a=later.filter(t=>t.phase===i); if(!a.length) return "";
+    const k="p"+i, fold=a.length>MFOLD+1, closed=fold&&!mOpen.has(k), list=closed?a.slice(0,MFOLD):a;
+    const ts=T.filter(t=>t.phase===i), d=ts.filter(t=>t.status==="dn").length;
+    let html="", m=null; list.forEach(t=>{ const mk=monKey(t.due); if(mk!==m){ if(m) html+="</ul>"; html+=`<h3 class="mmon">${monLabel(mk)}</h3><ul>`; m=mk; } html+=item(t); }); if(m) html+="</ul>";
+    if(fold) html+=`<ul>${more(k,a.length,closed)}</ul>`;
+    return `<section class="mg mph ${k}" id="mph${i}"><h2>${p[0]} <small>${p[1]} · ${d} of ${ts.length} done</small> <span class="n">${a.length}</span></h2>${html}</section>`; }).join("");
+  const empty = !T.length && isAdmin() && !tasks.length ? `<p class="mempty">No tasks yet.</p><button type="button" class="pri" id="seed2">Load the 46 starter tasks</button>`
+    : '<p class="mempty">Nothing open here. 🎉</p>';
+  $("mlist").innerHTML=(open.length? flat("over","Overdue",over)+flat("week","Due in the next 7 days",week)+phases+flat("nod","No date",nod) : empty)
     +(done.length?`<details class="mdone"><summary>Done (${done.length})</summary><ul style="list-style:none;padding:0;display:grid;gap:8px;margin-top:8px">${done.map(item).join("")}</ul></details>`:"");
-  if(reveal&&motion()) $("mlist").querySelectorAll(`.mg.${reveal} li.mi`).forEach((li,i)=>{ if(i>=3){ li.classList.add("mrev"); li.style.animationDelay=Math.min(i-3,12)*35+"ms"; } });
+  if($("seed2")) $("seed2").onclick=()=>$("seed").click();
+  if(reveal&&motion()) $("mlist").querySelectorAll(`.mg.${reveal} li.mi`).forEach((li,i)=>{ if(i>=MFOLD){ li.classList.add("mrev"); li.style.animationDelay=Math.min(i-MFOLD,12)*35+"ms"; } });
   renderFeed(); }
 document.addEventListener("click",e=>{ const b=e.target.closest("[data-mmore]"); if(!b) return; const k=b.dataset.mmore;
   if(mOpen.has(k)){ mOpen.delete(k); renderMine(); $("mlist").querySelector(`.mg.${k}`)?.scrollIntoView({block:"nearest",behavior:motion()?"smooth":"auto"}); }
@@ -797,14 +794,14 @@ VERB.comment="commented on";
 function renderOverview(){ if(!$("ogrid")||!me||!seeOverview()) return;
   const td=iso(new Date()), w=(()=>{ const x=new Date(); x.setDate(x.getDate()+7); return iso(x); })();
   const open=tasks.filter(t=>t.status!=="dn"), late=open.filter(t=>t.due&&t.due<td).sort((a,b)=>a.due.localeCompare(b.due)), week=open.filter(t=>t.due&&t.due>=td&&t.due<=w).sort((a,b)=>a.due.localeCompare(b.due));
-  const done=tasks.length-open.length, blk=open.filter(t=>t.status==="blk").length;
-  $("okpi").innerHTML=[[tasks.length?Math.round(done/tasks.length*100):0,"%","done overall","","ov-pct"],[open.length,"","open tasks","","ov-open"],[late.length,"","overdue",late.length?"warn":"","ov-late"],[blk,"","blocked",blk?"warn":"","ov-blk"]].map(([n,suf,s,c,k])=>`<div class="kpi ${c}"><b data-n="${n}" data-k="${k}" data-suf="${suf}">${n}${suf}</b><span>${s}</span></div>`).join(""); countUp($("okpi"));
+  const done=tasks.length-open.length;
+  $("okpi").innerHTML=[[tasks.length?Math.round(done/tasks.length*100):0,"%","done overall","","ov-pct"],[open.length,"","open tasks","","ov-open"],[late.length,"","overdue",late.length?"warn":"","ov-late"],[week.length,"","due in 7 days","","ov-wk"]].map(([n,suf,s,c,k])=>`<div class="kpi ${c}"><b data-n="${n}" data-k="${k}" data-suf="${suf}">${n}${suf}</b><span>${s}</span></div>`).join(""); countUp($("okpi"));
   const own=t=>t.depts&&t.depts.length?t.depts:toks(t.owner);
   $("ogrid").innerHTML=DEPTS.map(d=>{ const T=tasks.filter(t=>own(t).includes(d)||(d==="PVP"&&own(t).includes("President"))); const dn=T.filter(t=>t.status==="dn").length, op=T.filter(t=>t.status!=="dn");
-    const lt=op.filter(t=>t.due&&t.due<td).length, bk=op.filter(t=>t.status==="blk").length, nx=op.filter(t=>t.due).sort((a,b)=>a.due.localeCompare(b.due))[0];
+    const lt=op.filter(t=>t.due&&t.due<td).length, nx=op.filter(t=>t.due).sort((a,b)=>a.due.localeCompare(b.due))[0];
     const hs=(heads[d]||[]).filter(x=>x.name).map(x=>x.name).join(", ");
     const pc=T.length?Math.round(dn/T.length*100):0;
-    return `<button type="button" class="oc" style="--dc:${col(d)}" data-ogo="${esc(d)}"><div class="otop"><div><h3>${esc(d)}</h3><div class="hn2">${d==="PVP"?"Puripat, Sattam, Krang":esc(hs||"Heads TBC")}</div></div><span class="orw${pc===100?" full":""}" role="img" aria-label="${pc}% done"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="otr" cx="22" cy="22" r="18" pathLength="100"/><circle class="orc" cx="22" cy="22" r="18" pathLength="100" data-ring="${pc}" data-rk="r-${esc(d)}"/></svg><b data-n="${pc}" data-k="ov-r-${esc(d)}" data-suf="%">${pc}%</b></span></div><div class="ost"><span>${dn}/${T.length} done</span>${lt?`<span class="bad">${lt} overdue</span>`:""}${bk?`<span class="bad">${bk} blocked</span>`:""}</div>${nx?`<div class="onext">Next: <b>${fmt(nx.due)}</b> ${esc(nx.title)}</div>`:`<div class="onext" style="color:var(--mute)">${T.length?"Nothing open 🎉":"No tasks yet"}</div>`}</button>`; }).join("");
+    return `<button type="button" class="oc" style="--dc:${col(d)}" data-ogo="${esc(d)}"><div class="otop"><div><h3>${esc(d)}</h3><div class="hn2">${d==="PVP"?"Puripat, Sattam, Krang":esc(hs||"Heads TBC")}</div></div><span class="orw${pc===100?" full":""}" role="img" aria-label="${pc}% done"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="otr" cx="22" cy="22" r="18" pathLength="100"/><circle class="orc" cx="22" cy="22" r="18" pathLength="100" data-ring="${pc}" data-rk="r-${esc(d)}"/></svg><b data-n="${pc}" data-k="ov-r-${esc(d)}" data-suf="%">${pc}%</b></span></div><div class="ost"><span>${dn}/${T.length} done</span>${lt?`<span class="bad">${lt} overdue</span>`:""}</div>${nx?`<div class="onext">Next: <b>${fmt(nx.due)}</b> ${esc(nx.title)}</div>`:`<div class="onext" style="color:var(--mute)">${T.length?"Nothing open 🎉":"No tasks yet"}</div>`}</button>`; }).join("");
   animBars($("ogrid")); animRings($("ogrid")); countUp($("ogrid"));
   const li=(t,cls)=>`<li class="${cls}"><button type="button" data-task="${t.id}"><span class="d">${fmt(t.due)}</span><span>${esc(t.title)}</span><span>${ownHtml(t.owner)}</span></button></li>`;
   $("olate").innerHTML=late.slice(0,12).map(t=>li(t,"late")).join("")||'<li style="color:var(--mute);font-size:14px">Nothing overdue. 🎉</li>';
@@ -843,18 +840,11 @@ document.addEventListener("drop",e=>{ if(!dragS) return; const c=e.target.closes
 
 // ---------- bottom bar + floating add ----------
 $("bmore").onclick=openMenu;
+$("bnav").addEventListener("click",e=>{ const a=e.target.closest("a[data-v]"); if(!a) return; if(curView===a.dataset.v){ e.preventDefault(); scrollTo({top:0,behavior:motion()?"smooth":"auto"}); setTimeout(()=>{ if(scrollY>40) scrollTo({top:0,behavior:"instant"}); },1000); } });
 function updateFab(){ const v=curView; let show=false, label="Add task";
-  if(me&&!["login","noaccess"].includes(v)){ if(v==="sponsors"){ show=canSpons(); label="Add sponsor"; } else if(["mine","tracker","calendar","overview"].includes(v)){ show=can("add"); } }
+  if(me&&!["login","noaccess"].includes(v)){ if(v==="sponsors"){ show=canSpons(); label="Add sponsor"; } else if(["mine","calendar","overview"].includes(v)){ show=can("add"); } }
   $("fab").hidden=!show; $("fab").setAttribute("aria-label",label); $("fab").title=label; updateBot(); }
-$("nwp").innerHTML=phOpts(-1);
-function openNew(){ $("nwtt").value=""; $("nwst").value=""; $("nwd2").value=""; const own=me?.dept&&me.role==="head"?me.dept:"PVP"; setPick("nwo",own);
-  const td=iso(new Date()); const ph=PH.findIndex(p=>td>=p[2]&&td<p[3]); $("nwp").value=String(Math.max(ph<0?0:ph, phVis(0)?0:1));
-  try{$("nwd").showModal();}catch(e){$("nwd").setAttribute("open","");} setTimeout(()=>$("nwtt").focus(),50); }
-const closeN=()=>{ try{$("nwd").close();}catch(e){$("nwd").removeAttribute("open");} };
-$("nwx").onclick=closeN; $("nwc").onclick=closeN;
-$("nwf").addEventListener("submit",e=>{ e.preventDefault(); const title=$("nwtt").value.trim(); if(!title) return; const st=$("nwst").value, due=$("nwd2").value;
-  if(st&&due&&st>due){ toast("The start date must be on or before the due date."); return; }
-  addTask(title,due,$("nwo").value.trim()||"PVP",+$("nwp").value,st).then(closeN).catch(fail); });
+function openNew(due){ openEdit(null,"",{due:due||""}); }
 $("fab").onclick=()=>{ if(curView==="sponsors") openSponsor(null); else openNew(); };
 
 // ---------- who can see sponsors (set on the Access page) ----------
@@ -983,10 +973,10 @@ function hbAnswer(k){ const td=iso(new Date()), open=tasks.filter(t=>t.status!==
     const over=T.filter(t=>t.due&&t.due<td).sort(hbByDue), week=T.filter(t=>t.due&&t.due>=td&&t.due<=w).sort(hbByDue);
     if(!over.length&&!week.length){ const nx=T.filter(t=>t.due&&t.due>w).sort(hbByDue)[0];
       hbSay(`Nothing due for ${esc(me.dept)} in the next 7 days. 🎉`+(nx?` Next up: <b>${esc(nx.title)}</b> on ${hbDate(nx.due)}.`:"")); }
-    else hbSay(`<p class="sum">${esc(me.dept)} + shared tasks</p>`+hbGroups([["over","Overdue",over],["","Next 7 days",week]],td,"#mine","My tasks"),true);
+    else hbSay(`<p class="sum">${esc(me.dept)} + shared tasks</p>`+hbGroups([["over","Overdue",over],["","Next 7 days",week]],td,"#mine","Tasks"),true);
   } else if(k==="over"){
     const a=open.filter(t=>t.due&&t.due<td).sort(hbByDue);
-    hbSay(a.length?`<p class="sum">Across all departments, oldest first</p>`+hbGroups([["over","Overdue",a]],td,"late","Tracker"):"Nothing is overdue. 🎉",a.length>0);
+    hbSay(a.length?`<p class="sum">Across all departments, oldest first</p>`+hbGroups([["over","Overdue",a]],td,"late","Tasks"):"Nothing is overdue. 🎉",a.length>0);
   } else if(k==="soon"){
     const a=open.filter(t=>t.due===td), b=open.filter(t=>t.due===hbDay(1));
     hbSay(a.length||b.length?hbGroups([["over","Today",a],["","Tomorrow",b]],td,"#calendar","Calendar"):"Nothing is due today or tomorrow. 🎉",a.length+b.length>0);
@@ -998,7 +988,7 @@ function hbAsk(label,k){ if(hbBusy) return; const log=$("hlog"), you=hbAdd("you"
   if(!motion()){ hbAnswer(k); log.scrollTop=you.offsetTop-8; return; }
   hbBusy=true; $("hch").classList.add("busy"); const dots=hbAdd("bot typing",'<span class="hty"><i></i><i></i><i></i></span>'); dots.setAttribute("aria-hidden","true"); log.scrollTop=log.scrollHeight;
   setTimeout(()=>{ dots.remove(); hbAnswer(k); log.scrollTop=you.offsetTop-8; hbBusy=false; $("hch").classList.remove("busy"); },450); }
-function hbGo(go){ closeBot(); if(go==="late"){ if(location.hash!=="#tracker") location.hash="#tracker"; if(!f.late) $("late").click(); } else location.hash=go; }
+function hbGo(go){ closeBot(); if(go==="late"){ mScope="*"; mdPicked=true; renderMine(); if(location.hash!=="#mine") location.hash="#mine"; else scrollTo(0,0); } else location.hash=go; }
 $("hb").onclick=()=>{ if($("hp").hidden) openBot(); else closeBot(); };
 $("hpx").onclick=()=>{ closeBot(); $("hb").focus(); };
 $("hch").addEventListener("click",e=>{ const b=e.target.closest("[data-hb]"); if(b) hbAsk(b.textContent,b.dataset.hb); });
@@ -1147,12 +1137,11 @@ function tourSteps(){
   const phone = innerWidth <= 760, ios = /iPhone|iPad/.test(navigator.userAgent);
   return [
     { title: `Welcome, ${nm}!`, text: "This is where the TUBC 2027 committee keeps track of every task. Here's a one-minute tour of the main parts." },
-    { el: () => tourPick('.bnav a[data-v="mine"]', "#t-mine"), title: "My tasks",
-      text: me.dept ? `Your department's tasks (${me.dept}): overdue first, then the next 7 days and later. Start here every day.` : "Pick a department at the top of this page to see its tasks. Ask a PVP to set your department so it opens automatically." },
+    { el: () => tourPick('.bnav a[data-v="mine"]', "#t-mine"), title: "Tasks",
+      text: (me.dept ? `Opens on your department's tasks (${me.dept}).` : "Shows everyone's tasks until a PVP sets your department.") + " Overdue and the next 7 days come first, then each phase from Kickoff to TUBC, month by month. Switch to Everyone at the top to see all departments." },
     { el: () => tourPick("#mlist .mi"), title: "A task",
       text: tasks.some(canTask) ? "Tap the name to open details, steps, links and comments. Change the status with the box on the right." : "Tap the name to open details, links and comments. You can comment and @mention a person or a whole department (e.g. @Oper)." },
     seeOverview() && { el: () => tourPick("#b-overview", "#t-overview"), title: "Overview", text: "The big picture: progress by department and by phase." },
-    { el: () => tourPick('.bnav a[data-v="tracker"]', "#t-tracker"), title: "Tracker", text: "Every task, grouped by phase from Kickoff to TUBC. Filter by owner, or show only late tasks." + (tourPick("#srchbtn") ? "" : " The search bar at the top of that page finds any task.") },
     { el: () => tourPick('.bnav a[data-v="calendar"]', "#t-calendar"), title: "Calendar",
       text: "Tasks by date, plus events like exam weeks." + (tasks.some(canEdit) ? " On a computer you can drag a task to another day, or click a day to add one." : "") + " You can also add the dates to your own Google Calendar." },
     { el: () => tourPick("#srchbtn", "#tsearch"), title: "Search", text: "Find any task by name, owner or notes." + (phone ? "" : " Shortcut: Ctrl+K (⌘K on Mac).") },

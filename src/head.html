@@ -299,7 +299,7 @@ dialog h4{margin:18px 0 6px;font-size:15px}
 .mi .mt{flex:1;min-width:0;display:grid;grid-template-columns:72px 1fr;gap:2px 10px;text-align:left;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:4px 0}
 .mi .md{grid-row:span 2;font:700 14px "Red Hat Display",sans-serif;align-self:center}
 .mg.over .md{color:var(--red)}
-.mi .mtt{font-weight:600;line-height:1.3}.mi .mo{font-size:13px;opacity:.7}
+.mi .mtt{font-weight:600;line-height:1.3}.mi .mo{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
 .mi.dn .mtt{text-decoration:line-through;opacity:.6}
 .mempty{opacity:.75;padding:12px 0}
 .mdone summary{cursor:pointer;font-weight:600;padding:6px 0}
@@ -517,7 +517,7 @@ body.authed{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
 .pcdl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0 0;font-size:14px}
 .pcdl dt{color:var(--mute);font-weight:600}.pcdl dd{margin:0;overflow-wrap:anywhere}
 @media(max-width:760px){.pfgrid{grid-template-columns:1fr}.pfav{width:64px;height:64px;font-size:24px}}
-.mgrid{grid-template-areas:"list mens" "list feed";grid-template-rows:auto 1fr;row-gap:24px}.mgrid #mlist{grid-area:list}.mgrid .mens{grid-area:mens;margin:0}.mgrid .mfeed{grid-area:feed}
+.mgrid{grid-template-areas:"list mens" "list feed";grid-template-rows:auto 1fr;row-gap:24px}.mgrid .mcol{grid-area:list}.mgrid .mens{grid-area:mens;margin:0}.mgrid .mfeed{grid-area:feed}
 @media (max-width:900px){.mgrid{grid-template-areas:"mens" "list" "feed"}.mgrid .mens{border:1px solid var(--gold);border-left:4px solid var(--gold);border-radius:10px;padding:14px 16px;background:var(--goldsoft)}.mgrid .mens li button{background:var(--bg)}}
 
 /* ---- avatar menu ---- */
@@ -855,6 +855,36 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
 @keyframes bdout{to{opacity:0}}
 @keyframes sheetdown{from{transform:none}to{transform:translateY(100%)}}
 @media(max-width:760px){#td.dout,#ed.dout{animation:sheetdown .22s ease-in forwards}}
+/* Tasks page (Tracker merged in): phase strip in the header, phase → month groups */
+#v-mine .line{margin-top:18px;grid-template-columns:repeat(var(--phn,6),minmax(0,1fr))}
+@media(max-width:760px){#v-mine .line{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.madd{margin-left:auto;min-height:44px;border:0;border-radius:999px;padding:0 18px;background:var(--gold);color:#17120f;font:700 15px "Red Hat Text",sans-serif;cursor:pointer}
+.madd:hover{filter:brightness(1.05)}
+#v-mine .tsearch{min-height:44px}
+.mg.mph h2 small{font:500 13px "Red Hat Text",sans-serif;color:var(--mute)}
+.mmon{font:700 12px "Red Hat Text",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:14px 0 8px}
+.mg.mph h2+.mmon{margin-top:4px}
+.mph{scroll-margin-top:72px}
+.mi .tx{grid-column:1/-1;font-size:12px;color:var(--mute)}
+.mcol{min-width:0}
+@media(max-width:760px){.madd{margin-left:0}#v-mine .tsearch{display:none}}
+/* Edit box: new-task mode, phase line, 2 steps on phones */
+#edel{margin-right:auto;color:#c8302d;border-color:transparent}#edel:hover{background:light-dark(#fde0de,#47191b)}
+@media(max-width:760px){#ed.new #edel{display:none}}
+.ephase{margin:2px 0 0;font-size:14px}.ephase small{color:var(--mute)}
+.esind{display:none;color:var(--mute);font-size:13px}
+#eback,#enext{display:none}
+@media(max-width:760px){
+#ed.new .esind{display:block}
+#ed.new.s1 .st2,#ed.new.s2 .st1{display:none}
+#ed.new.s1 #eds{display:none}#ed.new.s1 #enext{display:block;flex:1}
+#ed.new.s2 #edc{display:none}#ed.new.s2 #eback{display:block;flex:1}
+}
+/* owner + phase pills */
+.pill{display:inline-flex;align-items:center;font:600 12px/1 "Red Hat Text",sans-serif;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.pill.own{background:color-mix(in srgb,var(--pc) 16%,transparent);color:color-mix(in srgb,var(--pc) 78%,var(--ink));border:1px solid color-mix(in srgb,var(--pc) 30%,transparent)}
+.pill.ph{background:transparent;color:color-mix(in srgb,var(--pc) 80%,var(--ink));border:1px solid color-mix(in srgb,var(--pc) 55%,transparent)}
+.pill.ph::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--pc);margin-right:5px}
 </style>
 </head>
 <body>
@@ -863,7 +893,7 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
   <span class="brand"><i class="tlogo bmark" aria-hidden="true"></i>TUBC 2027</span><span class="pname" id="pname"></span><button type="button" class="onl onl-m" id="onl" aria-haspopup="dialog" aria-controls="onlpop" hidden></button>
   <div class="drawer" id="drawer">
   <div class="dhead"><span class="brand"><i class="tlogo bmark" aria-hidden="true"></i>TUBC 2027</span><button type="button" class="x" id="dclose" aria-label="Close menu">×</button></div>
-  <div class="tabs" hidden><a href="#mine" id="t-mine">My tasks<span class="badge" id="mbadge" hidden></span></a><a href="#overview" id="t-overview" hidden>Overview</a><a href="#tracker" id="t-tracker" aria-current="page">Tracker</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#sponsors" id="t-sponsors" hidden>Sponsors</a><a href="#team" id="t-team">Team</a><i class="tabbar" id="tabbar" aria-hidden="true"></i></div>
+  <div class="tabs" hidden><a href="#mine" id="t-mine" aria-current="page">Tasks<span class="badge" id="mbadge" hidden></span></a><a href="#overview" id="t-overview" hidden>Overview</a><a href="#calendar" id="t-calendar">Calendar</a><a href="#sponsors" id="t-sponsors" hidden>Sponsors</a><a href="#team" id="t-team">Team</a><i class="tabbar" id="tabbar" aria-hidden="true"></i></div>
   <div class="me" id="me" hidden><button type="button" class="onl onl-d" id="onl2" aria-haspopup="dialog" aria-controls="onlpop" hidden></button><button type="button" class="ico2" id="srchbtn" aria-label="Search tasks" title="Search tasks (Ctrl+K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></button>
   <div class="umw"><button type="button" id="mename" class="mename" aria-haspopup="true" aria-expanded="false" aria-controls="umenu" title="Account"><span class="meav" id="meav"></span><span id="menm"></span><span class="udot" id="udot" hidden></span></button>
   <div class="umenu" id="umenu" hidden>
@@ -918,15 +948,19 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
 <dialog id="pcd" aria-label="Profile"><div id="pcard"></div></dialog>
 <div class="view" id="v-mine" hidden>
 <header class="band top"><div class="wrap">
-  <h1>My tasks</h1>
-  <p class="sub" id="msum">What your department needs to do next.</p>
-  <div class="mtools"><label class="mselw">Department <select id="mdept"></select></label>
-  <label class="gchk mchk"><input type="checkbox" id="mall" checked> Include tasks for everyone</label></div>
+  <h1>Tasks</h1>
+  <p class="sub" id="msum">What needs to happen next.</p>
+  <div class="mtools"><label class="mselw">Show <select id="mdept" aria-label="Whose tasks"></select></label>
+  <label class="gchk mchk" id="mallw"><input type="checkbox" id="mall" checked> Include tasks for everyone</label>
+  <button type="button" class="tsearch" id="tsearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search tasks</span><kbd>Ctrl K</kbd></button>
+  <button type="button" class="madd" id="madd" hidden>+ Add task</button></div>
   <div class="mbar" aria-hidden="true"><i id="mbarf"></i></div>
+  <div class="line" id="line"></div>
 </div></header>
 <main class="band"><div class="wrap mgrid">
   <div class="mens feed" id="mens" hidden><h2>Mentions <span class="badge" id="mencnt" hidden></span></h2><p class="fsub">Comments that tag you.</p><ul id="menl"></ul></div>
-  <div id="mlist"></div>
+  <div class="mcol"><div id="mlist"></div><button type="button" class="pri" id="seed" hidden>Load the 46 starter tasks</button>
+  <p class="foot">Dates for 2027 are estimated from the 2025 and 2026 timelines. CLG day and TUBC week are tentative until Aj. Pong confirms.</p></div>
   <aside class="feed mfeed"><h2>Recent activity</h2><p class="fsub">Latest changes by everyone on the team.</p><ul id="feed"></ul></aside>
 </div></main>
 </div>
@@ -1051,7 +1085,7 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
 </div></header>
 <main class="band"><div class="wrap">
   <div class="tools"><label for="cown" class="o">Owner</label><select id="cown"></select>
-    <span class="key"><i class="todo"></i>To do</span><span class="key"><i class="prog"></i>In progress</span><span class="key"><i class="blk"></i>Blocked</span><span class="key"><i class="dn"></i>Done</span></div>
+    <span class="key"><i class="todo"></i>To do</span><span class="key"><i class="prog"></i>In progress</span><span class="key"><i class="dn"></i>Done</span></div>
   <div class="cal" id="cal"></div>
   <div class="agenda" id="agenda"></div>
 </div></main>
@@ -1065,21 +1099,23 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
   <div class="da"><button type="button" class="gbtn sm" id="tdg"><svg class="gic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3" fill="#fff"/><rect x="3" y="4.5" width="18" height="5" rx="2" fill="#d2e3fc"/><rect x="7" y="2.5" width="2" height="4" rx="1" fill="#fff"/><rect x="15" y="2.5" width="2" height="4" rx="1" fill="#fff"/><path d="M8 13.5h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2zM8 16.8h2v2H8zm3 0h2v2h-2z" fill="#1a73e8"/></svg><span>Add to Google Calendar</span></button><button type="button" class="ghost" id="tde">Edit task</button></div>
 </dialog>
 <dialog id="ed" aria-labelledby="edt"><form id="edf">
-  <div class="dh"><h3 id="edt">Edit task</h3><button type="button" class="x" id="edx" aria-label="Close">×</button></div>
-  <div class="ef">
-    <label>Task<input id="et" maxlength="200"></label><p class="ferr" id="etitleerr" hidden></p>
+  <div class="dh"><div><h3 id="edt">Edit task</h3><small class="esind" id="esind"></small></div><button type="button" class="x" id="edx" aria-label="Close">×</button></div>
+  <div class="ef"><div class="st1">
+    <label>Task<input id="et" maxlength="200" placeholder="What needs doing?"></label><p class="ferr" id="etitleerr" hidden></p>
     <div class="two"><label>Start date <small class="opt">optional, for multi-day</small><input id="estart" type="date"></label><label>Due date<input id="edue" type="date"></label></div><p class="ferr" id="edateerr" hidden></p>
-    <label>Topic<select id="eph"></select></label>
     <div class="flab">Owner <small style="font-weight:400;color:var(--mute)">Tick one or more</small><input type="hidden" id="eown" value=""><details class="opick" data-for="eown"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details></div>
-    <label>Notes<textarea id="enote"></textarea></label>
+    <p class="ephase">Phase: <b id="ephv">—</b> <small id="ephs"></small></p>
+  </div><div class="st2">
+    <label>Notes<textarea id="enote" placeholder="Anything people should know"></textarea></label>
     <div class="esec"><div class="esh"><b>Steps</b><small id="esc"></small></div><ul class="eitems esteps" id="esl"></ul><p class="ferr" id="esterr" hidden></p>
       <div class="eadd"><input id="esi" maxlength="140" placeholder="Add a step, then press Enter" aria-label="New step"><button type="button" class="ghost sm" id="esa">Add</button></div></div>
     <div class="esec"><div class="esh"><b>Links</b><small>Drive, Canva, Docs…</small></div><ul class="eitems elinks" id="ell"></ul><p class="ferr" id="elerr" hidden></p>
       <div class="eadd eadd2"><input id="elu" type="url" placeholder="https://…" aria-label="Link address"><input id="eln" maxlength="60" placeholder="Name (optional)" aria-label="Link name"><button type="button" class="ghost sm" id="ela">Add</button></div></div>
-    <p class="enote2">Changes are only sent when you press Save.</p>
+  </div>
+    <p class="enote2" id="enote2">Changes are only sent when you press Save.</p>
   </div>
   <div class="ebar" id="ebar" role="alertdialog" aria-live="assertive" hidden></div>
-  <div class="da"><button type="button" class="ghost" id="edc">Cancel</button><button type="submit" class="pri" id="eds" disabled>Save</button></div>
+  <div class="da"><button type="button" class="ghost danger-t" id="edel" hidden>Delete task</button><button type="button" class="ghost" id="edc">Cancel</button><button type="button" class="ghost" id="eback">Back</button><button type="button" class="pri" id="enext">Next</button><button type="submit" class="pri" id="eds" disabled>Save</button></div>
 </form></dialog>
 
 <div class="view" id="v-overview" hidden>
@@ -1121,20 +1157,9 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
   </div>
   <div class="da"><button type="button" class="evdel" id="evdel" hidden>Delete</button><button type="button" class="ghost" id="evc">Cancel</button><button type="submit" class="pri">Save</button></div>
 </form></dialog>
-<dialog id="nwd" aria-labelledby="nwt"><form id="nwf">
-  <div class="dh"><h3 id="nwt">New task</h3><button type="button" class="x" id="nwx" aria-label="Close">×</button></div>
-  <div class="ef">
-    <label>Task<input id="nwtt" required maxlength="200"></label>
-    <div class="two"><label>Start date <small class="opt">optional, for multi-day</small><input id="nwst" type="date"></label><label>Due date<input id="nwd2" type="date" required></label></div>
-    <label>Topic<select id="nwp"></select></label>
-    <div class="flab">Owner <small style="font-weight:400;color:var(--mute)">Tick one or more</small><input type="hidden" id="nwo" value="PVP"><details class="opick" data-for="nwo"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details></div>
-  </div>
-  <div class="da"><button type="button" class="ghost" id="nwc">Cancel</button><button type="submit" class="pri">Add task</button></div>
-</form></dialog>
 <dialog id="qk" class="qk" aria-label="Search tasks"><div class="qkin"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="qki" type="search" placeholder="Search tasks, owners, notes…" autocomplete="off" aria-label="Search tasks" aria-controls="qkl"><kbd>Esc</kbd></div><ul id="qkl" role="listbox"></ul><p class="qkh"><span>↑ ↓ move</span><span>Enter open</span><span>Esc close</span></p></dialog>
 <nav class="bnav" id="bnav" aria-label="Quick pages" hidden>
-  <a href="#mine" data-v="mine"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>My tasks<span class="badge" id="bbadge" hidden></span></a>
-  <a href="#tracker" data-v="tracker"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Tracker</a>
+  <a href="#mine" data-v="mine"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Tasks<span class="badge" id="bbadge" hidden></span></a>
   <a href="#calendar" data-v="calendar"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>Calendar</a>
   <a href="#overview" data-v="overview" id="b-overview" hidden><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Overview</a>
   <button type="button" id="bmore"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>More</button>
@@ -1143,32 +1168,3 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
 <button type="button" class="hb" id="hb" aria-label="Quick answers" title="Quick answers" aria-expanded="false" aria-controls="hp" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg></button>
 <div class="tour" id="tour" role="dialog" aria-modal="true" aria-labelledby="tourt" hidden><svg class="tour-dim" id="tourdim" aria-hidden="true"><path id="tourpath" fill-rule="evenodd"/></svg><div class="tour-hole none" id="tourhole"></div><div class="tour-card" id="tourcard"><div class="tour-n" id="tourn"></div><h3 id="tourt"></h3><p id="tourp"></p><div class="tour-a"><button type="button" class="ghost" id="tourskip">Skip tour</button><span></span><button type="button" class="ghost" id="tourback">Back</button><button type="button" class="pri" id="tournext">Next</button></div></div></div>
 <section class="hp" id="hp" role="dialog" aria-label="Quick answers" hidden><div class="hph"><span>Quick answers</span><button type="button" id="hpx" aria-label="Close">×</button></div><div class="hlog" id="hlog" aria-live="polite"></div><div class="hch" id="hch" role="group" aria-label="Choices"></div></section>
-<div class="view" id="v-tracker" hidden>
-<header class="band top"><div class="wrap">
-  <div class="head">
-    <div><h1>TUBC 2027 PVP tracker</h1><p class="sub">The Challenger and TUBC, from PVP kickoff to debrief</p></div>
-    <div class="big" id="pct">0%<small id="cnt">0 of 0 tasks done</small></div>
-  </div>
-  <div class="line" id="line"></div>
-</div></header>
-<main class="band"><div class="wrap">
-  <div class="tools">
-    <button type="button" class="tsearch" id="tsearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search tasks</span><kbd>Ctrl K</kbd></button>
-    <label for="own" class="o">Owner</label>
-    <select id="own"><option value="">Everyone</option></select>
-    <button class="chip" id="hide" aria-pressed="false">Hide done</button>
-    <button class="chip" id="late" aria-pressed="false">Overdue only</button>
-    <span class="save" id="save">Connecting…</span>
-  </div>
-  <div id="list"></div>
-  <button type="button" class="pri" id="seed" hidden>Load the 46 starter tasks</button>
-  <form class="add" id="addf" hidden>
-    <input class="wide" id="nt" placeholder="New task" aria-label="New task" required>
-    <input id="nd" type="date" aria-label="Due date" required>
-    <input type="hidden" id="no" value="PVP"><details class="opick" data-for="no"><summary aria-label="Owner"></summary><div class="opop" role="group" aria-label="Owner"></div></details>
-    <select id="np" aria-label="Phase"></select>
-    <button type="submit">Add task</button>
-  </form>
-  <p class="foot">Dates for 2027 are estimated from the 2025 and 2026 timelines. CLG day and TUBC week are tentative until Aj. Pong confirms.</p>
-</div></main>
-</div>
