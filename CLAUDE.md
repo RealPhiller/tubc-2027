@@ -73,7 +73,7 @@ Rules validate field names and sizes on writes; when you add a field to a collec
 
 - **@mentions**: people (`people` collection) and whole departments (`@Oper` → stored as `dept:Oper`). `tagsMe()` decides what lands in the Mentions box and notifications.
 - **Notifications**: only while the site/app is open or in the background (service worker + Notification API, toggled in the avatar menu; iPhone needs Add to Home Screen). True push when closed needs Firebase Blaze + Cloud Functions + FCM: not built yet.
-- **Google Calendar**: per-department calendars named `TUBC2027 - DEPT`, events upserted by a stable id from the task id (re-clicking updates instead of duplicating). It does **not** remove events for deleted/undated/moved tasks yet.
+- **Google Calendar**: per-department calendars named `TUBC2027 - DEPT`, events upserted by a stable id from the task id (re-clicking updates instead of duplicating). Each add also PATCHes the calendarList entry to `hidden:false, selected:true` (`showCal`, once per calendar per page load), because API-made calendars can end up hidden and then nothing shows (found 2026-11-25: PVP and Oper were hidden). The toast names the Google account the events went to. It does **not** remove events for deleted/undated/moved tasks yet.
 - **Search palette**: Ctrl/⌘K or the magnifier; scores title prefix > word prefix > contains > owner > notes. Rows are two lines (title + status, then date), titles clamp to 2 lines, colour bar is a `::before` pill.
 - **Auto-update**: `checkUpdate()` compares BUILD in the fetched index.html.
 - **Opening tasks**: a page-wide click handler opens any element with `data-task="<id>"` via `openTask()`. Give new task rows that attribute; don't add a second handler (the task would open twice).
