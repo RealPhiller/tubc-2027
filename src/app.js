@@ -26,15 +26,20 @@ const OWNERS = {"Oper":"Puripat","Inven":"Puripat","Doc":"Puripat","Buddy":"Puri
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const today = new Date().toISOString().slice(0,10);
-const fmt = d => d ? new Date(d+"T00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}) + (d.slice(0,4)==="2026"?" ’26":"") : "";
+const fmt = d => d ? new Date(d+"T00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}) : ""; // the project runs Nov 2026 - Oct 2027, so no month repeats and the year is left out
 const DEPTS = ["PVP", ...Object.keys(SLOTS)];
 // Multi-day tasks: an optional start date before the due date.
 const spans = t => !!(t.start && t.due && t.start < t.due);
 const addDays = (d,n) => { const x=new Date(d+"T00:00"); x.setDate(x.getDate()+n); return iso(x); };
 const dayDiff = (a,b) => Math.round((Date.parse(b+"T00:00")-Date.parse(a+"T00:00"))/86400000);
-function rng(a,b){ if(!b||a===b) return fmt(a); const A=new Date(a+"T00:00"), B=new Date(b+"T00:00"), o={day:"numeric",month:"short"}, y=b.slice(0,4)==="2026"?" ’26":"";
+function rng(a,b){ if(!b||a===b) return fmt(a); const A=new Date(a+"T00:00"), B=new Date(b+"T00:00"), o={day:"numeric",month:"short"}, y="";
   return A.getMonth()===B.getMonth()&&A.getFullYear()===B.getFullYear() ? `${A.getDate()}–${B.toLocaleDateString("en-GB",o)}${y}` : `${A.toLocaleDateString("en-GB",o)} – ${B.toLocaleDateString("en-GB",o)}${y}`; }
 const when = t => spans(t) ? rng(t.start,t.due) : fmt(t.due);
+// "in 3 days" / "Today" / "2 days late" under a date (open tasks only)
+function relDue(t){ if(!t.due||t.status==="dn") return ""; const n=dayDiff(iso(new Date()),t.due);
+  if(n<0) return `<span class="rd late">${-n} day${n===-1?"":"s"} late</span>`;
+  if(n===0) return `<span class="rd soon">Today</span>`; if(n===1) return `<span class="rd soon">Tomorrow</span>`;
+  return n<=30 ? `<span class="rd">in ${n} days</span>` : ""; }
 const RM = matchMedia("(prefers-reduced-motion: reduce)"); const motion = () => !RM.matches;
 const justDone = new Map(); // task id -> time it was ticked, for the done animation
 const jd = id => { const t0=justDone.get(id); return t0==null ? "" : ` justdone" style="--ad:-${Math.min(1200,Date.now()-t0)}ms`; };
@@ -56,6 +61,7 @@ const tcol = t => { const o=(t.depts&&t.depts.length?t.depts:toks(t.owner)); con
 const ownHtml = s => toks(s).map(o=>`<span class="dt" style="--dc:${col(o)}">${esc(o)}</span>`).join(" ");
 const thb = n => (Math.round(+n||0)).toLocaleString("en-US");
 let seenComments = null, swReg = null;
+let inl = null, inlPending = false, openT = null; // rename-in-place state (see that section)
 let events = [], comments = [], people = {}, sponsors = [], sponsAccess = {see:["ER","PVP","Treasurer"],edit:["ER","PVP","Treasurer"]};
 
 let logs = [], ev = {challenger:"2027-08-22", tubc:"2027-10-04"};
@@ -70,7 +76,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125g";
+const BUILD="b20261125h";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -171,6 +177,7 @@ function start(){
 
 // ---------- tracker ----------
 function render(){
+  if (inl) { inlPending = true; return; }
   const T = tasks, done = T.filter(t=>t.status==="dn").length;
   animNum("pct",$("pct").firstChild,T.length?Math.round(done/T.length*100):0,(n,v)=>{ n.nodeValue=v+"%"; });
   $("cnt").textContent = done+" of "+T.length+" tasks done";
@@ -186,7 +193,7 @@ function render(){
   $("list").innerHTML = PH.map((p,i)=>{ if(!phVis(i)) return "";
     const rows=T.filter(t=>t.phase===i && (!f.own||toks(t.owner).includes(f.own)) && (!f.hide||t.status!=="dn") && (!f.late||(t.due<today&&t.status!=="dn"))).sort((a,b)=>ordKey(a)-ordKey(b));
     const d=T.filter(t=>t.phase===i&&t.status==="dn").length, n=T.filter(t=>t.phase===i).length;
-    return `<section class="phase" id="ph${i}" data-phase="${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2><div class="rows" data-phase="${i}">${rows.length?rows.map(t=>{const ok=canTask(t),ed=canEdit(t),mv=canMove(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}${jd(t.id)}" style="--dc:${tcol(t)}" data-id="${t.id}"${mv?' draggable="true"':""}><span class="grip${mv?"":" off"}" title="${mv?"Drag to move":""}" aria-hidden="true">⋮⋮</span><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta m1"><span class="d">${when(t)}</span></div><div class="tcell"><button type="button" class="t tlink" data-task="${t.id}">${esc(t.title)}</button>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${extras(t)}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta m2"><span class="o">${ownHtml(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div><div class="acts">${ed?`<button class="ico" data-edit="${t.id}" aria-label="Edit task" title="Edit">✎</button>`:""}${can("del")?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:""}</div></div>`}).join(""):`<p class="empty drop-empty">${T.length?(f.own||f.hide||f.late?"Nothing here with these filters.":"No tasks in this topic yet."):"No tasks yet."}</p>`}</div></section>`;
+    return `<section class="phase" id="ph${i}" data-phase="${i}"><h2>${p[0]}<span>${p[1]} · ${d} of ${n} done</span></h2><div class="rows" data-phase="${i}">${rows.length?rows.map(t=>{const ok=canTask(t),ed=canEdit(t),mv=canMove(t);return `<div class="row${t.status==="dn"?" done":""}${t.due<today&&t.status!=="dn"?" late":""}${jd(t.id)}" style="--dc:${tcol(t)}" data-id="${t.id}"${mv?' draggable="true"':""}><span class="grip${mv?"":" off"}" title="${mv?"Drag to move":""}" aria-hidden="true">⋮⋮</span><button class="tick" data-tick="${t.id}" aria-label="Mark done"${ok?"":" disabled"}>✓</button><div class="meta m1"><span class="dw"><span class="d">${when(t)}</span>${relDue(t)}</span></div><div class="tcell"><button type="button" class="t tlink" data-task="${t.id}"${ed?' title="Double-click to rename"':""}>${esc(t.title)}</button>${t.note?`<span class="n">${esc(t.note)}</span>`:""}${extras(t)}${t.updatedBy?`<span class="by">Updated by ${esc(t.updatedBy)}</span>`:""}</div><div class="meta m2"><span class="o">${ownHtml(t.owner)}</span><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${ok?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></div><div class="acts">${ed?`<button class="ico" data-edit="${t.id}" aria-label="Edit task" title="Edit">✎</button>`:""}${can("del")?`<button class="del" data-del="${t.id}" aria-label="Delete task">×</button>`:""}</div></div>`}).join(""):`<p class="empty drop-empty">${T.length?(f.own||f.hide||f.late?"Nothing here with these filters.":"No tasks in this topic yet."):"No tasks yet."}</p>`}</div></section>`;
   }).join("");
   animBars($("line"));
   if(before.size) document.querySelectorAll("#list .row").forEach(r=>{ const o=before.get(r.dataset.id); if(o==null) return; const dy=o-r.getBoundingClientRect().top;
@@ -365,7 +372,7 @@ const shEnd=()=>{ if(shY==null) return; const d=$("td"); shY=null; if(shDy>90) c
 $("td").addEventListener("pointerup",shEnd); $("td").addEventListener("pointercancel",shEnd);
 $("td").addEventListener("cancel",e=>{ if(sheetMQ.matches&&motion()){ e.preventDefault(); closeTd(); } });
 $("td").addEventListener("click",e=>{ if(sheetMQ.matches&&e.target===$("td")&&e.clientY<$("td").getBoundingClientRect().top) closeTd(); });
-document.addEventListener("click",e=>{ const c=e.target.closest("[data-task]"); if(c){ openTask(c.dataset.task); return; } const mo=e.target.closest("[data-day]"); if(mo){ const ts=tasks.filter(t=>t.due===mo.dataset.day&&!spans(t)&&(!f.own||toks(t.owner).includes(f.own))); mo.outerHTML=ts.slice(3).map(t=>chip(t)).join(""); } });
+document.addEventListener("click",e=>{ if(e.target.closest(".inl-t,.inl-row")) return; const c=e.target.closest("[data-task]"); if(c){ if(inlTarget(e.target)){ clearTimeout(openT); const id=c.dataset.task; openT=setTimeout(()=>openTask(id),230); return; } openTask(c.dataset.task); return; } const mo=e.target.closest("[data-day]"); if(mo){ const ts=tasks.filter(t=>t.due===mo.dataset.day&&!spans(t)&&(!f.own||toks(t.owner).includes(f.own))); mo.outerHTML=ts.slice(3).map(t=>chip(t)).join(""); } });
 
 
 // ---------- edit + drag ----------
@@ -551,7 +558,7 @@ function renderCd(){ const el=$("cdbar"); if(!el) return; if(!me){ el.hidden=tru
   const td=iso(new Date()), d0=new Date(td+"T00:00");
   const item=k=>{ const n=Math.round((new Date(k.date+"T00:00")-d0)/864e5);
     const txt = n>1?`<b>${n}</b> days`: n===1?`<b>Tomorrow</b>`: n===0?`<b>Today</b>`:`Done ✓`;
-    return `<div class="cdi${n<0?" past":""}${n>=0&&n<=14?" soon":""}"><em>${esc(k.name)}</em><span>${txt}</span><small>${fmt(k.date)}${k.date.slice(0,4)!=="2026"?" "+k.date.slice(0,4):""}</small></div>`; };
+    return `<div class="cdi${n<0?" past":""}${n>=0&&n<=14?" soon":""}"><em>${esc(k.name)}</em><span>${txt}</span><small>${fmt(k.date)}</small></div>`; };
   const vis=kdList().filter(k=>k.date&&canSee(k)).sort((a,b)=>a.date.localeCompare(b.date)), up=vis.filter(k=>k.date>=td);
   const show=(up.length?up:vis.slice(-2)).slice(0,4);
   el.hidden=!show.length; $("cdin").innerHTML=show.map(item).join(""); }
@@ -569,7 +576,7 @@ function renderMine(){ if(!$("mlist")||!me) return;
   const td=iso(new Date()), plus=n=>{ const x=new Date(); x.setDate(x.getDate()+n); return iso(x); }, w=plus(7), m=plus(30);
   const open=T.filter(t=>t.status!=="dn").sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999")), done=T.filter(t=>t.status==="dn");
   const G=[["over","Overdue",open.filter(t=>t.due&&t.due<td)],["week","Due in the next 7 days",open.filter(t=>t.due&&t.due>=td&&t.due<=w)],["month","Next 30 days",open.filter(t=>t.due>w&&t.due<=m)],["later","Later",open.filter(t=>t.due>m)],["nod","No date",open.filter(t=>!t.due)]];
-  const item=t=>`<li class="mi ${t.status}${jd(t.id)}" style="--dc:${tcol(t)}"><button type="button" class="mt" data-task="${t.id}"><span class="md">${t.due?when(t):"—"}</span><span class="mtt">${esc(t.title)}</span><span class="mo">${esc(t.owner)} · ${PH[t.phase]?.[0]||""}</span></button><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${canTask(t)?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></li>`;
+  const item=t=>`<li class="mi ${t.status}${jd(t.id)}" style="--dc:${tcol(t)}"><button type="button" class="mt" data-task="${t.id}"><span class="md">${t.due?when(t):"—"}${relDue(t)}</span><span class="mtt"${canEdit(t)?' title="Double-click to rename"':""}>${esc(t.title)}</span><span class="mo">${esc(t.owner)} · ${PH[t.phase]?.[0]||""}</span></button><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${canTask(t)?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></li>`;
   const over=G[0][2].length;
   $("msum").textContent=`${cur}: ${open.length} open${over?` · ${over} overdue`:""} · ${done.length} of ${T.length} done`;
   $("mbarf").dataset.k="mine-"+cur; $("mbarf").dataset.w=T.length?done.length/T.length*100:0; animBars($("mbarf").parentNode);
@@ -1005,6 +1012,42 @@ $("onl").onclick = e => { e.stopPropagation(); toggleOnl(e.currentTarget); };
 $("onl2").onclick = e => { e.stopPropagation(); toggleOnl(e.currentTarget); };
 document.addEventListener("click", e => { if (!$("onlpop").hidden && !e.target.closest("#onlpop,.onl")) $("onlpop").hidden = true; });
 document.addEventListener("keydown", e => { if (e.key === "Escape") $("onlpop").hidden = true; });
+
+// ---------- rename a task in place: double-click its name (computer only; a single click still opens the task) ----------
+const finePointer = matchMedia("(pointer:fine)");
+function inlTarget(el){
+  if (!finePointer.matches) return null;
+  const n = el.closest?.("#list .tlink, #mlist .mt"); if (!n) return null;
+  const t = tasks.find(x => x.id === n.dataset.task);
+  return t && canEdit(t) ? { node: n, t } : null;
+}
+function startInline(hit){
+  if (inl) endInline(true);
+  const { node, t } = hit, inp = document.createElement("input");
+  inp.className = "inl-t"; inp.value = t.title || ""; inp.maxLength = 200; inp.setAttribute("aria-label", "Task name");
+  let swap = node;
+  if (node.classList.contains("mt")) { // My tasks: the whole row is a button, so swap it for a plain box holding the input
+    swap = document.createElement("div"); swap.className = "mt inl-row"; swap.innerHTML = node.innerHTML;
+    swap.querySelector(".mtt").replaceWith(inp); node.replaceWith(swap);
+  } else node.replaceWith(inp);
+  inl = { id: t.id, orig: t.title || "", inp };
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); endInline(true); } else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); endInline(false); } });
+  inp.addEventListener("blur", () => endInline(true));
+  inp.focus(); inp.select();
+}
+function endInline(save){
+  if (!inl) return; const { id, orig, inp } = inl; inl = null;
+  const v = inp.value.trim();
+  if (save && v && v !== orig) {
+    const t = tasks.find(x => x.id === id);
+    if (t) { t.title = v;
+      updateDoc(doc(db,"tasks",id), { title: v, updatedBy: me.name, updatedAt: serverTimestamp() })
+        .then(() => { logIt({ id, title: v }, "edit", "renamed"); toast("Renamed."); })
+        .catch(e => { t.title = orig; render(); fail(e); }); }
+  }
+  inlPending = false; render();
+}
+document.addEventListener("dblclick", e => { const hit = inlTarget(e.target); if (!hit) return; e.preventDefault(); clearTimeout(openT); startInline(hit); });
 
 // ---------- first-time tour (shown once per account; replay from the avatar menu) ----------
 const TOUR_KEY = () => "tubc-tour-v1:" + (me?.email || "");

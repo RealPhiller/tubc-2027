@@ -773,6 +773,25 @@ body.touring{overflow:hidden}
 .kdx:hover{color:#c8302d}
 .kdbtns{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
 @media(max-width:700px){.kdrow{grid-template-columns:minmax(0,1fr) 36px}.kdrow .kdd{grid-column:1}.kda{grid-column:1/-1;flex-wrap:wrap}.kdrow .kdx{grid-row:1;grid-column:2}}
+/* status pills: colored dot + label + chevron, same native dropdown underneath */
+select.st{appearance:none;-webkit-appearance:none;min-height:34px;padding:6px 30px 6px 26px;border-radius:999px;font:700 13.5px "Red Hat Text",sans-serif;cursor:pointer;transition:background-color .2s,color .2s}
+select.st.todo,select.st.prog,select.st.blk,select.st.dn{border:1px solid transparent;color:var(--stc);background-color:var(--stb);background-repeat:no-repeat;background-position:0 0,right 10px center;background-size:auto,14px;
+  background-image:radial-gradient(circle at 14px 50%,var(--sc) 0 4px,transparent 4.6px),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")}
+select.st.todo{--sc:#868e96;--stb:var(--panel);--stc:var(--ink);border-color:var(--line)}
+select.st.prog{--sc:#1c7ed6;--stb:light-dark(#dbe7ff,#1c2a47);--stc:light-dark(#174ea6,#a9c8ff)}
+select.st.blk{--sc:#e0453f;--stb:light-dark(#fde0de,#47191b);--stc:light-dark(#b42318,#ffb3ad)}
+select.st.dn{--sc:#2f9e44;--stb:light-dark(#dcf5e3,#16331f);--stc:light-dark(#1e7a46,#8fe0a8)}
+select.st:disabled{cursor:default;opacity:1;padding-right:12px;background-size:auto,0}
+select.st:hover:not(:disabled){filter:brightness(.97)}
+/* days-left hint under dates */
+.dw{display:block;min-width:0}
+.rd{display:block;font:600 11.5px/1.3 "Red Hat Text",sans-serif;color:var(--mute);margin-top:2px;white-space:nowrap}
+.rd.late{color:#d23a33;font-weight:800}
+.rd.soon{color:light-dark(#a8740a,#e8a817);font-weight:800}
+/* rename in place */
+.inl-t{width:100%;box-sizing:border-box;min-height:0;font:600 16px "Red Hat Text",sans-serif;padding:4px 8px;border:2px solid var(--gold);border-radius:6px;background:var(--bg);color:var(--ink)}
+.inl-row{cursor:default}
+@media(pointer:fine){.tlink[title]:hover,.mtt[title]:hover{text-decoration:underline dotted;text-underline-offset:3px}}
 </style>
 </head>
 <body>
