@@ -59,3 +59,12 @@ Paste the new `Code.gs`, then **Deploy → Manage deployments → ✏️ Edit �
 - **Signature check:** Apps Script can't read request headers, so the bot can't verify LINE's `X-Line-Signature`. A forged request can't get data out: answers only go back through LINE's reply API to the chat that sent the message, and only registered groups get answers.
 - **Reads:** task lists are cached for 2 minutes, so a busy group costs about one Firestore read per task every 2 minutes, well inside the free 50,000 reads a day.
 - **Firestore 403 "API has not been used in project …":** in Apps Script **Project Settings → Google Cloud Platform (GCP) Project → Change project**, enter the project number of `tubc-2027` (Firebase console → Project settings), then run `testRead` again.
+
+## Announcements to LINE (added 2026-11-25)
+
+On the site's Access page, an admin can tick **Also send to LINE → Everyone group / All-heads group** when posting an announcement. The bot then **pushes** it once to those groups.
+
+- Register the groups first: in the whole-committee group type `/setup <code>`, and in the all-heads group type `/setup <code> heads`.
+- Add the trigger once: Apps Script → **Triggers** (clock icon) → **Add trigger** → function `checkAnnounce`, event source **Time-driven**, **Minutes timer**, **Every minute** → Save (approve the permission prompt).
+- Pushes use the LINE OA monthly message quota: one message per member of each group. When the quota runs out, the site shows "monthly LINE message limit reached" under the form.
+- Each announcement is sent at most once (`LAST_ANN` script property). The bot writes `lineSent`, `lineErr` and `lineAt` back to `settings/announce` so the admin sees the result.

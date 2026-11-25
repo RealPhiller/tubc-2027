@@ -888,6 +888,10 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
 .pill.own{background:color-mix(in srgb,var(--pc) 16%,transparent);color:color-mix(in srgb,var(--pc) 78%,var(--ink));border:1px solid color-mix(in srgb,var(--pc) 30%,transparent)}
 .pill.ph{background:transparent;color:color-mix(in srgb,var(--pc) 80%,var(--ink));border:1px solid color-mix(in srgb,var(--pc) 55%,transparent)}
 .pill.ph::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--pc);margin-right:5px}
+/* announcement → LINE */
+.annline{flex-wrap:wrap;gap:6px 16px}.annline .gchk{display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.annline input[type=checkbox]{width:18px;height:18px;min-height:0;min-width:0;margin:0}
+.annlq,.annls{flex-basis:100%;font-size:12.5px;color:var(--mute)}.annls{color:var(--ink)}.annls.bad{color:#c8302d}
 </style>
 </head>
 <body>
@@ -985,6 +989,8 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
   <p class="plede">Shows as a banner at the top of every page for everyone until you remove it. People can close it on their own device; a new announcement shows again. "Who sees it" hides it from view only, so don't post secrets.</p>
   <form class="annf" id="annf"><textarea id="annt" maxlength="280" rows="2" placeholder="e.g. All-heads meeting Fri 28 Nov, 6pm, room 301" aria-label="Announcement" required></textarea>
   <div class="annrow"><span class="audl">Who sees it</span><div id="annaudw"></div></div>
+  <div class="annrow annline"><span class="audl">Also send to LINE</span><label class="gchk"><input type="checkbox" id="anlall"> Everyone group</label><label class="gchk"><input type="checkbox" id="anlheads"> All-heads group</label>
+    <small class="annlq">Off unless you tick it. Uses the LINE OA message quota (each group member counts as 1 message). The bot sends it within about a minute.</small><small class="annls" id="annls" hidden></small></div>
   <div class="annrow"><select id="annl" aria-label="Type"><option value="info">Normal (gold)</option><option value="urgent">Urgent (red)</option></select><input id="annu" type="url" placeholder="Link (optional), e.g. a Google Meet link" aria-label="Link"><button type="submit" class="pri">Post</button><button type="button" class="ghost" id="annrm" hidden>Remove</button></div></form>
   <h2 class="ptitle">Key dates</h2>
   <p class="plede">Countdowns at the top of every page; each person sees the next 4 they're allowed to see. Choose who sees each one (nobody ticked = everyone). This hides it from view only, so don't put secrets here.</p>

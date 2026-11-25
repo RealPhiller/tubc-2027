@@ -1,15 +1,19 @@
 /**
  * TUBC 2027 LINE bot: a Google Apps Script web app used as the LINE Messaging API webhook.
  * It answers slash commands in the committee's LINE groups (one per department, e.g. "PVP x Oper") with task info read from Firestore.
- * It only uses the Reply API, and reply messages don't count against the LINE OA monthly quota.
+ * Answers use the Reply API, which doesn't count against the LINE OA monthly quota. The one exception is announcements:
+ * when an admin ticks "Also send to LINE" on the site, checkAnnounce() (a 1-minute time-driven trigger) pushes it to the
+ * whole-committee and/or heads group. Pushes DO use the quota (one message per group member).
  * Mention the bot (@TUBC 2027 Tracker) to get tap buttons; /add, /edit and /delete walk through short forms with buttons.
  *
  * Script properties (Apps Script -> Project Settings -> Script properties):
  *   LINE_TOKEN   Messaging API channel access token (long-lived). You paste this in yourself.
  *   SETUP_CODE   Any secret word. In each group, an admin types "/setup <word> <department>" once
- *                (e.g. "/setup tubc2027 Oper"), or "/setup <word>" for a whole-committee group.
+ *                (e.g. "/setup tubc2027 Oper"), "/setup <word>" for a whole-committee group, or "/setup <word> heads"
+ *                for the all-heads group.
  * Written by the bot:
- *   GROUP_<groupId>   That group's department, or ALL. The bot stays silent in any group not registered.
+ *   GROUP_<groupId>   That group's department, ALL or HEADS. The bot stays silent in any group not registered.
+ *   LAST_ANN          id of the last announcement pushed to LINE, so each one goes out at most once.
  *
  * Privacy: Firestore is read with the deploying account's own Google login, which skips the security rules.
  * So the bot shows Kickoff only in the PVP group (it is PVP-only in the app) and never reads people, comments or sponsors.
@@ -72,7 +76,7 @@ function respond(ev, ctx) {
 
   const scope = groupId && ctx.store.get("GROUP_" + groupId);
   if (!scope) return null; // only answer in registered groups
-  const c = { home: scope === "ALL" ? null : scope, src: src, ctx: ctx, key: "add:" + groupId + ":" + (src.userId || "") };
+  const c = { home: scope === "ALL" || scope === "HEADS" ? null : scope, src: src, ctx: ctx, key: "add:" + groupId + ":" + (src.userId || "") };
   const pending = src.userId ? ctx.state.get(c.key) : null;
 
   if (data) { // a button tap
@@ -99,11 +103,12 @@ function setupAnswer(text, groupId, store) {
   if (!groupId) return { text: "Type /setup inside a committee group, not in a private chat." };
   if (!code || parts[0] !== code) return null; // wrong or missing code: stay quiet
   const rest = parts.slice(1).join(" ");
-  const d = rest ? findDept(rest) : "ALL";
-  if (!d) return { text: "I don't know that department. Use one of: " + DEPTS.join(", ") };
+  const d = rest ? (/^(all[\s-]*)?heads?$/i.test(rest) ? "HEADS" : findDept(rest)) : "ALL";
+  if (!d) return { text: "I don't know that department. Use one of: " + DEPTS.join(", ") + ", or heads" };
   store.set("GROUP_" + groupId, d);
-  return menu(d === "ALL" ? null : d, d === "ALL"
+  return menu(d === "ALL" || d === "HEADS" ? null : d, d === "ALL"
     ? "Registered as a whole-committee group. Mention me any time to open the menu."
+    : d === "HEADS" ? "Registered as the all-heads group. Announcements marked for the heads group come here. Mention me any time to open the menu."
     : "Registered as the " + d + " group. Mention me (@TUBC 2027 Tracker) any time to open the menu.");
 }
 
@@ -592,6 +597,41 @@ function writeLog(taskId, title, action, detail, by) {
 }
 function fsBase() { return "https://firestore.googleapis.com/v1/projects/" + PROJECT + "/databases/(default)/documents/"; }
 function fsHeaders() { return { Authorization: "Bearer " + ScriptApp.getOAuthToken(), "X-Goog-User-Project": PROJECT }; }
+
+// ---------- announcements to LINE ----------
+// Add a time-driven trigger for checkAnnounce (every minute) in Apps Script -> Triggers. It reads settings/announce and,
+// if the admin ticked "Also send to LINE" on a new announcement, pushes it once to the chosen groups (ALL and/or HEADS).
+function checkAnnounce() {
+  const props = PropertiesService.getScriptProperties();
+  const r = UrlFetchApp.fetch(fsBase() + "settings/announce", { headers: fsHeaders(), muteHttpExceptions: true });
+  if (r.getResponseCode() === 404) return;
+  if (r.getResponseCode() !== 200) throw new Error("Firestore " + r.getResponseCode() + ": " + r.getContentText().slice(0, 300));
+  const a = fromFields(JSON.parse(r.getContentText()).fields || {});
+  const to = (a.line || []).filter(x => x === "ALL" || x === "HEADS");
+  if (!to.length || !a.id || !a.text || props.getProperty("LAST_ANN") === String(a.id)) return;
+  props.setProperty("LAST_ANN", String(a.id)); // mark first: at most one send per announcement, even if something fails (protects the quota)
+  const all = props.getProperties();
+  const groups = Object.keys(all).filter(k => k.indexOf("GROUP_") === 0 && to.indexOf(all[k]) >= 0).map(k => k.slice(6));
+  const head = a.level === "urgent" ? "\uD83D\uDEA8 URGENT ANNOUNCEMENT" : "\uD83D\uDCE2 Announcement";
+  const text = head + "\n\n" + a.text + (a.link ? "\n\n" + a.link : "") + "\n\n- " + (a.by || "TUBC 2027") + "\n" + SITE;
+  let sent = 0, err = groups.length ? "" : "no " + to.map(x => x === "ALL" ? "whole-committee" : "heads").join(" or ") + " group is registered (/setup)";
+  groups.forEach(id => { const res = pushText(id, text); if (res === 200) sent++; else err = res === 429 ? "monthly LINE message limit reached" : "LINE error " + res; });
+  const now = new Date().toISOString(), str = v => ({ stringValue: String(v) });
+  const fields = { lineId: str(a.id), lineSent: { integerValue: String(sent) }, lineErr: str(err), lineAt: { timestampValue: now } };
+  const mask = Object.keys(fields).map(k => "updateMask.fieldPaths=" + k).join("&");
+  const u = UrlFetchApp.fetch(fsBase() + "settings/announce?" + mask + "&currentDocument.exists=true", { method: "patch", contentType: "application/json", headers: fsHeaders(), payload: JSON.stringify({ fields: fields }), muteHttpExceptions: true });
+  if (u.getResponseCode() !== 200) console.warn("announce status " + u.getResponseCode() + ": " + u.getContentText().slice(0, 200));
+}
+function pushText(to, text) {
+  const token = PropertiesService.getScriptProperties().getProperty("LINE_TOKEN");
+  if (!token) { console.error("LINE_TOKEN script property is missing"); return 0; }
+  const r = UrlFetchApp.fetch("https://api.line.me/v2/bot/message/push", {
+    method: "post", contentType: "application/json", headers: { Authorization: "Bearer " + token },
+    payload: JSON.stringify({ to: to, messages: [{ type: "text", text: String(text).slice(0, 4900) }] }), muteHttpExceptions: true
+  });
+  if (r.getResponseCode() !== 200) console.error("LINE push " + r.getResponseCode() + ": " + r.getContentText());
+  return r.getResponseCode();
+}
 
 // Run this once from the editor: it asks for permission, then logs how many tasks it can read.
 function testRead() {

@@ -92,7 +92,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125p";
+const BUILD="b20261125q";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -1019,6 +1019,9 @@ function renderAnn(){
   }
   if (isAdmin()) {
     $("annrm").hidden = !a;
+    const ls = $("annls"), sent = a && a.line && a.line.length && a.lineId === a.id;
+    ls.hidden = !(a && a.line && a.line.length); ls.classList.toggle("bad", !!(sent && a.lineErr));
+    if (!ls.hidden) ls.textContent = !sent ? "LINE: waiting for the bot to send it (up to a minute)…" : a.lineErr ? `LINE: sent to ${a.lineSent || 0} group(s), problem: ${a.lineErr}` : `LINE: sent to ${a.lineSent} group(s) ${rel(a.lineAt)}.`;
     if (!annDirty) { if (a) { $("annt").value = a.text; $("annl").value = a.level || "info"; $("annu").value = a.link || ""; } $("annaudw").innerHTML = audHtml("annaud", a || {}); }
   }
 }
@@ -1029,8 +1032,9 @@ $("annf").addEventListener("change", () => { annDirty = true; });
 $("annf").addEventListener("submit", e => { e.preventDefault(); const text = $("annt").value.trim(), link = $("annu").value.trim(); if (!text) return;
   if (link && !/^https?:\/\//i.test(link)) { toast("The link must start with https://"); return; }
   const aud = $("annaud") ? audRead($("annaud")) : { depts: [], heads: false };
-  setDoc(doc(db,"settings","announce"), { text, level: $("annl").value, link, depts: aud.depts, heads: aud.heads, by: me.name, at: serverTimestamp(), id: String(Date.now()) })
-    .then(() => { annDirty = false; toast("Announcement posted. Everyone sees it now."); }).catch(fail); });
+  const line = [$("anlall").checked && "ALL", $("anlheads").checked && "HEADS"].filter(Boolean); // LINE groups the bot pushes this to (costs quota, so opt-in each time)
+  setDoc(doc(db,"settings","announce"), { text, level: $("annl").value, link, depts: aud.depts, heads: aud.heads, ...(line.length ? { line } : {}), by: me.name, at: serverTimestamp(), id: String(Date.now()) })
+    .then(() => { annDirty = false; $("anlall").checked = $("anlheads").checked = false; toast("Announcement posted." + (line.length ? " The LINE bot sends it within about a minute." : " Everyone sees it now.")); }).catch(fail); });
 $("annrm").onclick = () => { deleteDoc(doc(db,"settings","announce")).then(() => { annDirty = false; $("annt").value = ""; $("annu").value = ""; $("annl").value = "info"; toast("Announcement removed."); }).catch(fail); };
 
 // ---------- audience picker ("who can see this") for key dates and the announcement ----------
