@@ -68,3 +68,8 @@ On the site's Access page, an admin can tick **Also send to LINE → Everyone gr
 - Add the trigger once: Apps Script → **Triggers** (clock icon) → **Add trigger** → function `checkAnnounce`, event source **Time-driven**, **Minutes timer**, **Every minute** → Save (approve the permission prompt).
 - Pushes use the LINE OA monthly message quota: one message per member of each group. When the quota runs out, the site shows "monthly LINE message limit reached" under the form.
 - Each announcement is sent at most once (`LAST_ANN` script property). The bot writes `lineSent`, `lineErr` and `lineAt` back to `settings/announce` so the admin sees the result.
+
+## Read-only summary for the life dashboard (added 2026-11-26)
+- `doGet` answers `?summary=<READ_KEY>` with JSON (or JSONP with `&callback=`): task counts, overdue and due-this-week lists (top 5–6), open tasks per dept and per phase. It never writes or pushes anything.
+- `READ_KEY` is its own script property. Run **showReadKey** once from the editor to create it and log the link.
+- Plain `GET` without `summary` still returns "TUBC 2027 LINE bot is running.", so LINE's webhook is unaffected.

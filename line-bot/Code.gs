@@ -11,6 +11,7 @@
  *   SETUP_CODE   Any secret word. In each group, an admin types "/setup <word> <department>" once
  *                (e.g. "/setup tubc2027 Oper"), "/setup <word>" for a whole-committee group, or "/setup <word> heads"
  *                for the all-heads group.
+ *   READ_KEY     Secret for the read-only ?summary= link (life dashboard). Run showReadKey once to create it.
  * Written by the bot:
  *   GROUP_<groupId>   That group's department, ALL or HEADS. The bot stays silent in any group not registered.
  *   LAST_ANN          id of the last announcement pushed to LINE, so each one goes out at most once.
@@ -40,8 +41,59 @@ function doPost(e) {
   return ContentService.createTextOutput("OK");
 }
 
-function doGet() {
+function doGet(e) {
+  const p = (e && e.parameter) || {};
+  if (p.summary !== undefined) return summaryOut(p);
   return ContentService.createTextOutput("TUBC 2027 LINE bot is running.");
+}
+
+// ---------- read-only summary for Puripat's life dashboard ----------
+// GET <exec URL>?summary=<READ_KEY>[&callback=fn] -> JSON (or JSONP): task counts, overdue, due this week, per dept and phase.
+// READ_KEY is its own script property (run showReadKey once). It only reads; it never writes or pushes anything.
+function summaryOut(p) {
+  const key = PropertiesService.getScriptProperties().getProperty("READ_KEY");
+  let body;
+  if (!key || p.summary !== key) body = { ok: false, error: "forbidden" };
+  else {
+    try { body = summaryData(cachedTasks(), todayIso()); }
+    catch (err) { body = { ok: false, error: String((err && err.message) || err) }; }
+  }
+  const json = JSON.stringify(body);
+  if (p.callback && /^[A-Za-z_$][\w$]{0,40}$/.test(p.callback)) {
+    return ContentService.createTextOutput(p.callback + "(" + json + ");").setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
+
+function summaryData(all, today) {
+  const week = addDays(today, 7);
+  const open = all.filter(t => t.status !== "dn");
+  const counts = { todo: 0, prog: 0, dn: 0 };
+  all.forEach(t => { counts[t.status in counts ? t.status : "todo"]++; });
+  const slim = t => ({ title: short(String(t.title || ""), 60), due: t.due || "", owners: owners(t), status: t.status || "todo" });
+  const overdue = open.filter(t => t.due && t.due < today).sort(byDue);
+  const soon = open.filter(t => t.due && t.due >= today && t.due <= week).sort(byDue);
+  const depts = {};
+  open.forEach(t => owners(t).forEach(o => { const d = o === "President" ? "PVP" : o; depts[d] = (depts[d] || 0) + 1; }));
+  const phases = PHASES.map((n, i) => ({
+    name: n, start: PHASE_START[i],
+    open: open.filter(t => Number(t.phase) === i).length,
+    done: all.filter(t => Number(t.phase) === i && t.status === "dn").length
+  }));
+  return {
+    ok: true, asOf: Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd'T'HH:mm:ssXXX"), today: today,
+    total: all.length, counts: counts,
+    overdueCount: overdue.length, overdue: overdue.slice(0, 5).map(slim),
+    soonCount: soon.length, soon: soon.slice(0, 6).map(slim),
+    depts: depts, phases: phases, site: SITE
+  };
+}
+
+// Run once from the editor: creates READ_KEY (if missing) and logs the dashboard link.
+function showReadKey() {
+  const p = PropertiesService.getScriptProperties();
+  if (!p.getProperty("READ_KEY")) p.setProperty("READ_KEY", Utilities.getUuid().replace(/-/g, ""));
+  console.log("Dashboard link = <your web app URL>?summary=" + p.getProperty("READ_KEY"));
 }
 
 function handleEvent(ev) {
