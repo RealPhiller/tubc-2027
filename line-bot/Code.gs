@@ -48,7 +48,8 @@ function doGet(e) {
 }
 
 // ---------- read-only summary for Puripat's life dashboard ----------
-// GET <exec URL>?summary=<READ_KEY>[&callback=fn] -> JSON (or JSONP): task counts, overdue, due this week, per dept and phase.
+// GET <exec URL>?summary=<READ_KEY>[&callback=fn] -> JSON (or JSONP): task counts, overdue, due this week, per dept and phase,
+// plus a slim list of every task (title, due, owners, status, phase) so the dashboard can filter by department.
 // READ_KEY is its own script property (run showReadKey once). It only reads; it never writes or pushes anything.
 function summaryOut(p) {
   const key = PropertiesService.getScriptProperties().getProperty("READ_KEY");
@@ -85,7 +86,8 @@ function summaryData(all, today) {
     total: all.length, counts: counts,
     overdueCount: overdue.length, overdue: overdue.slice(0, 5).map(slim),
     soonCount: soon.length, soon: soon.slice(0, 6).map(slim),
-    depts: depts, phases: phases, site: SITE
+    depts: depts, phases: phases, site: SITE,
+    tasks: all.slice(0, 400).map(t => ({ title: short(String(t.title || ""), 60), due: t.due || "", owners: owners(t), status: t.status || "todo", phase: Number(t.phase) || 0 }))
   };
 }
 
