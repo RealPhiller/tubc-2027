@@ -71,7 +71,8 @@ const DCOL = {"PVP":"#b4232a","President":"#b4232a","Oper":"#f76707","Inven":"#8
 const col = o => DCOL[o] || "#868e96";
 const PHCOL = ["#5c7cfa","#0ca678","#f59f00","#7950f2","#e8590c","#c2255c"]; // one colour per phase (Kickoff → TUBC)
 // Owner and phase as small coloured pills: one per department in its colour, then the phase.
-const pills = t => toks(t.owner).map(d=>`<span class="pill own" style="--pc:${col(d)}">${esc(d)}</span>`).join("") + (PH[t.phase]?`<span class="pill ph" style="--pc:${PHCOL[t.phase]}">${PH[t.phase][0]}</span>`:"");
+// o.dept: leave out that department (the page already shows it); o.ph=false: leave out the phase (it's in the header).
+const pills = (t,o={}) => toks(t.owner).filter(d=>d!==o.dept).map(d=>`<span class="pill own" style="--pc:${col(d)}">${esc(d)}</span>`).join("") + (o.ph!==false&&PH[t.phase]?`<span class="pill ph" style="--pc:${PHCOL[t.phase]}">${PH[t.phase][0]}</span>`:"");
 const tcol = t => { const o=(t.depts&&t.depts.length?t.depts:toks(t.owner)); const d=o.find(x=>DCOL[x]&&!["All","All heads"].includes(x))||o[0]; return col(d); };
 const ownHtml = s => toks(s).map(o=>`<span class="dt" style="--dc:${col(o)}">${esc(o)}</span>`).join(" ");
 const thb = n => (Math.round(+n||0)).toLocaleString("en-US");
@@ -92,7 +93,7 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 const fail = e => { console.error(e); toast(e && e.code==="permission-denied" ? "You don't have permission to change that." : "Couldn't save. Check your connection."); };
 
 // ---------- auto-update: reload when a newer version is deployed ----------
-const BUILD="b20261125q";
+const BUILD="b20261126a";
 async function checkUpdate(){ try{ const t=await (await fetch(location.pathname+"?u="+Date.now(),{cache:"no-store"})).text(); const b=(t.match(/const BUILD="([^"]+)"/)||[])[1]; if(b && b!==BUILD && !sessionStorage.getItem("upd-"+b)){ sessionStorage.setItem("upd-"+b,"1"); location.replace(location.pathname+"?v="+b+location.hash); } }catch{} }
 checkUpdate(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 const isAdmin = () => me?.role==="admin";
@@ -208,7 +209,7 @@ document.addEventListener("click", e=>{
   if(b.dataset.edit){ openEdit(b.dataset.edit); return; }
   if(b.dataset.tick){ const t=tasks.find(x=>x.id===b.dataset.tick); if(t) setStatus(t.id, t.status==="dn"?"todo":"dn"); }
   else if(b.dataset.del){ if(b.dataset.armed){ const dt=tasks.find(x=>x.id===b.dataset.del); deleteDoc(doc(db,"tasks",b.dataset.del)).then(()=>logIt(dt,"delete","Deleted the task")).catch(fail); } else { b.dataset.armed=1; b.textContent="Delete?"; b.style.fontSize="13px"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="×"; b.style.fontSize=""; } },3000); } }
-  else if(b.dataset.go!==undefined){ const sec=$("mph"+b.dataset.go); if(sec) sec.scrollIntoView({behavior:motion()?"smooth":"auto",block:"start"}); else toast("No open tasks in "+PH[+b.dataset.go][0]+" for this view."); }
+  else if(b.dataset.go!==undefined){ if($("mph"+b.dataset.go)?.dataset.shut) togglePh(b.dataset.go); const sec=$("mph"+b.dataset.go); if(sec) sec.scrollIntoView({behavior:motion()?"smooth":"auto",block:"start"}); else toast("No open tasks in "+PH[+b.dataset.go][0]+" for this view."); }
   else if(b.dataset.dept){ openDept(b.dataset.dept); }
   else if(b.dataset.rm){ if(b.dataset.armed){ deleteDoc(doc(db,"members",b.dataset.rm)).catch(fail); } else { b.dataset.armed=1; b.textContent="Remove?"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.armed; b.textContent="Remove"; } },3000); } }
 });
@@ -644,16 +645,21 @@ function renderCd(){ const el=$("cdbar"); if(!el) return; if(!me){ el.hidden=tru
 // Scope: a department (default: your own) or "*" = everyone. Overdue and the next 7 days come first, then each phase
 // with its later tasks grouped by month. A phase shows its first 3 tasks until someone taps "Show more".
 let mdPicked=false, mScope="";
-$("mdept").addEventListener("change",()=>{ mdPicked=true; mScope=$("mdept").value; renderMine(); });
-$("mall").addEventListener("change",renderMine);
+const setScope=v=>{ mdPicked=true; mScope=v; renderMine(); };
+$("mdept").addEventListener("change",()=>{ if($("mdept").value) setScope($("mdept").value); });
+$("mscope").addEventListener("click",e=>{ const b=e.target.closest("[data-scope]"); if(b) setScope(b.dataset.scope); });
+// the phase tiles stay folded into one "Now: …" line until opened (remembered on this device)
+let phOpen = localStorage.getItem("tubc-ph")==="1";
+$("phnow").onclick=()=>{ phOpen=!phOpen; localStorage.setItem("tubc-ph",phOpen?"1":"0"); renderMine(); };
 $("madd").onclick=()=>openNew();
 const monKey=d=>d.slice(0,7), monLabel=k=>MON[+k.slice(5,7)-1]+" "+k.slice(0,4);
 function renderMine(){ if(!$("mlist")||!me) return;
   const reveal=mReveal; mReveal=null;
-  const sel=$("mdept"), cur=mdPicked?mScope:(me.dept||"*"), all=cur==="*";
-  sel.innerHTML='<option value="*">Everyone</option>'+DEPTS.map(d=>`<option value="${esc(d)}"${d===cur?" selected":""}>${esc(d)}</option>`).join(""); sel.value=cur;
-  $("mallw").hidden=all; $("madd").hidden=!can("add");
-  const inc=$("mall").checked, shared=["All","All heads"];
+  const sel=$("mdept"), cur=mdPicked?mScope:(me.dept||"*"), all=cur==="*", mine=!!me.dept&&cur===me.dept, other=!all&&!mine;
+  $("mscope").innerHTML=(me.dept?`<button type="button" data-scope="${esc(me.dept)}" class="${mine?"on":""}" aria-pressed="${mine}">Mine</button>`:"")+`<button type="button" data-scope="*" class="${all?"on":""}" aria-pressed="${all}">Everyone</button>`;
+  sel.innerHTML=`<option value="">Other dept\u2026</option>`+DEPTS.filter(d=>d!==me.dept).map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join(""); sel.value=other?cur:""; sel.classList.toggle("on",other);
+  $("madd").hidden=!can("add");
+  const inc=true, shared=["All","All heads"];
   const T=all?tasks:tasks.filter(t=>{ const o=t.depts?.length?t.depts:toks(t.owner); return o.includes(cur)||(cur==="PVP"&&o.includes("President"))||(inc&&o.some(x=>shared.includes(x))); });
   const td=iso(new Date()), plus=n=>{ const x=new Date(); x.setDate(x.getDate()+n); return iso(x); }, w=plus(7);
   const byDue=(a,b)=>(a.due||"9999").localeCompare(b.due||"9999")||ordKey(a)-ordKey(b);
@@ -661,28 +667,39 @@ function renderMine(){ if(!$("mlist")||!me) return;
   const over=open.filter(t=>t.due&&t.due<td), week=open.filter(t=>t.due&&t.due>=td&&t.due<=w), later=open.filter(t=>t.due>w), nod=open.filter(t=>!t.due);
   const label=all?"Everyone":cur;
   $("msum").textContent=`${label}: ${open.length} open${over.length?` · ${over.length} overdue`:""} · ${done.length} of ${T.length} done`;
-  $("mbarf").dataset.k="mine-"+cur; $("mbarf").dataset.w=T.length?done.length/T.length*100:0; animBars($("mbarf").parentNode);
   // phase strip in the header: progress per phase for this view; tap to jump
   const p0=seeKickoff()?0:1, t0=Date.parse(PH[p0][2]), t1=Date.parse(PH[5][3]), now=Date.now();
   $("line").style.setProperty("--phn", PH.length-p0);
   $("line").innerHTML = PH.map((p,i)=>{ if(!phVis(i)) return ""; const ts=T.filter(t=>t.phase===i),d=ts.filter(t=>t.status==="dn").length; return `<button type="button" class="seg" data-go="${i}"><b>${p[0]}</b><span>${p[1]} · ${d}/${ts.length}</span><div class="bar"><i data-k="ph${i}-${esc(cur)}" data-w="${ts.length?d/ts.length*100:0}"></i></div></button>`; }).join("") + (now>=t0&&now<=t1?(x=>`<div class="now${x<6?" l":x>94?" r":""}" style="left:${x}%"></div>`)((now-t0)/(t1-t0)*100):"");
-  animBars($("line"));
-  const item=t=>`<li class="mi ${t.status}${jd(t.id)}" style="--dc:${tcol(t)}"><button type="button" class="mt" data-task="${t.id}"><span class="md">${t.due?when(t):"—"}${relDue(t)}</span><span class="mtt"${canEdit(t)?' title="Double-click to rename"':""}>${esc(t.title)}</span><span class="mo">${pills(t)}</span>${extras(t)}</button><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${canTask(t)?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></li>`;
+  let pn=PH.findIndex(p=>td>=p[2]&&td<p[3]); if(pn<0) pn=td<PH[0][2]?0:PH.length-1; if(!phVis(pn)) pn=p0;
+  { const ts=T.filter(t=>t.phase===pn), d=ts.filter(t=>t.status==="dn").length;
+    $("phnow").innerHTML=`<b>Now: ${PH[pn][0]}</b><span>${PH[pn][1]} · ${d} of ${ts.length} done</span><i>${phOpen?"Hide phases":"All phases"}</i>`; }
+  $("phnow").setAttribute("aria-expanded",phOpen); $("line").hidden=!phOpen;
+  if(phOpen) animBars($("line"));
+  const item=(t,inPh)=>`<li class="mi ${t.status}${jd(t.id)}" style="--dc:${tcol(t)}"><button type="button" class="mt" data-task="${t.id}"><span class="md">${t.due?when(t):"—"}${relDue(t)}</span><span class="mtt"${canEdit(t)?' title="Double-click to rename"':""}>${esc(t.title)}</span><span class="mo">${pills(t,{dept:all?null:cur,ph:!inPh})}</span>${extras(t)}</button><select class="st ${t.status}" data-st="${t.id}" aria-label="Status"${canTask(t)?"":" disabled"}>${Object.entries(ST).map(([v,l])=>`<option value="${v}"${v===t.status?" selected":""}>${l}</option>`).join("")}</select></li>`;
   const MFOLD=3, more=(k,n,closed)=>`<li class="mmw"><button type="button" class="mmore" data-mmore="${k}" aria-expanded="${!closed}">${closed?`Show ${n-MFOLD} more`:"Show less"}</button></li>`;
-  const flat=(k,l,a)=>a.length?`<section class="mg ${k}"><h2>${l} <span class="n">${a.length}</span></h2><ul>${a.map(item).join("")}</ul></section>`:"";
+  // every list shows its first 3 tasks until "Show more"
+  const flat=(k,l,a)=>{ if(!a.length) return ""; const fold=a.length>MFOLD+1, closed=fold&&!mOpen.has(k);
+    return `<section class="mg ${k}"><h2>${l} <span class="n">${a.length}</span></h2><ul>${(closed?a.slice(0,MFOLD):a).map(t=>item(t)).join("")}${fold?more(k,a.length,closed):""}</ul></section>`; };
+  // later phases: only the first one with tasks starts open; the rest are a header with a count (tap to open)
+  const firstPh=PH.findIndex((p,i)=>phVis(i)&&later.some(t=>t.phase===i));
   const phases=PH.map((p,i)=>{ if(!phVis(i)) return ""; const a=later.filter(t=>t.phase===i); if(!a.length) return "";
-    const k="p"+i, fold=a.length>MFOLD+1, closed=fold&&!mOpen.has(k), list=closed?a.slice(0,MFOLD):a;
-    const ts=T.filter(t=>t.phase===i), d=ts.filter(t=>t.status==="dn").length;
-    let html="", m=null; list.forEach(t=>{ const mk=monKey(t.due); if(mk!==m){ if(m) html+="</ul>"; html+=`<h3 class="mmon">${monLabel(mk)}</h3><ul>`; m=mk; } html+=item(t); }); if(m) html+="</ul>";
+    const k="p"+i, ts=T.filter(t=>t.phase===i), d=ts.filter(t=>t.status==="dn").length;
+    const shut=(i===firstPh)===mOpen.has("h"+i), head=`<h2><button type="button" class="mphh" data-mph="${i}" aria-expanded="${!shut}">${p[0]} <small>${p[1]} · ${d} of ${ts.length} done</small> <span class="n">${a.length}</span></button></h2>`;
+    if(shut) return `<section class="mg mph ${k} shut" id="mph${i}" data-shut="1">${head}</section>`;
+    const fold=a.length>MFOLD+1, closed=fold&&!mOpen.has(k), list=closed?a.slice(0,MFOLD):a;
+    let html="", m=null; list.forEach(t=>{ const mk=monKey(t.due); if(mk!==m){ if(m) html+="</ul>"; html+=`<h3 class="mmon">${monLabel(mk)}</h3><ul>`; m=mk; } html+=item(t,true); }); if(m) html+="</ul>";
     if(fold) html+=`<ul>${more(k,a.length,closed)}</ul>`;
-    return `<section class="mg mph ${k}" id="mph${i}"><h2>${p[0]} <small>${p[1]} · ${d} of ${ts.length} done</small> <span class="n">${a.length}</span></h2>${html}</section>`; }).join("");
+    return `<section class="mg mph ${k}" id="mph${i}">${head}${html}</section>`; }).join("");
   const empty = !T.length && isAdmin() && !tasks.length ? `<p class="mempty">No tasks yet.</p><button type="button" class="pri" id="seed2">Load the 46 starter tasks</button>`
     : '<p class="mempty">Nothing open here. 🎉</p>';
   $("mlist").innerHTML=(open.length? flat("over","Overdue",over)+flat("week","Due in the next 7 days",week)+phases+flat("nod","No date",nod) : empty)
-    +(done.length?`<details class="mdone"><summary>Done (${done.length})</summary><ul style="list-style:none;padding:0;display:grid;gap:8px;margin-top:8px">${done.map(item).join("")}</ul></details>`:"");
+    +(done.length?`<details class="mdone"><summary>Done (${done.length})</summary><ul style="list-style:none;padding:0;display:grid;gap:8px;margin-top:8px">${done.map(t=>item(t)).join("")}</ul></details>`:"");
   if($("seed2")) $("seed2").onclick=()=>$("seed").click();
   if(reveal&&motion()) $("mlist").querySelectorAll(`.mg.${reveal} li.mi`).forEach((li,i)=>{ if(i>=MFOLD){ li.classList.add("mrev"); li.style.animationDelay=Math.min(i-MFOLD,12)*35+"ms"; } });
   renderFeed(); }
+const togglePh=i=>{ const k="h"+i; if(mOpen.has(k)) mOpen.delete(k); else mOpen.add(k); renderMine(); };
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-mph]"); if(b) togglePh(b.dataset.mph); });
 document.addEventListener("click",e=>{ const b=e.target.closest("[data-mmore]"); if(!b) return; const k=b.dataset.mmore;
   if(mOpen.has(k)){ mOpen.delete(k); renderMine(); $("mlist").querySelector(`.mg.${k}`)?.scrollIntoView({block:"nearest",behavior:motion()?"smooth":"auto"}); }
   else { mOpen.add(k); mReveal=k; renderMine(); } });

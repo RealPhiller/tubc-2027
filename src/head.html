@@ -892,6 +892,30 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
 .annline{flex-wrap:wrap;gap:6px 16px}.annline .gchk{display:inline-flex;align-items:center;gap:6px;font-size:14px}
 .annline input[type=checkbox]{width:18px;height:18px;min-height:0;min-width:0;margin:0}
 .annlq,.annls{flex-basis:100%;font-size:12.5px;color:var(--mute)}.annls{color:var(--ink)}.annls.bad{color:#c8302d}
+
+/* Tasks page, simple top: Mine / Everyone chips, a small department picker, and the phases folded into one line */
+.mscope{display:flex;gap:6px}
+.mscope button{min-height:40px;padding:0 16px;border-radius:99px;border:1.5px solid rgba(255,255,255,.55);background:transparent;color:#fff;font:700 15px "Red Hat Text",sans-serif;cursor:pointer}
+.mscope button.on{background:#fff;color:#17120f;border-color:#fff}
+#v-mine .mselw select{min-height:40px;border-radius:99px;border:1.5px solid rgba(255,255,255,.55);background:transparent;color:#fff;font:600 15px "Red Hat Text",sans-serif;padding:0 12px}
+#v-mine .mselw select.on{background:#fff;color:#17120f;border-color:#fff}
+#v-mine .mselw select option{color:#17120f}
+.phnow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;min-height:44px;padding:8px 14px;border:0;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font:inherit;text-align:left;cursor:pointer;max-width:520px;width:100%}
+.phnow b{font:700 15px "Red Hat Text",sans-serif}.phnow span{font-size:14px;opacity:.85}
+.phnow i{font-style:normal;margin-left:auto;font-size:13px;font-weight:700;opacity:.9}
+.phnow[aria-expanded="false"] i::after{content:" \25BE"}.phnow[aria-expanded="true"] i::after{content:" \25B4"}
+.line[hidden]{display:none}
+#v-mine .line{margin-top:40px}
+.mo:empty{display:none}
+.mph h2{margin:0}
+.mphh{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;min-height:44px;cursor:pointer;font:700 18px "Red Hat Display",sans-serif;border-radius:8px}
+.mphh small{font:500 13px "Red Hat Text",sans-serif;color:var(--mute)}
+.mphh .n{font:600 13px "Red Hat Text",sans-serif;background:rgba(0,0,0,.08);border-radius:99px;padding:1px 9px}
+.mphh::after{content:"\25BE";margin-left:auto;font-size:14px;color:var(--mute);transition:transform .2s}
+.mphh[aria-expanded="true"]::after{transform:rotate(180deg)}
+.mphh:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.mph.shut{margin-bottom:6px;border-bottom:1px solid var(--line)}
+.mph:not(.shut) .mphh{margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -957,12 +981,12 @@ dialog.dout::backdrop{animation:bdout .17s ease-in forwards}
 <header class="band top"><div class="wrap">
   <h1>Tasks</h1>
   <p class="sub" id="msum">What needs to happen next.</p>
-  <div class="mtools"><label class="mselw">Show <select id="mdept" aria-label="Whose tasks"></select></label>
-  <label class="gchk mchk" id="mallw"><input type="checkbox" id="mall" checked> Include tasks for everyone</label>
+  <div class="mtools"><div class="mscope" id="mscope" role="group" aria-label="Whose tasks"></div>
+  <label class="mselw"><select id="mdept" aria-label="Another department"></select></label>
   <button type="button" class="tsearch" id="tsearch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search tasks</span><kbd>Ctrl K</kbd></button>
   <button type="button" class="madd" id="madd" hidden>+ Add task</button></div>
-  <div class="mbar" aria-hidden="true"><i id="mbarf"></i></div>
-  <div class="line" id="line"></div>
+  <button type="button" class="phnow" id="phnow" aria-expanded="false" aria-controls="line"></button>
+  <div class="line" id="line" hidden></div>
 </div></header>
 <main class="band"><div class="wrap mgrid">
   <div class="mens feed" id="mens" hidden><h2>Mentions <span class="badge" id="mencnt" hidden></span></h2><p class="fsub">Comments that tag you.</p><ul id="menl"></ul></div>
